@@ -7,13 +7,9 @@ SWP391 - Software Project
 
 A web-based system for managing racehorse profiles, training, medical records, and related activities.
 
-## Main Features
+## Documents
 
-- Horse Profile & History
-- Training & Training Evaluation
-- Medical & Injury Treatment
-- Stable Care & Daily Nutrition
-- Competition Registration & Performance Report
+https://docs.google.com/spreadsheets/d/1Lvt5olaitrGitI21ocxcncGpBv1YzI1S/edit?gid=1322017341#gid=1322017341
 
 ## Team Rules
 
