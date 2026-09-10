@@ -7,7 +7,7 @@
 
 | Thành viên | Vai trò chính | Trách nhiệm |
 |---|---|---|
-| Nguyễn Đình Nhất Định | Team Leader / BA | Quản lý tiến độ, phân công task, requirement, điều phối, integration và liên hệ GVHD. |
+| Nguyễn Đình Nhất Định | Team Leader / BA | Quản lý tiến độ, phân công task, requirement, điều phối, integration. |
 | Phạm Thế Cường | Horse Management | Flow 1 — Quản lý Hồ sơ & Lý lịch Ngựa. |
 | Đào Trọng Tấn | Training Management | Flow 2 — Lập & Thực hiện Giáo án Huấn luyện. |
 | Lê Quang Hải | Medical Management | Flow 3 — Quản lý Y tế & Xử lý Chấn thương. |
