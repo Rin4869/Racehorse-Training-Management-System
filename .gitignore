@@ -1,0 +1,32 @@
+# Java
+*.class
+
+# Build
+build/
+dist/
+target/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/.nb-gradle/
+
+# VS Code (nếu sau này có thành viên dùng)
+/.vscode/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
