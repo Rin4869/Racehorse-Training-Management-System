@@ -12,7 +12,7 @@ target/
 /dist/
 /.nb-gradle/
 
-# VS Code (nếu sau này có thành viên dùng)
+# VS Code
 /.vscode/
 
 # IntelliJ
