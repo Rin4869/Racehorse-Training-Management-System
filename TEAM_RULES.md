@@ -7,29 +7,29 @@
 
 | Thành viên | Vai trò chính | Trách nhiệm |
 |---|---|---|
-| Nguyễn Đình Nhất Định | Team Leader / BA | Quản lý tiến độ, phân công task, requirement, điều phối, integration. |
+| Nguyễn Đình Nhất Định | Team Leader | Quản lý tiến độ, phân công task, requirement, điều phối, integration. |
 | Phạm Thế Cường | Horse Management | Flow 1 — Quản lý Hồ sơ & Lý lịch Ngựa. |
 | Đào Trọng Tấn | Training Management | Flow 2 — Lập & Thực hiện Giáo án Huấn luyện. |
 | Lê Quang Hải | Medical Management | Flow 3 — Quản lý Y tế & Xử lý Chấn thương. |
-| Huỳnh Quốc Bình | Frontend / QA | UI, validation, testing, integration và hỗ trợ các module. |
+| Huỳnh Quốc Bình | Frontend / BA | UI, validation, testing, integration và hỗ trợ các module. |
 
-- Phân công trên xác định trách nhiệm chính; các thành viên có thể hỗ trợ lẫn nhau khi cần.
+- Các thành viên có thể hỗ trợ lẫn nhau khi cần.
 
 ---
 
 ## 2. Quy tắc họp nhóm
 
 - Họp nhóm 2 buổi/tuần.
-- Nếu không thể tham gia, thành viên phải báo trước cho nhóm.
+- Nếu có việc bận hoặc không thể tham gia, thành viên phải báo trước cho leader.
 - Thành viên phải cập nhật tiến độ và các vấn đề đang gặp phải.
-- Sau mỗi buổi họp phải ghi lại quyết định, task được giao và deadline.
+- Sau mỗi buổi họp sẽ ghi lại quyết định, task được giao và deadline.
 
 ---
 
 ## 3. Quy tắc giao tiếp
 
-- Google meet là kênh giao tiếp chính cho công việc nhóm.
-- Phản hồi tin nhắn liên quan đến project trong vòng 12 giờ.
+- Google meet là kênh giao tiếp chính cho các công việc của nhóm.
+- Phản hồi tin nhắn liên quan đến project trong ngày.
 - Thay đổi scope, deadline hoặc requirement phải được thông báo trong group.
 - Báo sớm khi gặp vấn đề hoặc có nguy cơ trễ deadline.
 
@@ -37,10 +37,10 @@
 
 ## 4. Quy tắc Task & Deadline
 
-- Mỗi task phải có người phụ trách, nội dung và deadline cụ thể.
-- Quản lý task bằng GitHub Projects.
-- Deadline nội bộ phải sớm hơn deadline chính thức ít nhất 1–2 ngày.
-- Không tự ý bỏ task hoặc thay đổi deadline mà không thông báo nhóm.
+- Mỗi task sẽ phân công người phụ trách, nội dung và deadline cụ thể.
+- Quản lí project bằng github.
+- Deadline nội bộ phải sớm hơn deadline chính thức 1 ngày.
+- Không tự ý bỏ task hoặc thay đổi deadline mà không thông báo.
 
 ---
 
@@ -58,12 +58,12 @@
 ## 6. Quy tắc Git & Version Control
 
 - Sử dụng một repository GitHub chung.
-- Không push trực tiếp lên main/develop.
+- Không push trực tiếp lên main.
 - Mỗi feature/module sử dụng một branch riêng.
 - Quy trình: Pull → Branch → Code → Test → Commit → Push → Pull Request → Review → Merge.
 - Mỗi Pull Request nhóm sẽ họp trước khi merge.
 - Không dồn integration đến cuối project; phải merge và kiểm tra thường xuyên.
-- Không tự ý thay đổi Database, Model, DTO hoặc API dùng chung.
+- Không tự ý thay đổi dữ liệu dùng chung.
 
 ---
 
