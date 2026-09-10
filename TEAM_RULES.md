@@ -19,7 +19,7 @@
 
 ## 2. Quy tắc họp nhóm
 
-- Họp nhóm 2 buổi/tuần, tối đa 45 phút/buổi.
+- Họp nhóm 2 buổi/tuần.
 - Nếu không thể tham gia, thành viên phải báo trước cho nhóm.
 - Thành viên phải cập nhật tiến độ và các vấn đề đang gặp phải.
 - Sau mỗi buổi họp phải ghi lại quyết định, task được giao và deadline.
@@ -28,7 +28,7 @@
 
 ## 3. Quy tắc giao tiếp
 
-- Sử dụng một kênh giao tiếp chính cho công việc nhóm.
+- Google meet là kênh giao tiếp chính cho công việc nhóm.
 - Phản hồi tin nhắn liên quan đến project trong vòng 12 giờ.
 - Thay đổi scope, deadline hoặc requirement phải được thông báo trong group.
 - Báo sớm khi gặp vấn đề hoặc có nguy cơ trễ deadline.
@@ -38,7 +38,7 @@
 ## 4. Quy tắc Task & Deadline
 
 - Mỗi task phải có người phụ trách, nội dung và deadline cụ thể.
-- Quản lý task bằng Trello, Notion hoặc GitHub Projects.
+- Quản lý task bằng GitHub Projects.
 - Deadline nội bộ phải sớm hơn deadline chính thức ít nhất 1–2 ngày.
 - Không tự ý bỏ task hoặc thay đổi deadline mà không thông báo nhóm.
 
@@ -61,7 +61,7 @@
 - Không push trực tiếp lên main/develop.
 - Mỗi feature/module sử dụng một branch riêng.
 - Quy trình: Pull → Branch → Code → Test → Commit → Push → Pull Request → Review → Merge.
-- Mỗi Pull Request phải có ít nhất 1 thành viên review trước khi merge.
+- Mỗi Pull Request nhóm sẽ họp trước khi merge.
 - Không dồn integration đến cuối project; phải merge và kiểm tra thường xuyên.
 - Không tự ý thay đổi Database, Model, DTO hoặc API dùng chung.
 
@@ -89,8 +89,7 @@
 
 - Ưu tiên thảo luận dựa trên requirement và bằng chứng kỹ thuật.
 - Tập trung giải quyết vấn đề, không công kích cá nhân.
-- Nếu không thống nhất, Leader điều phối và đưa ra quyết định.
-- Nếu vấn đề liên quan requirement và không thể giải quyết, hỏi GVHD.
+- Nếu không thống nhất, Leader sẽ điều phối và đưa ra quyết định.
 
 ---
 
@@ -111,6 +110,4 @@
 
 ---
 
-## NGUYÊN TẮC CỐT LÕI
 
-**Hoàn thành → Kiểm thử → Integration 3 Flow REQUIRED → Sau đó mới thực hiện Flow OPTIONAL.**
