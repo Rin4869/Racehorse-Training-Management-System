@@ -1,5 +1,5 @@
 # QUY TẮC NHÓM — SWP391
-### Đề tài: Racehorse Training & Management System
+### Topic: Racehorse Training & Management System
 
 ---
 
