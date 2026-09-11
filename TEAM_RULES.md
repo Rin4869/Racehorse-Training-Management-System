@@ -26,7 +26,7 @@
 
 ---
 
-## 3. Quy tắc giao tiếp
+## 3. Quy tắc giao tiếp giữa các thành viên
 
 - Google meet là kênh giao tiếp chính cho các công việc của nhóm.
 - Phản hồi tin nhắn liên quan đến project trong ngày.
@@ -35,7 +35,7 @@
 
 ---
 
-## 4. Quy tắc Task & Deadline
+## 4. Task & Deadline
 
 - Mỗi task sẽ phân công người phụ trách, nội dung và deadline cụ thể.
 - Quản lí project bằng github.
@@ -55,7 +55,7 @@
 
 ---
 
-## 6. Quy tắc Git & Version Control
+## 6. Git & Version Control
 
 - Sử dụng một repository GitHub chung.
 - Không push trực tiếp lên main.
@@ -67,7 +67,7 @@
 
 ---
 
-## 7. Quy tắc Code Quality & Testing
+## 7. Code Quality & Testing
 
 - Code phải build/compile thành công trước khi tạo Pull Request.
 - Feature phải được test trước khi merge.
@@ -77,7 +77,7 @@
 
 ---
 
-## 8. Quy tắc Database & Shared Components
+## 8. Database & Shared Components
 
 - Các thành phần dùng chung như Horse, User, Training, Health Record và Treatment phải được thống nhất.
 - Thay đổi database, field, relationship hoặc API phải được trao đổi với thành viên liên quan.
@@ -85,7 +85,7 @@
 
 ---
 
-## 9. Quy tắc Giải quyết Mâu thuẫn
+## 9. Conflicts
 
 - Ưu tiên thảo luận dựa trên requirement và bằng chứng kỹ thuật.
 - Tập trung giải quyết vấn đề, không công kích cá nhân.
@@ -93,7 +93,7 @@
 
 ---
 
-## 10. Quy tắc Đóng góp & Trách nhiệm
+## 10. Đóng góp & Trách nhiệm
 
 - Mỗi thành viên phải có đóng góp rõ ràng và có thể kiểm chứng.
 - Contribution có thể thể hiện qua code, Git, database, diagram, documentation, testing hoặc công việc liên quan.
