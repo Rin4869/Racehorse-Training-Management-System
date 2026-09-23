@@ -1,0 +1,18 @@
+# Optional: run PostgreSQL via Docker instead of the local portable install.
+# The team currently uses the local install (scripts/pg-start.ps1); this file is
+# kept so anyone with Docker Desktop can `docker compose up -d db` instead.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: racehorse
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

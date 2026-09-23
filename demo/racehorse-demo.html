@@ -1,0 +1,1367 @@
+<title>Racehorse Club</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ============ Tokens ============ */
+:root{
+  color-scheme: light;
+  --bg:#f3efe3; --surface:#fffdf8; --surface-2:#eae3cd; --stripe:rgba(28,35,27,0.025);
+  --ink:#1c231b; --ink-2:#4b5245; --muted:#7c7f6c;
+  --border:#ddd4b7; --border-soft:#e9e2ca;
+  --rail:#12251d; --rail-ink:#f3efe3; --rail-ink-dim:rgba(243,239,230,0.58);
+  --rail-hover:rgba(243,239,230,0.08); --rail-active:rgba(196,148,58,0.20); --rail-border:rgba(243,239,230,0.1);
+  --accent:#a97327; --accent-ink:#fffdf8; --accent-soft:#f3e2c2; --accent-soft-ink:#7a5119;
+  --success:#2f6b3f; --success-bg:#e3efdd; --success-bd:#c3dab8;
+  --warning:#8f6310; --warning-bg:#f6ecce; --warning-bd:#e3cd8c;
+  --danger:#a13b2a; --danger-bg:#f7e0d7; --danger-bd:#e8b8a4;
+  --info:#2c5c8a; --info-bg:#e1ebf5; --info-bd:#b9d0e6;
+  --shadow-sm:0 1px 2px rgba(28,35,27,0.07);
+  --shadow-md:0 6px 20px rgba(28,35,27,0.10), 0 1px 3px rgba(28,35,27,0.08);
+  --radius:10px; --radius-sm:7px;
+  --font-display:'Fraunces',Georgia,'Times New Roman',serif;
+  --font-body:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#14180f; --surface:#1c2216; --surface-2:#252c1c; --stripe:rgba(238,240,230,0.02);
+    --ink:#edf0e4; --ink-2:#c2c7b3; --muted:#8b9077;
+    --border:#333a26; --border-soft:#2a3120;
+    --rail:#0c150e; --rail-ink:#edf0e4; --rail-ink-dim:rgba(237,240,228,0.55);
+    --rail-hover:rgba(237,240,228,0.08); --rail-active:rgba(214,163,70,0.22); --rail-border:rgba(237,240,228,0.08);
+    --accent:#d6a346; --accent-ink:#14180a; --accent-soft:#3a2c12; --accent-soft-ink:#f0d29c;
+    --success:#84c98f; --success-bg:#1e3221; --success-bd:#2f4a30;
+    --warning:#e2b658; --warning-bg:#3a2f13; --warning-bd:#59481c;
+    --danger:#e58e79; --danger-bg:#3a1f18; --danger-bd:#5c2e22;
+    --info:#84b3de; --info-bg:#1b2836; --info-bd:#2a3c50;
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+    --shadow-md:0 10px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#14180f; --surface:#1c2216; --surface-2:#252c1c; --stripe:rgba(238,240,230,0.02);
+  --ink:#edf0e4; --ink-2:#c2c7b3; --muted:#8b9077;
+  --border:#333a26; --border-soft:#2a3120;
+  --rail:#0c150e; --rail-ink:#edf0e4; --rail-ink-dim:rgba(237,240,228,0.55);
+  --rail-hover:rgba(237,240,228,0.08); --rail-active:rgba(214,163,70,0.22); --rail-border:rgba(237,240,228,0.08);
+  --accent:#d6a346; --accent-ink:#14180a; --accent-soft:#3a2c12; --accent-soft-ink:#f0d29c;
+  --success:#84c98f; --success-bg:#1e3221; --success-bd:#2f4a30;
+  --warning:#e2b658; --warning-bg:#3a2f13; --warning-bd:#59481c;
+  --danger:#e58e79; --danger-bg:#3a1f18; --danger-bd:#5c2e22;
+  --info:#84b3de; --info-bg:#1b2836; --info-bd:#2a3c50;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 10px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.4);
+}
+
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;margin:0;text-wrap:balance;color:var(--ink);}
+p{margin:0;}
+a{color:var(--info);}
+button{font-family:inherit;}
+input,select,textarea{font-family:inherit;font-size:13.5px;}
+::selection{background:var(--accent-soft);color:var(--accent-soft-ink);}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.mono{font-family:var(--font-mono);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ============ Shell ============ */
+#root{display:flex;min-height:100vh;width:100%;}
+.rail{width:236px;flex-shrink:0;background:var(--rail);color:var(--rail-ink);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.rail-brand{padding:22px 20px 16px;border-bottom:1px solid var(--rail-border);}
+.rail-brand .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 5px;}
+.rail-brand h1{font-size:17px;color:var(--rail-ink);line-height:1.25;}
+.rail-brand .sub{font-size:11px;color:var(--rail-ink-dim);margin-top:4px;font-family:var(--font-mono);}
+.rail-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:1px;}
+.rail-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--rail-ink-dim);padding:14px 10px 6px;}
+.rail-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:var(--rail-ink-dim);font-size:13.5px;font-weight:500;text-align:left;cursor:pointer;position:relative;width:100%;}
+.rail-item:hover{background:var(--rail-hover);color:var(--rail-ink);}
+.rail-item.active{background:var(--rail-active);color:var(--rail-ink);font-weight:600;}
+.rail-item.active::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--accent);}
+.rail-item .ico{width:16px;text-align:center;flex-shrink:0;opacity:.9;}
+.rail-item .count{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:8px;min-width:17px;height:17px;padding:0 5px;display:flex;align-items:center;justify-content:center;}
+.rail-foot{padding:14px 20px 18px;border-top:1px solid var(--rail-border);font-size:11px;color:var(--rail-ink-dim);line-height:1.5;}
+.rail-foot strong{color:var(--rail-ink);}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{height:58px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px;position:sticky;top:0;z-index:20;}
+.topbar h2{font-size:16px;flex:1;min-width:0;}
+.topbar .crumb{font-size:12px;color:var(--muted);font-family:var(--font-mono);}
+.page{padding:26px 28px 60px;max-width:1180px;}
+
+/* persona + bell */
+.pop-wrap{position:relative;}
+.persona-btn{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:5px 10px 5px 6px;cursor:pointer;color:var(--ink);}
+.avatar{width:24px;height:24px;border-radius:50%;background:var(--rail);color:var(--accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-mono);}
+.persona-btn .name{font-size:12.5px;font-weight:600;}
+.persona-btn .role{font-size:10.5px;color:var(--muted);}
+.persona-btn .car{font-size:9px;color:var(--muted);margin-left:2px;}
+.menu{position:absolute;top:calc(100% + 7px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-md);width:264px;overflow:hidden;z-index:60;}
+.menu-head{padding:10px 14px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border-soft);}
+.menu-item{display:flex;align-items:center;gap:9px;width:100%;border:none;background:none;padding:9px 14px;cursor:pointer;color:var(--ink);text-align:left;}
+.menu-item:hover{background:var(--stripe);}
+.menu-item.current{background:var(--accent-soft);}
+.menu-item .m-name{font-size:12.5px;font-weight:600;}
+.menu-item .m-role{font-size:11px;color:var(--muted);}
+.bell-btn{position:relative;width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;}
+.bell-btn .dot{position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:var(--danger);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
+.notif-panel{width:360px;max-height:420px;overflow-y:auto;}
+.notif-row{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-bottom:1px solid var(--border-soft);cursor:pointer;}
+.notif-row:last-child{border-bottom:none;}
+.notif-row:hover{background:var(--stripe);}
+.notif-row .n-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.notif-row .n-title{font-size:12.5px;font-weight:600;margin:0;}
+.notif-row .n-msg{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45;}
+.notif-row .n-time{font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:4px;}
+.notif-empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:12.5px;}
+
+/* ============ Building blocks ============ */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+.kpi-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 16px;}
+.kpi-tile .k-num{font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1;}
+.kpi-tile .k-label{font-size:11.5px;color:var(--muted);margin-top:7px;font-weight:500;}
+.kpi-tile.alert .k-num{color:var(--danger);}
+.kpi-tile.warn .k-num{color:var(--warning);}
+.kpi-tile.ok .k-num{color:var(--success);}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;}
+.panel-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);}
+.panel-head h3{font-size:14.5px;flex:1;}
+.panel-head .hint{font-size:11.5px;color:var(--muted);}
+.panel-body{padding:16px 18px;}
+.panel-body.flush{padding:0;}
+.two-col{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start;}
+@media (max-width:880px){.two-col{grid-template-columns:1fr;}}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2.5px 8px;font-size:10.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap;line-height:1.5;border:1px solid transparent;}
+.pill-success{background:var(--success-bg);color:var(--success);border-color:var(--success-bd);}
+.pill-warning{background:var(--warning-bg);color:var(--warning);border-color:var(--warning-bd);}
+.pill-danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-bd);}
+.pill-info{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
+.pill-neutral{background:var(--surface-2);color:var(--ink-2);border-color:var(--border);}
+
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.search-input{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--ink);}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{border:1px solid var(--border);background:var(--surface);color:var(--ink-2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.chip.active{background:var(--rail);color:var(--rail-ink);border-color:var(--rail);}
+
+.list-row{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid var(--border-soft);cursor:pointer;}
+.list-row:last-child{border-bottom:none;}
+.list-row:hover{background:var(--stripe);}
+.h-avatar{width:38px;height:38px;border-radius:9px;background:var(--surface-2);color:var(--ink-2);font-family:var(--font-display);font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.list-row .l-main{flex:1;min-width:0;}
+.list-row .l-title{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.list-row .l-sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.list-row .l-meta{text-align:right;flex-shrink:0;}
+.lock-tag{display:inline-flex;align-items:center;gap:3px;color:var(--danger);font-size:10.5px;font-weight:700;}
+.empty-state{padding:40px 20px;text-align:center;color:var(--muted);}
+.empty-state .e-icon{font-size:26px;margin-bottom:8px;opacity:.6;}
+.empty-state p{font-size:12.5px;}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:600;padding:8px 14px;cursor:pointer;white-space:nowrap;}
+.btn:hover{background:var(--stripe);}
+.btn-primary{background:var(--rail);color:var(--rail-ink);border-color:var(--rail);}
+.btn-primary:hover{filter:brightness(1.2);}
+.btn-accent{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-bd);}
+.btn-sm{padding:5px 10px;font-size:11.5px;border-radius:6px;}
+.btn[disabled]{opacity:.45;cursor:not-allowed;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* detail header */
+.detail-back{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:12.5px;font-weight:600;margin-bottom:14px;cursor:pointer;border:none;background:none;padding:0;}
+.detail-back:hover{color:var(--ink);}
+.detail-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;}
+.detail-avatar{width:60px;height:60px;border-radius:12px;background:var(--surface-2);color:var(--ink-2);font-family:var(--font-display);font-weight:600;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.detail-head h2{font-size:21px;}
+.detail-sub{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.detail-tags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
+.detail-actions{margin-left:auto;display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+
+.lock-banner{display:flex;gap:10px;align-items:flex-start;background:var(--danger-bg);border:1px solid var(--danger-bd);color:var(--danger);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:16px;font-size:12.5px;}
+.lock-banner b{display:block;font-size:13px;margin-bottom:2px;}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto;}
+.tab{border:none;background:none;padding:10px 4px;margin-right:20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--ink);border-bottom-color:var(--accent);}
+
+.field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px 22px;}
+.field label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.field .value{font-size:13.5px;font-weight:500;}
+.field .value.muted{color:var(--muted);font-weight:400;}
+
+/* forms */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;}
+.form-grid.one{grid-template-columns:1fr;}
+.f-item{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.f-item.span2{grid-column:1/-1;}
+.f-item label{font-size:11.5px;font-weight:600;color:var(--ink-2);}
+.f-item input,.f-item select,.f-item textarea{border:1px solid var(--border);border-radius:7px;padding:8px 10px;background:var(--bg);color:var(--ink);font-size:13px;width:100%;}
+.f-item textarea{resize:vertical;min-height:64px;font-family:inherit;}
+.f-item .hint{font-size:11px;color:var(--muted);}
+.f-check{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft);}
+.form-error{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-bd);border-radius:7px;padding:8px 11px;font-size:12px;margin-bottom:12px;}
+
+/* pedigree */
+.ped-tree{display:flex;flex-direction:column;gap:22px;align-items:center;padding:10px 0 4px;}
+.ped-row{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;width:100%;}
+.ped-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;min-width:150px;text-align:center;position:relative;}
+.ped-card.self{border-color:var(--accent);background:var(--accent-soft);}
+.ped-card .p-name{font-size:12.5px;font-weight:700;}
+.ped-card .p-role{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.ped-card .p-fit{font-size:10.5px;color:var(--muted);margin-top:3px;font-family:var(--font-mono);}
+.ped-card.empty{border-style:dashed;color:var(--muted);font-size:11.5px;}
+.ped-gen-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:-8px;}
+
+/* stat blocks for race history */
+.race-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-soft);}
+.race-row:last-child{border-bottom:none;}
+.race-pos{width:30px;height:30px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;flex-shrink:0;}
+.race-pos.win{background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning-bd);}
+
+/* table (races/admin) */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.tbl th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 14px;border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl-wrap{overflow-x:auto;}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(12,16,10,0.5);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;z-index:100;overflow-y:auto;}
+.modal{background:var(--surface);border-radius:var(--radius);width:100%;max-width:540px;box-shadow:var(--shadow-md);margin-bottom:5vh;}
+.modal-head{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-head h3{font-size:15px;flex:1;}
+.modal-close{border:none;background:none;font-size:18px;color:var(--muted);cursor:pointer;line-height:1;padding:4px;}
+.modal-body{padding:18px 20px;}
+.modal-body p.lead{font-size:13px;color:var(--ink-2);margin-bottom:14px;line-height:1.55;}
+
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--rail);color:var(--rail-ink);border-radius:9px;padding:11px 16px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:8px;animation:toastin .18s ease-out;}
+.toast .t-ico{color:var(--accent);}
+@keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.role-note{background:var(--info-bg);color:var(--info);border:1px solid var(--info-bd);border-radius:8px;padding:9px 12px;font-size:12px;margin-bottom:16px;}
+
+/* live-API connection state (unused in this offline mock build, harmless) */
+.boot-screen{min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px;}
+.boot-card{max-width:440px;text-align:center;}
+.spinner{width:30px;height:30px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);margin:0 auto 16px;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.boot-card h2{font-size:16px;margin-bottom:8px;}
+.boot-card p{font-size:12.5px;color:var(--muted);line-height:1.6;}
+.boot-card .mono{display:block;margin-top:10px;background:var(--surface-2);border-radius:6px;padding:8px 10px;word-break:break-all;text-align:left;}
+.boot-card ul{text-align:left;font-size:12px;color:var(--ink-2);margin:12px 0 0;padding-left:18px;line-height:1.7;}
+.conn-banner{display:flex;gap:10px;align-items:flex-start;background:var(--danger-bg);border:1px solid var(--danger-bd);color:var(--danger);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:16px;font-size:12.5px;line-height:1.55;}
+.conn-banner b{display:block;margin-bottom:2px;}
+.conn-banner .mono{font-size:11.5px;}
+.settings-btn{width:100%;display:flex;align-items:center;gap:7px;justify-content:center;background:transparent;border:1px solid var(--rail-border);color:var(--rail-ink-dim);border-radius:7px;padding:7px 10px;font-size:11.5px;font-weight:600;cursor:pointer;margin-top:10px;}
+.settings-btn:hover{color:var(--rail-ink);border-color:var(--rail-ink-dim);}
+.busy{opacity:.55;pointer-events:none;}
+.dot-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:5px;flex-shrink:0;}
+.top-spinner{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin .7s linear infinite;flex-shrink:0;}
+
+@media (max-width:760px){
+  .rail{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .2s;z-index:80;}
+  .rail.open{transform:translateX(0);}
+  .page{padding:18px 16px 50px;}
+  .detail-head{flex-wrap:wrap;}
+  .detail-actions{margin-left:0;justify-content:flex-start;}
+  .form-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<div id="root"></div>
+<div id="modal-root"></div>
+<div class="toast-wrap" id="toast-root"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================================
+   Racehorse Club — demo build.
+   Standalone client-side mock of the real Racehorse Training & Management
+   System (NestJS + Prisma API, 8 phases already implemented). No backend
+   calls here — every action mutates in-memory state, matching the same
+   roles, entities, statuses and business rules the real API enforces.
+   Want it wired to the real running API instead? See
+   demo/racehorse-demo-live.html (same UI, real fetch() calls, needs
+   apps/api + PostgreSQL running).
+   ========================================================================= */
+
+/* ---------- tiny helpers ---------- */
+var uidCounters = {};
+function uid(prefix){ uidCounters[prefix] = (uidCounters[prefix]||0)+1; return prefix+'-'+uidCounters[prefix]; }
+function daysFromNow(n){ var d=new Date(); d.setDate(d.getDate()+n); return d; }
+function iso(d){ return d.toISOString(); }
+function fmtDate(v){ if(!v) return '—'; var d=new Date(v); return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function fmtDateTime(v){ if(!v) return '—'; var d=new Date(v); return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})+' · '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
+function fmtRel(v){
+  var diffMs = new Date(v).getTime() - Date.now();
+  var mins = Math.round(diffMs/60000);
+  var days = Math.round(diffMs/86400000);
+  if (Math.abs(mins) < 60) return mins===0?'vừa xong':(mins>0?'sau '+mins+' phút':'trước '+(-mins)+' phút');
+  if (Math.abs(days) < 1) { var hrs=Math.round(diffMs/3600000); return hrs>0?'sau '+hrs+' giờ':'trước '+(-hrs)+' giờ'; }
+  return days>0 ? 'sau '+days+' ngày' : 'trước '+(-days)+' ngày';
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function initials(name){ var p=(name||'').trim().split(/\s+/); return ((p[0]||'')[0]||'')+((p[p.length-1]||'')[0]||''); }
+function byId(arr,id){ for (var i=0;i<arr.length;i++){ if(arr[i].id===id) return arr[i]; } return null; }
+function pushToast(msg, icon){
+  var root = document.getElementById('toast-root');
+  var el = document.createElement('div');
+  el.className='toast';
+  el.innerHTML = '<span class="t-ico">'+(icon||'✓')+'</span><span>'+esc(msg)+'</span>';
+  root.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3400);
+}
+
+/* ---------- domain vocabulary (mirrors the real API's enums) ---------- */
+var ROLE_LABEL = { MANAGER:'Quản lý CLB', TRAINER:'Huấn luyện viên', VET:'Bác sĩ thú y', GROOM:'Người chăm ngựa', OWNER:'Chủ sở hữu' };
+var ROLE_SHORT = { MANAGER:'Quản lý', TRAINER:'HLV', VET:'Thú y', GROOM:'Chăm ngựa', OWNER:'Chủ ngựa' };
+var HORSE_STATUS = { ACTIVE:{l:'Đang tập luyện',k:'success'}, RESTING:{l:'Đang nghỉ',k:'warning'}, RETIRED:{l:'Đã giải nghệ',k:'neutral'} };
+var SESSION_STATUS = { PLANNED:{l:'Đã lên lịch',k:'info'}, DONE:{l:'Hoàn thành',k:'success'}, CANCELLED:{l:'Đã huỷ',k:'neutral'} };
+var INCIDENT_SEVERITY = { LOW:{l:'Nhẹ',k:'neutral'}, MEDIUM:{l:'Trung bình',k:'warning'}, HIGH:{l:'Nặng',k:'danger'} };
+var INCIDENT_STATUS = { OPEN:{l:'Mới ghi nhận',k:'danger'}, IN_PROGRESS:{l:'Đang xử lý',k:'warning'}, RESOLVED:{l:'Đã xử lý',k:'success'} };
+var USER_STATUS = { PENDING:{l:'Chờ duyệt',k:'warning'}, ACTIVE:{l:'Đang hoạt động',k:'success'}, DISABLED:{l:'Đã khoá',k:'danger'} };
+var NOTIF_LABEL = { TRAINING_LOCKED:{l:'Khoá tập luyện',icon:'🔒'}, TRAINING_UNLOCKED:{l:'Mở khoá tập luyện',icon:'🔓'}, INCIDENT_REPORTED:{l:'Báo cáo sự cố',icon:'⚠️'} };
+var INCIDENT_ORDER = ['OPEN','IN_PROGRESS','RESOLVED'];
+
+/* ================================ SEED DATA ================================
+   Mirrors apps/api/prisma/seed.ts: same accounts, same three original horses
+   (Thunderbolt / Sea Breeze / Midnight), same Phase 6-8 fixtures (pedigree,
+   race, training plan + lock, incidents). Extra horses/sessions added purely
+   to make the demo feel like a lived-in club — clearly seed data, not a
+   claim about a real club.
+============================================================================ */
+
+var USERS = [
+  { id:'manager', name:'Ngô Bảo Khánh', email:'manager@racehorse.local', role:'MANAGER', status:'ACTIVE' },
+  { id:'trainer', name:'Trần Đức Hùng', email:'trainer@racehorse.local', role:'TRAINER', status:'ACTIVE' },
+  { id:'vet',     name:'BS. Lê Thị Lan', email:'vet@racehorse.local', role:'VET', status:'ACTIVE' },
+  { id:'groom',   name:'Phạm Quốc Tuấn', email:'groom@racehorse.local', role:'GROOM', status:'ACTIVE' },
+  { id:'owner1',  name:'Hoàng Thị Mai', email:'owner1@racehorse.local', role:'OWNER', status:'ACTIVE' },
+  { id:'owner2',  name:'Đỗ Văn Khoa', email:'owner2@racehorse.local', role:'OWNER', status:'ACTIVE' },
+  { id:'newbie',  name:'Vũ Thị Ngọc', email:'newbie@racehorse.local', role:null, status:'PENDING' }
+];
+
+var HORSES = [
+  { id:'thunderbolt', name:'Thunderbolt', breed:'Thoroughbred', birthDate:iso(daysFromNow(-365*5)), ownerId:'owner1',
+    status:'ACTIVE', fitnessScore:78, sireId:'northern-star', damId:'silver-mist', locked:false, lockReason:null },
+  { id:'sea-breeze', name:'Sea Breeze', breed:'Arabian', birthDate:iso(daysFromNow(-365*4)), ownerId:'owner1',
+    status:'RESTING', fitnessScore:58, sireId:null, damId:null, locked:true, lockReason:'Mild tendon strain — resting per vet advice' },
+  { id:'midnight', name:'Midnight', breed:'Quarter Horse', birthDate:iso(daysFromNow(-365*6)), ownerId:'owner2',
+    status:'ACTIVE', fitnessScore:65, sireId:null, damId:null, locked:true, lockReason:'Incident: Va chạm khi vận chuyển, nghi ngờ chấn thương chân sau' },
+  { id:'golden-comet', name:'Golden Comet', breed:'Thoroughbred', birthDate:iso(daysFromNow(-365*3)), ownerId:'owner2',
+    status:'ACTIVE', fitnessScore:90, sireId:null, damId:null, locked:false, lockReason:null },
+  { id:'silver-arrow', name:'Silver Arrow', breed:'Thoroughbred', birthDate:iso(daysFromNow(-365*9)), ownerId:'owner1',
+    status:'RETIRED', fitnessScore:null, sireId:'northern-star', damId:null, locked:false, lockReason:null },
+  { id:'northern-star', name:'Northern Star', breed:'Thoroughbred', birthDate:iso(daysFromNow(-365*14)), ownerId:'owner1',
+    status:'RETIRED', fitnessScore:null, sireId:null, damId:null, locked:false, lockReason:null },
+  { id:'silver-mist', name:'Silver Mist', breed:'Thoroughbred', birthDate:iso(daysFromNow(-365*13)), ownerId:'owner1',
+    status:'RETIRED', fitnessScore:null, sireId:null, damId:null, locked:false, lockReason:null }
+];
+
+var SESSIONS = [
+  { id:'sess-1', horseId:'thunderbolt', trainerId:'trainer', planId:'plan-1', scheduledAt:iso(daysFromNow(3)), type:'gallop', status:'PLANNED', resultMetric:null, resultValue:null, notes:'Chuẩn bị cho Spring Derby' },
+  { id:'sess-2', horseId:'thunderbolt', trainerId:'trainer', planId:'plan-1', scheduledAt:iso(daysFromNow(-7)), type:'sprint', status:'DONE', resultMetric:'time_1200m_s', resultValue:74.2, notes:null },
+  { id:'sess-3', horseId:'golden-comet', trainerId:'trainer', planId:null, scheduledAt:iso(daysFromNow(2)), type:'trot', status:'PLANNED', resultMetric:null, resultValue:null, notes:null },
+  { id:'sess-4', horseId:'golden-comet', trainerId:'trainer', planId:null, scheduledAt:iso(daysFromNow(-2)), type:'gallop', status:'DONE', resultMetric:'heart_rate_recovery_s', resultValue:118, notes:'Phục hồi tốt' }
+];
+
+var PLANS = [
+  { id:'plan-1', horseId:'thunderbolt', trainerId:'trainer', goal:'Xây nền thể lực cho Spring Derby 2026', startDate:iso(daysFromNow(0)), endDate:iso(daysFromNow(30)) }
+];
+
+var HEALTH_RECORDS = [
+  { id:'hr-1', horseId:'thunderbolt', vetId:'vet', examDate:iso(daysFromNow(-10)), diagnosis:'Khám định kỳ — sức khoẻ tốt', treatment:null, attachmentPath:null },
+  { id:'hr-2', horseId:'midnight', vetId:'vet', examDate:iso(daysFromNow(-3)), diagnosis:'Đau bụng nhẹ (colic)', treatment:'Theo dõi 24h, đã hồi phục', attachmentPath:null },
+  { id:'hr-3', horseId:'thunderbolt', vetId:'vet', examDate:iso(daysFromNow(-9)), diagnosis:'Xây xát nhẹ ở vai, tự khỏi sau vài ngày', treatment:'Theo dõi tại chuồng', attachmentPath:'labresult.pdf' }
+];
+
+var RACES = [
+  { id:'race-1', name:'Spring Derby 2026', date:iso(daysFromNow(20)), venue:'Đà Lạt Racecourse', distance:1600, surface:'turf', prizePool:50000000 },
+  { id:'race-2', name:'Autumn Cup 2025', date:iso(daysFromNow(-140)), venue:'Đà Lạt Racecourse', distance:2000, surface:'dirt', prizePool:35000000 }
+];
+
+var RACE_ENTRIES = [
+  { id:'re-1', raceId:'race-1', horseId:'thunderbolt', position:null, time:null },
+  { id:'re-2', raceId:'race-1', horseId:'midnight', position:null, time:null },
+  { id:'re-3', raceId:'race-2', horseId:'silver-arrow', position:1, time:'2:08.44' },
+  { id:'re-4', raceId:'race-2', horseId:'golden-comet', position:3, time:'2:11.02' }
+];
+
+var INCIDENTS = [
+  { id:'inc-1', horseId:'midnight', reportedById:'groom', description:'Va chạm khi vận chuyển, nghi ngờ chấn thương chân sau', severity:'HIGH', status:'OPEN', healthRecordId:null, createdAt:iso(daysFromNow(-3)) },
+  { id:'inc-2', horseId:'thunderbolt', reportedById:'groom', description:'Xây xát nhẹ ở vai, tự khỏi sau vài ngày', severity:'LOW', status:'RESOLVED', healthRecordId:'hr-3', createdAt:iso(daysFromNow(-9)) },
+  { id:'inc-3', horseId:'golden-comet', reportedById:'groom', description:'Có dấu hiệu khập khiễng nhẹ chân trước sau buổi tập', severity:'MEDIUM', status:'OPEN', healthRecordId:null, createdAt:iso(daysFromNow(-1)) }
+];
+
+var NOTIFICATIONS = [
+  { id:'ntf-1', userId:'owner2', type:'TRAINING_LOCKED', message:'Midnight đã bị khoá tập luyện: Incident: Va chạm khi vận chuyển, nghi ngờ chấn thương chân sau', read:false, createdAt:iso(daysFromNow(-3)) },
+  { id:'ntf-2', userId:'manager', type:'TRAINING_LOCKED', message:'Midnight đã bị khoá tập luyện: Incident: Va chạm khi vận chuyển, nghi ngờ chấn thương chân sau', read:false, createdAt:iso(daysFromNow(-3)) },
+  { id:'ntf-3', userId:'owner2', type:'INCIDENT_REPORTED', message:'Sự cố mới (HIGH) cho Midnight: Va chạm khi vận chuyển, nghi ngờ chấn thương chân sau', read:false, createdAt:iso(daysFromNow(-3)) },
+  { id:'ntf-4', userId:'owner2', type:'INCIDENT_REPORTED', message:'Sự cố mới (MEDIUM) cho Golden Comet: Có dấu hiệu khập khiễng nhẹ chân trước sau buổi tập', read:true, createdAt:iso(daysFromNow(-1)) },
+  { id:'ntf-5', userId:'manager', type:'INCIDENT_REPORTED', message:'Sự cố mới (MEDIUM) cho Golden Comet: Có dấu hiệu khập khiễng nhẹ chân trước sau buổi tập', read:true, createdAt:iso(daysFromNow(-1)) },
+  { id:'ntf-6', userId:'owner1', type:'TRAINING_UNLOCKED', message:'Thunderbolt đã được mở khoá tập luyện', read:true, createdAt:iso(daysFromNow(-8)) }
+];
+
+var state = { USERS:USERS, HORSES:HORSES, SESSIONS:SESSIONS, PLANS:PLANS, HEALTH_RECORDS:HEALTH_RECORDS, RACES:RACES, RACE_ENTRIES:RACE_ENTRIES, INCIDENTS:INCIDENTS, NOTIFICATIONS:NOTIFICATIONS };
+
+var ui = {
+  personaId: 'manager',
+  route: 'dashboard', routeParam: null,
+  personaMenuOpen: false, notifOpen: false,
+  horseSearch: '', horseStatusFilter: 'ALL',
+  horseTab: 'profile',
+  editHorse: false,
+  racesTab: 'upcoming'
+};
+
+/* ---------- persistence (best-effort; demo convenience only) ---------- */
+function saveLocal(){
+  try{ localStorage.setItem('racehorse-demo-state', JSON.stringify(state)); }catch(e){}
+}
+function loadLocal(){
+  try{
+    var raw = localStorage.getItem('racehorse-demo-state');
+    if (raw) { var parsed = JSON.parse(raw); for (var k in parsed) { if (state[k]) state[k] = parsed[k]; } }
+  }catch(e){}
+}
+
+/* ---------- derived / RBAC ---------- */
+function persona(){ return byId(state.USERS, ui.personaId); }
+function isRole(r){ var p=persona(); return p && p.role===r; }
+function ownerScopeId(){ return isRole('OWNER') ? ui.personaId : null; }
+function visibleHorses(){
+  var scope = ownerScopeId();
+  return state.HORSES.filter(function(h){ return !scope || h.ownerId===scope; });
+}
+function horseVisible(h){ var scope=ownerScopeId(); return !scope || h.ownerId===scope; }
+function userName(id){ var u=byId(state.USERS,id); return u? u.name : '—'; }
+function horseName(id){ var h=byId(state.HORSES,id); return h? h.name : '—'; }
+function managerIds(){ return state.USERS.filter(function(u){ return u.role==='MANAGER' && u.status==='ACTIVE'; }).map(function(u){ return u.id; }); }
+
+/* ---------- notifications (mirrors NotificationsService + HorsesService.lock()) ---------- */
+function notify(userIds, type, message){
+  var uniq = userIds.filter(function(v,i,a){ return a.indexOf(v)===i; });
+  uniq.forEach(function(userId){
+    state.NOTIFICATIONS.unshift({ id:uid('ntf'), userId:userId, type:type, message:message, read:false, createdAt:iso(new Date()) });
+  });
+}
+function setHorseLock(horseId, locked, reason){
+  var h = byId(state.HORSES, horseId);
+  if (!h) return;
+  var changed = h.locked !== locked;
+  h.locked = locked;
+  h.lockReason = locked ? (reason||null) : null;
+  if (changed){
+    var msg = locked
+      ? (h.name+' đã bị khoá tập luyện'+(h.lockReason? ': '+h.lockReason : ''))
+      : (h.name+' đã được mở khoá tập luyện');
+    notify([h.ownerId].concat(managerIds()), locked?'TRAINING_LOCKED':'TRAINING_UNLOCKED', msg);
+  }
+}
+
+/* ================================ RENDER ================================ */
+var NAV = [
+  { route:'dashboard', label:'Tổng quan', icon:'◆' },
+  { route:'horses', label:'Ngựa đua', icon:'▤' },
+  { route:'plans', label:'Kế hoạch tập', icon:'▦' },
+  { route:'races', label:'Giải đua', icon:'▲' },
+  { route:'incidents', label:'Sự cố sức khoẻ', icon:'✚' },
+  { route:'notifications', label:'Thông báo', icon:'●' },
+  { route:'admin', label:'Người dùng', icon:'▣', roles:['MANAGER'] }
+];
+var PAGE_TITLE = { dashboard:'Tổng quan', horses:'Ngựa đua', plans:'Kế hoạch tập luyện', races:'Giải đua', incidents:'Sự cố sức khoẻ', notifications:'Thông báo', admin:'Quản lý người dùng' };
+
+function root(){ return document.getElementById('root'); }
+
+function render(){
+  var focusInfo = captureFocus();
+  var p = persona();
+  var myNotifs = state.NOTIFICATIONS.filter(function(n){ return n.userId===ui.personaId; });
+  var unread = myNotifs.filter(function(n){ return !n.read; }).length;
+  var openIncidents = state.INCIDENTS.filter(function(i){ return i.status!=='RESOLVED'; }).length;
+
+  var pageTitle = ui.route==='horses' && ui.routeParam ? horseName(ui.routeParam) : PAGE_TITLE[ui.route];
+
+  var html = ''
+    + railHtml(p)
+    + '<div class="main">'
+    +   topbarHtml(p, pageTitle, unread, myNotifs)
+    +   '<div class="page">' + pageHtml() + '</div>'
+    + '</div>';
+
+  root().innerHTML = html;
+  restoreFocus(focusInfo);
+  saveLocal();
+}
+
+function railHtml(p){
+  var items = NAV.map(function(item){
+    if (item.roles && (!p || item.roles.indexOf(p.role)===-1)) return '';
+    var active = ui.route===item.route;
+    var count = '';
+    if (item.route==='incidents'){
+      var n = state.INCIDENTS.filter(function(i){ return i.status!=='RESOLVED'; }).length;
+      if (n>0) count = '<span class="count">'+n+'</span>';
+    }
+    if (item.route==='notifications'){
+      var un = state.NOTIFICATIONS.filter(function(x){ return x.userId===ui.personaId && !x.read; }).length;
+      if (un>0) count = '<span class="count">'+un+'</span>';
+    }
+    if (item.route==='admin'){
+      var pend = state.USERS.filter(function(u){ return u.status==='PENDING'; }).length;
+      if (pend>0) count = '<span class="count">'+pend+'</span>';
+    }
+    return '<button class="rail-item'+(active?' active':'')+'" data-action="nav" data-route="'+item.route+'">'
+      + '<span class="ico">'+item.icon+'</span><span>'+item.label+'</span>'+count+'</button>';
+  }).join('');
+
+  return '<aside class="rail">'
+    + '<div class="rail-brand"><p class="eyebrow">Racehorse Club</p><h1>Training &amp; Management</h1>'
+    + '<p class="sub">demo build · dữ liệu mẫu</p></div>'
+    + '<nav class="rail-nav">'+items+'</nav>'
+    + '<div class="rail-foot">Đăng nhập với vai <strong>'+ROLE_LABEL[p.role]+'</strong><br>để thấy đúng quyền &amp; thao tác của vai trò đó.</div>'
+    + '</aside>';
+}
+
+function topbarHtml(p, title, unread, myNotifs){
+  var roleMenu = state.USERS.filter(function(u){ return u.role; }).map(function(u){
+    return '<button class="menu-item'+(u.id===ui.personaId?' current':'')+'" data-action="set-persona" data-id="'+u.id+'">'
+      + '<span class="avatar">'+initials(u.name)+'</span>'
+      + '<span><span class="m-name">'+esc(u.name)+'</span><br><span class="m-role">'+ROLE_LABEL[u.role]+'</span></span></button>';
+  }).join('');
+
+  var notifRows = myNotifs.slice(0,8).map(function(n){
+    var meta = NOTIF_LABEL[n.type];
+    var dotColor = n.type==='TRAINING_LOCKED' ? 'var(--danger)' : (n.type==='INCIDENT_REPORTED' ? 'var(--warning)' : 'var(--success)');
+    return '<div class="notif-row" data-action="open-notif" data-id="'+n.id+'">'
+      + '<span class="n-dot" style="background:'+dotColor+(n.read?';opacity:.35':'')+'"></span>'
+      + '<div style="flex:1;min-width:0;"><p class="n-title">'+meta.icon+' '+meta.l+'</p>'
+      + '<p class="n-msg">'+esc(n.message)+'</p><p class="n-time">'+fmtRel(n.createdAt)+'</p></div></div>';
+  }).join('') || '<div class="notif-empty">Chưa có thông báo nào.</div>';
+
+  return '<header class="topbar">'
+    + '<h2>'+esc(title)+'</h2>'
+    + '<div class="pop-wrap">'
+    +   '<button class="bell-btn" data-action="toggle-notif">🔔'+(unread>0?'<span class="dot">'+unread+'</span>':'')+'</button>'
+    +   (ui.notifOpen? '<div class="menu notif-panel"><div class="menu-head">Thông báo của bạn</div>'+notifRows+'</div>' : '')
+    + '</div>'
+    + '<div class="pop-wrap">'
+    +   '<button class="persona-btn" data-action="toggle-persona"><span class="avatar">'+initials(p.name)+'</span>'
+    +   '<span><span class="name">'+esc(p.name)+'</span><br><span class="role">'+ROLE_LABEL[p.role]+'</span></span><span class="car">▾</span></button>'
+    +   (ui.personaMenuOpen? '<div class="menu"><div class="menu-head">Đăng nhập với vai trò khác (demo)</div>'+roleMenu+'</div>' : '')
+    + '</div>'
+    + '</header>';
+}
+
+function pageHtml(){
+  switch (ui.route){
+    case 'horses': return ui.routeParam ? horseDetailPage(ui.routeParam) : horsesListPage();
+    case 'plans': return plansPage();
+    case 'races': return racesPage();
+    case 'incidents': return incidentsPage();
+    case 'notifications': return notificationsPage();
+    case 'admin': return adminPage();
+    default: return dashboardPage();
+  }
+}
+
+/* ---------- Dashboard ---------- */
+function dashboardPage(){
+  var horses = visibleHorses();
+  var lockedCount = horses.filter(function(h){ return h.locked; }).length;
+  var openInc = state.INCIDENTS.filter(function(i){ return i.status!=='RESOLVED' && horseVisible(byId(state.HORSES,i.horseId)); }).length;
+  var upcoming = state.SESSIONS.filter(function(s){ return s.status==='PLANNED' && horseVisible(byId(state.HORSES,s.horseId)); })
+    .sort(function(a,b){ return new Date(a.scheduledAt)-new Date(b.scheduledAt); }).slice(0,5);
+  var pendingUsers = state.USERS.filter(function(u){ return u.status==='PENDING'; }).length;
+
+  var kpis = [
+    { num: horses.length, label:'Tổng số ngựa', k:'' },
+    { num: lockedCount, label:'Đang bị khoá tập luyện', k: lockedCount>0?'alert':'ok' },
+    { num: openInc, label:'Sự cố chưa xử lý', k: openInc>0?'warn':'ok' },
+    { num: upcoming.length, label:'Buổi tập sắp tới', k:'' }
+  ];
+  if (isRole('MANAGER')) kpis.push({ num: pendingUsers, label:'Tài khoản chờ duyệt', k: pendingUsers>0?'warn':'ok' });
+
+  var kpiHtml = kpis.map(function(k){ return '<div class="kpi-tile '+k.k+'"><div class="k-num tnum">'+k.num+'</div><div class="k-label">'+k.label+'</div></div>'; }).join('');
+
+  var horseRows = horses.slice(0,6).map(function(h){ return horseListRow(h); }).join('') || emptyState('Chưa có ngựa nào trong phạm vi của bạn.');
+
+  var sessionRows = upcoming.map(function(s){
+    var h = byId(state.HORSES,s.horseId);
+    return '<div class="list-row" data-action="nav" data-route="horses" data-id="'+s.horseId+'">'
+      + '<div class="h-avatar">'+esc((h&&h.name||'?')[0])+'</div>'
+      + '<div class="l-main"><div class="l-title">'+esc(h?h.name:'—')+' <span class="pill pill-neutral">'+esc(s.type)+'</span></div>'
+      + '<div class="l-sub">'+fmtDateTime(s.scheduledAt)+'</div></div>'
+      + '<div class="l-meta">'+pill(SESSION_STATUS[s.status])+'</div></div>';
+  }).join('') || emptyState('Không có buổi tập nào sắp diễn ra.');
+
+  return ''
+    + roleNote()
+    + '<div class="kpi-grid">'+kpiHtml+'</div>'
+    + '<div class="two-col">'
+    +   '<div class="panel"><div class="panel-head"><h3>Ngựa trong CLB</h3><span class="hint">'+horses.length+' con</span></div>'
+    +     '<div class="panel-body flush">'+horseRows+'</div></div>'
+    +   '<div class="panel"><div class="panel-head"><h3>Buổi tập sắp tới</h3></div>'
+    +     '<div class="panel-body flush">'+sessionRows+'</div></div>'
+    + '</div>';
+}
+
+function roleNote(){
+  var p = persona();
+  var text = {
+    MANAGER: 'Vai trò Quản lý: thêm/sửa hồ sơ ngựa, duyệt tài khoản, quản lý giải đua.',
+    TRAINER: 'Vai trò Huấn luyện viên: lập kế hoạch tập, tạo &amp; cập nhật buổi tập (khi ngựa không bị khoá).',
+    VET: 'Vai trò Bác sĩ thú y: tạo hồ sơ khám, xử lý sự cố sức khoẻ, khoá/mở khoá tập luyện.',
+    GROOM: 'Vai trò Người chăm ngựa: báo cáo sự cố sức khoẻ, cập nhật kết quả buổi tập.',
+    OWNER: 'Vai trò Chủ sở hữu: chỉ xem được ngựa của mình — dữ liệu đã được lọc theo quyền sở hữu.'
+  };
+  return '<div class="role-note">👁 '+text[p.role]+'</div>';
+}
+
+function horseListRow(h){
+  var owner = userName(h.ownerId);
+  return '<div class="list-row" data-action="nav" data-route="horses" data-id="'+h.id+'">'
+    + '<div class="h-avatar">'+esc(h.name[0])+'</div>'
+    + '<div class="l-main"><div class="l-title">'+esc(h.name)+(h.locked?' <span class="lock-tag">🔒 Bị khoá</span>':'')+'</div>'
+    + '<div class="l-sub">'+esc(h.breed)+' · Chủ: '+esc(owner)+'</div></div>'
+    + '<div class="l-meta">'+pill(HORSE_STATUS[h.status])+'</div></div>';
+}
+
+function pill(cfg){ return '<span class="pill pill-'+cfg.k+'">'+cfg.l+'</span>'; }
+function emptyState(msg){ return '<div class="empty-state"><div class="e-icon">—</div><p>'+esc(msg)+'</p></div>'; }
+
+/* ---------- Horses list ---------- */
+function horsesListPage(){
+  var horses = visibleHorses().filter(function(h){
+    if (ui.horseStatusFilter!=='ALL' && h.status!==ui.horseStatusFilter) return false;
+    if (ui.horseSearch && h.name.toLowerCase().indexOf(ui.horseSearch.toLowerCase())===-1) return false;
+    return true;
+  });
+  var filters = ['ALL','ACTIVE','RESTING','RETIRED'].map(function(s){
+    var label = s==='ALL' ? 'Tất cả' : HORSE_STATUS[s].l;
+    return '<button class="chip'+(ui.horseStatusFilter===s?' active':'')+'" data-action="horse-filter" data-status="'+s+'">'+label+'</button>';
+  }).join('');
+
+  var rows = horses.map(horseListRow).join('') || emptyState('Không tìm thấy ngựa phù hợp.');
+
+  return ''
+    + roleNote()
+    + '<div class="toolbar">'
+    +   '<input id="horse-search" class="search-input" type="text" placeholder="Tìm theo tên ngựa…" value="'+esc(ui.horseSearch)+'" data-action="horse-search">'
+    +   '<div class="chip-row">'+filters+'</div>'
+    +   (can('createHorse') ? '<button class="btn btn-primary" data-action="open-modal" data-modal="add-horse">+ Thêm ngựa</button>' : '')
+    + '</div>'
+    + '<div class="panel"><div class="panel-body flush">'+rows+'</div></div>';
+}
+
+/* ---------- Horse detail ---------- */
+function horseDetailPage(id){
+  var h = byId(state.HORSES, id);
+  if (!h || !horseVisible(h)){
+    return backLink('horses') + emptyState('Không tìm thấy ngựa này, hoặc bạn không có quyền xem.');
+  }
+  var owner = userName(h.ownerId);
+  var tabs = [
+    { id:'profile', label:'Hồ sơ' },
+    { id:'pedigree', label:'Phả hệ' },
+    { id:'achievements', label:'Thành tích' },
+    { id:'health', label:'Sức khoẻ &amp; Tập luyện' }
+  ];
+  var tabBtns = tabs.map(function(t){
+    return '<button class="tab'+(ui.horseTab===t.id?' active':'')+'" data-action="horse-tab" data-tab="'+t.id+'">'+t.label+'</button>';
+  }).join('');
+
+  var actions = '';
+  if (can('editHorse')) actions += '<button class="btn btn-sm" data-action="open-modal" data-modal="edit-horse" data-id="'+h.id+'">✎ Sửa hồ sơ</button>';
+  if (can('setLock')){
+    actions += h.locked
+      ? '<button class="btn btn-sm btn-accent" data-action="unlock-horse" data-id="'+h.id+'">🔓 Mở khoá tập luyện</button>'
+      : '<button class="btn btn-sm btn-danger" data-action="open-modal" data-modal="lock-horse" data-id="'+h.id+'">🔒 Khoá tập luyện</button>';
+  }
+
+  var body = '';
+  if (ui.horseTab==='profile') body = horseProfileTab(h, owner);
+  else if (ui.horseTab==='pedigree') body = horsePedigreeTab(h);
+  else if (ui.horseTab==='achievements') body = horseAchievementsTab(h);
+  else body = horseHealthTab(h);
+
+  return ''
+    + backLink('horses')
+    + '<div class="detail-head">'
+    +   '<div class="detail-avatar">'+esc(h.name[0])+'</div>'
+    +   '<div style="flex:1;min-width:0;"><h2>'+esc(h.name)+'</h2>'
+    +   '<div class="detail-sub">'+esc(h.breed)+' · '+ageLabel(h.birthDate)+' tuổi · Chủ sở hữu: '+esc(owner)+'</div>'
+    +   '<div class="detail-tags">'+pill(HORSE_STATUS[h.status])+(h.locked?'<span class="pill pill-danger">🔒 Khoá tập luyện</span>':'')+
+          (h.fitnessScore!=null? '<span class="pill pill-neutral">Thể trạng '+h.fitnessScore+'/100</span>':'')+'</div></div>'
+    +   '<div class="detail-actions">'+actions+'</div>'
+    + '</div>'
+    + (h.locked ? '<div class="lock-banner">🔒<div><b>Đang bị khoá tập luyện</b>'+esc(h.lockReason||'')+'<br><span style="opacity:.85">Huấn luyện viên không thể tạo buổi tập mới cho tới khi bác sĩ thú y mở khoá.</span></div></div>' : '')
+    + '<div class="tabs">'+tabBtns+'</div>'
+    + body;
+}
+function backLink(route){ return '<button class="detail-back" data-action="nav" data-route="'+route+'">← Danh sách ngựa</button>'; }
+function ageLabel(birthDate){ if(!birthDate) return '?'; var yrs = Math.floor((Date.now()-new Date(birthDate).getTime())/(365.25*86400000)); return yrs; }
+
+function horseProfileTab(h, owner){
+  return '<div class="panel"><div class="panel-body">'
+    + '<div class="field-grid">'
+    +   field('Giống', esc(h.breed||'—'))
+    +   field('Ngày sinh', fmtDate(h.birthDate))
+    +   field('Trạng thái', pill(HORSE_STATUS[h.status]))
+    +   field('Chủ sở hữu', esc(owner))
+    +   field('Điểm thể trạng', h.fitnessScore!=null ? h.fitnessScore+' / 100' : '<span class="value muted">Chưa đánh giá</span>')
+    +   field('Mã hồ sơ', '<span class="mono">'+h.id+'</span>')
+    + '</div></div></div>';
+}
+function field(label, valueHtml){
+  return '<div class="field"><label>'+label+'</label><div class="value">'+valueHtml+'</div></div>';
+}
+
+function horsePedigreeTab(h){
+  var sire = h.sireId ? byId(state.HORSES,h.sireId) : null;
+  var dam = h.damId ? byId(state.HORSES,h.damId) : null;
+  var gsire = sire && sire.sireId ? byId(state.HORSES,sire.sireId) : null;
+  var gdam1 = sire && sire.damId ? byId(state.HORSES,sire.damId) : null;
+  var dsire = dam && dam.sireId ? byId(state.HORSES,dam.sireId) : null;
+  var ddam = dam && dam.damId ? byId(state.HORSES,dam.damId) : null;
+
+  function pedCard(horse, role, self){
+    if (!horse) return '<div class="ped-card empty">Chưa có dữ liệu '+role+'</div>';
+    return '<div class="ped-card'+(self?' self':'')+'" data-action="nav" data-route="horses" data-id="'+horse.id+'" style="cursor:pointer;">'
+      + '<div class="p-name">'+esc(horse.name)+'</div><div class="p-role">'+role+'</div>'
+      + (horse.fitnessScore!=null? '<div class="p-fit">Thể trạng '+horse.fitnessScore+'</div>':'')+'</div>';
+  }
+
+  var editRow = can('editHorse') ? '<div class="btn-row" style="margin-top:16px;">'
+    + '<button class="btn btn-sm" data-action="open-modal" data-modal="edit-pedigree" data-id="'+h.id+'">✎ Gán bố / mẹ</button></div>' : '';
+
+  return '<div class="panel"><div class="panel-head"><h3>Cây phả hệ (3 đời)</h3><span class="hint">Giới hạn 3 thế hệ, giống hệ thống thật</span></div>'
+    + '<div class="panel-body">'
+    + '<div class="ped-tree">'
+    +   '<div class="ped-gen-label">Đời ông / bà</div>'
+    +   '<div class="ped-row">'+pedCard(gsire,'Ông nội')+pedCard(gdam1,'Bà nội')+pedCard(dsire,'Ông ngoại')+pedCard(ddam,'Bà ngoại')+'</div>'
+    +   '<div class="ped-gen-label">Đời cha / mẹ</div>'
+    +   '<div class="ped-row">'+pedCard(sire,'Cha (Sire)')+pedCard(dam,'Mẹ (Dam)')+'</div>'
+    +   '<div class="ped-gen-label">Ngựa hiện tại</div>'
+    +   '<div class="ped-row">'+pedCard(h,'',true)+'</div>'
+    + '</div>' + editRow
+    + '</div></div>';
+}
+
+function horseAchievementsTab(h){
+  var entries = state.RACE_ENTRIES.filter(function(e){ return e.horseId===h.id; }).map(function(e){
+    var race = byId(state.RACES, e.raceId);
+    return { race:race, entry:e };
+  }).sort(function(a,b){ return new Date(b.race.date)-new Date(a.race.date); });
+
+  var wins = entries.filter(function(x){ return x.entry.position===1; }).length;
+
+  var rows = entries.map(function(x){
+    var pos = x.entry.position;
+    return '<div class="race-row">'
+      + '<div class="race-pos'+(pos===1?' win':'')+'">'+(pos!=null?('#'+pos):'—')+'</div>'
+      + '<div style="flex:1;"><div style="font-weight:600;font-size:13px;">'+esc(x.race.name)+'</div>'
+      + '<div class="l-sub">'+fmtDate(x.race.date)+' · '+esc(x.race.venue||'')+' · '+x.race.distance+'m</div></div>'
+      + '<div class="l-meta mono" style="font-size:12px;">'+(x.entry.time||'—')+'</div></div>';
+  }).join('') || emptyState('Ngựa chưa tham gia giải đua nào.');
+
+  return '<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);max-width:460px;">'
+    + '<div class="kpi-tile"><div class="k-num tnum">'+entries.length+'</div><div class="k-label">Lần tham gia</div></div>'
+    + '<div class="kpi-tile ok"><div class="k-num tnum">'+wins+'</div><div class="k-label">Về nhất</div></div>'
+    + '<div class="kpi-tile"><div class="k-num tnum">'+(h.fitnessScore!=null?h.fitnessScore:'—')+'</div><div class="k-label">Điểm thể trạng</div></div>'
+    + '</div>'
+    + '<div class="panel"><div class="panel-head"><h3>Lịch sử thi đấu</h3></div><div class="panel-body flush">'+rows+'</div></div>';
+}
+
+function horseHealthTab(h){
+  var sessions = state.SESSIONS.filter(function(s){ return s.horseId===h.id; }).sort(function(a,b){ return new Date(a.scheduledAt)-new Date(b.scheduledAt); });
+  var plans = state.PLANS.filter(function(p){ return p.horseId===h.id; });
+  var records = state.HEALTH_RECORDS.filter(function(r){ return r.horseId===h.id; }).sort(function(a,b){ return new Date(b.examDate)-new Date(a.examDate); });
+  var incidents = state.INCIDENTS.filter(function(i){ return i.horseId===h.id; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
+
+  var planRows = plans.map(function(p){
+    return '<div class="list-row" style="cursor:default;"><div class="h-avatar" style="border-radius:50%;">▦</div>'
+      + '<div class="l-main"><div class="l-title">'+esc(p.goal)+'</div>'
+      + '<div class="l-sub">'+fmtDate(p.startDate)+' → '+(p.endDate?fmtDate(p.endDate):'không giới hạn')+' · HLV: '+esc(userName(p.trainerId))+'</div></div></div>';
+  }).join('') || emptyState('Chưa có kế hoạch tập nào.');
+
+  var sessionRows = sessions.map(function(s){
+    var canUpdate = can('updateSession') && s.status==='PLANNED';
+    var updateBtns = canUpdate ? '<div class="btn-row">'
+      + '<button class="btn btn-sm btn-accent" data-action="open-modal" data-modal="complete-session" data-id="'+s.id+'">Đánh dấu hoàn thành</button>'
+      + '<button class="btn btn-sm" data-action="cancel-session" data-id="'+s.id+'">Huỷ</button></div>' : '';
+    return '<div class="list-row" style="cursor:default;align-items:flex-start;">'
+      + '<div class="h-avatar" style="border-radius:50%;">●</div>'
+      + '<div class="l-main"><div class="l-title">'+esc(s.type)+' '+pill(SESSION_STATUS[s.status])+'</div>'
+      + '<div class="l-sub">'+fmtDateTime(s.scheduledAt)+(s.planId?' · thuộc kế hoạch':'')+
+        (s.status==='DONE'? ' · '+esc(s.resultMetric)+' = '+s.resultValue : '')+
+        (s.notes? '<br>'+esc(s.notes):'')+'</div>'+updateBtns+'</div></div>';
+  }).join('') || emptyState('Chưa có buổi tập nào.');
+
+  var recordRows = records.map(function(r){
+    return '<div class="list-row" style="cursor:default;align-items:flex-start;">'
+      + '<div class="h-avatar" style="border-radius:50%;">✚</div>'
+      + '<div class="l-main"><div class="l-title">'+esc(r.diagnosis)+'</div>'
+      + '<div class="l-sub">'+fmtDate(r.examDate)+' · BS: '+esc(userName(r.vetId))+
+        (r.treatment? '<br>Điều trị: '+esc(r.treatment):'')+
+        (r.attachmentPath? '<br>📎 '+esc(r.attachmentPath):'')+'</div></div></div>';
+  }).join('') || emptyState('Chưa có hồ sơ khám nào.');
+
+  var incidentRows = incidents.map(function(i){
+    var updateBtn = can('updateIncident') && i.status!=='RESOLVED'
+      ? '<button class="btn btn-sm" data-action="open-modal" data-modal="update-incident" data-id="'+i.id+'">Cập nhật xử lý</button>' : '';
+    return '<div class="list-row" style="cursor:default;align-items:flex-start;">'
+      + '<div class="h-avatar" style="border-radius:50%;">'+INCIDENT_SEVERITY[i.severity].k.slice(0,1).toUpperCase()+'</div>'
+      + '<div class="l-main"><div class="l-title">'+esc(i.description)+' '+pill(INCIDENT_SEVERITY[i.severity])+' '+pill(INCIDENT_STATUS[i.status])+'</div>'
+      + '<div class="l-sub">'+fmtDate(i.createdAt)+' · Báo cáo bởi: '+esc(userName(i.reportedById))+
+        (i.healthRecordId? '<br>Gắn hồ sơ khám: '+esc((byId(state.HEALTH_RECORDS,i.healthRecordId)||{}).diagnosis||''):'')+
+        '</div>'+(updateBtn?'<div class="btn-row" style="margin-top:6px;">'+updateBtn+'</div>':'')+'</div></div>';
+  }).join('') || emptyState('Chưa ghi nhận sự cố nào.');
+
+  return ''
+    + '<div class="panel"><div class="panel-head"><h3>Kế hoạch tập luyện</h3>'
+    +   (can('createPlan') ? '<button class="btn btn-sm btn-primary" data-action="open-modal" data-modal="create-plan" data-id="'+h.id+'">+ Kế hoạch</button>' : '')
+    + '</div><div class="panel-body flush">'+planRows+'</div></div>'
+
+    + '<div class="panel"><div class="panel-head"><h3>Buổi tập</h3>'
+    +   (can('createSession') ? '<button class="btn btn-sm btn-primary" data-action="open-modal" data-modal="create-session" data-id="'+h.id+'"'+(h.locked?' disabled':'')+'>+ Buổi tập</button>' : '')
+    + '</div><div class="panel-body flush">'+sessionRows+'</div></div>'
+
+    + '<div class="panel"><div class="panel-head"><h3>Hồ sơ khám bệnh</h3>'
+    +   (can('createHealthRecord') ? '<button class="btn btn-sm btn-primary" data-action="open-modal" data-modal="create-record" data-id="'+h.id+'">+ Hồ sơ khám</button>' : '')
+    + '</div><div class="panel-body flush">'+recordRows+'</div></div>'
+
+    + '<div class="panel"><div class="panel-head"><h3>Sự cố đã báo cáo</h3>'
+    +   (can('createIncident') ? '<button class="btn btn-sm btn-primary" data-action="open-modal" data-modal="report-incident" data-id="'+h.id+'">+ Báo cáo sự cố</button>' : '')
+    + '</div><div class="panel-body flush">'+incidentRows+'</div></div>';
+}
+
+/* ---------- Training Plans page ---------- */
+function plansPage(){
+  var plans = state.PLANS.filter(function(p){ return horseVisible(byId(state.HORSES,p.horseId)); })
+    .sort(function(a,b){ return new Date(b.startDate)-new Date(a.startDate); });
+  var rows = plans.map(function(p){
+    var h = byId(state.HORSES,p.horseId);
+    return '<tr data-action="nav" data-route="horses" data-id="'+p.horseId+'" style="cursor:pointer;">'
+      + '<td><strong>'+esc(h?h.name:'—')+'</strong></td>'
+      + '<td>'+esc(p.goal)+'</td>'
+      + '<td>'+esc(userName(p.trainerId))+'</td>'
+      + '<td class="tnum">'+fmtDate(p.startDate)+'</td>'
+      + '<td class="tnum">'+(p.endDate?fmtDate(p.endDate):'—')+'</td>'
+      + '</tr>';
+  }).join('');
+  var table = plans.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ngựa</th><th>Mục tiêu</th><th>HLV phụ trách</th><th>Bắt đầu</th><th>Kết thúc</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    : emptyState('Chưa có kế hoạch tập nào trong phạm vi của bạn.');
+  return roleNote()
+    + '<div class="toolbar"><div style="flex:1;"></div>'
+    + (can('createPlan') ? '<button class="btn btn-primary" data-action="open-modal" data-modal="create-plan">+ Kế hoạch mới</button>' : '')
+    + '</div>'
+    + '<div class="panel"><div class="panel-body flush">'+table+'</div></div>';
+}
+
+/* ---------- Races page ---------- */
+function racesPage(){
+  var now = Date.now();
+  var races = state.RACES.slice().sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  var tabBtns = ['upcoming','past'].map(function(t){
+    return '<button class="chip'+(ui.racesTab===t?' active':'')+'" data-action="races-tab" data-tab="'+t+'">'+(t==='upcoming'?'Sắp diễn ra':'Đã kết thúc')+'</button>';
+  }).join('');
+  var filtered = races.filter(function(r){ return ui.racesTab==='upcoming' ? new Date(r.date).getTime()>=now : new Date(r.date).getTime()<now; });
+
+  var cards = filtered.map(function(r){
+    var entries = state.RACE_ENTRIES.filter(function(e){ return e.raceId===r.id; });
+    var entryRows = entries.map(function(e){
+      var h = byId(state.HORSES,e.horseId);
+      var canEdit = can('manageRaces');
+      return '<div class="list-row" style="cursor:default;padding:9px 0;">'
+        + '<div class="l-main"><div class="l-title">'+esc(h?h.name:'—')+'</div>'
+        + '<div class="l-sub">Chủ: '+esc(userName(h?h.ownerId:null))+'</div></div>'
+        + '<div class="l-meta" style="display:flex;align-items:center;gap:8px;">'
+        +   (e.position!=null ? '<span class="pill '+(e.position===1?'pill-warning':'pill-neutral')+'">Hạng '+e.position+'</span>' : '<span class="pill pill-neutral">Chưa có kết quả</span>')
+        +   (e.time ? '<span class="mono" style="font-size:11.5px;">'+esc(e.time)+'</span>' : '')
+        +   (canEdit ? '<button class="btn btn-sm" data-action="open-modal" data-modal="edit-entry" data-id="'+e.id+'">Sửa</button>' : '')
+        + '</div></div>';
+    }).join('') || emptyState('Chưa có ngựa đăng ký.');
+
+    return '<div class="panel"><div class="panel-head"><h3>'+esc(r.name)+'</h3><span class="hint">'+fmtDate(r.date)+'</span></div>'
+      + '<div class="panel-body">'
+      +   '<div class="field-grid" style="margin-bottom:14px;">'
+      +     field('Địa điểm', esc(r.venue||'—')) + field('Cự ly', r.distance?r.distance+'m':'—') + field('Mặt sân', esc(r.surface||'—'))
+      +     field('Giải thưởng', r.prizePool? (r.prizePool/1000000).toLocaleString('vi-VN')+' triệu VNĐ' : '—')
+      +   '</div>'
+      +   (can('manageRaces') ? '<button class="btn btn-sm" data-action="open-modal" data-modal="add-entry" data-id="'+r.id+'">+ Đăng ký ngựa tham gia</button>' : '')
+      + '</div>'
+      + '<div class="panel-body" style="border-top:1px solid var(--border);padding-top:6px;">'+entryRows+'</div>'
+      + '</div>';
+  }).join('') || emptyState('Không có giải đua nào.');
+
+  return roleNote()
+    + '<div class="toolbar"><div class="chip-row">'+tabBtns+'</div><div style="flex:1;"></div>'
+    + (can('manageRaces') ? '<button class="btn btn-primary" data-action="open-modal" data-modal="create-race">+ Tạo giải đua</button>' : '')
+    + '</div>'
+    + cards;
+}
+
+/* ---------- Incidents page ---------- */
+function incidentsPage(){
+  var incidents = state.INCIDENTS.filter(function(i){ return horseVisible(byId(state.HORSES,i.horseId)); })
+    .sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
+  var rows = incidents.map(function(i){
+    var h = byId(state.HORSES,i.horseId);
+    var updateBtn = can('updateIncident') && i.status!=='RESOLVED'
+      ? '<button class="btn btn-sm" data-action="open-modal" data-modal="update-incident" data-id="'+i.id+'">Cập nhật</button>' : '';
+    return '<tr>'
+      + '<td><a href="#/horses/'+h.id+'" style="font-weight:600;">'+esc(h.name)+'</a></td>'
+      + '<td>'+esc(i.description)+'</td>'
+      + '<td>'+pill(INCIDENT_SEVERITY[i.severity])+'</td>'
+      + '<td>'+pill(INCIDENT_STATUS[i.status])+'</td>'
+      + '<td>'+esc(userName(i.reportedById))+'</td>'
+      + '<td class="tnum">'+fmtDate(i.createdAt)+'</td>'
+      + '<td>'+updateBtn+'</td>'
+      + '</tr>';
+  }).join('');
+  var table = incidents.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ngựa</th><th>Mô tả</th><th>Mức độ</th><th>Trạng thái</th><th>Người báo cáo</th><th>Ngày</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    : emptyState('Chưa có sự cố nào được ghi nhận.');
+
+  return roleNote()
+    + '<div class="role-note">⚙ Sự cố mức <strong>Nặng</strong> khi tạo sẽ tự động khoá tập luyện của ngựa; chuyển sang <strong>Đã xử lý</strong> khi đang khoá sẽ tự động mở khoá — giống đúng logic <span class="mono">HorsesService.lock()</span> trong API thật.</div>'
+    + '<div class="panel"><div class="panel-body flush">'+table+'</div></div>';
+}
+
+/* ---------- Notifications page ---------- */
+function notificationsPage(){
+  var mine = state.NOTIFICATIONS.filter(function(n){ return n.userId===ui.personaId; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
+  var rows = mine.map(function(n){
+    var meta = NOTIF_LABEL[n.type];
+    return '<div class="list-row" style="cursor:default;align-items:flex-start;'+(n.read?'opacity:.6;':'')+'">'
+      + '<div class="h-avatar" style="border-radius:50%;">'+meta.icon+'</div>'
+      + '<div class="l-main"><div class="l-title">'+meta.l+'</div><div class="l-sub">'+esc(n.message)+'</div>'
+      + '<div class="l-sub" style="margin-top:3px;">'+fmtDateTime(n.createdAt)+'</div></div>'
+      + (n.read ? '<span class="pill pill-neutral">Đã đọc</span>' : '<button class="btn btn-sm" data-action="mark-read" data-id="'+n.id+'">Đánh dấu đã đọc</button>')
+      + '</div>';
+  }).join('') || emptyState('Bạn chưa có thông báo nào.\n(Chỉ Chủ sở hữu và Quản lý CLB nhận thông báo khoá/mở khoá &amp; sự cố — đúng thiết kế thật.)');
+  return '<div class="panel"><div class="panel-body flush">'+rows+'</div></div>';
+}
+
+/* ---------- Admin (users) page ---------- */
+function adminPage(){
+  var users = state.USERS.slice();
+  var rows = users.map(function(u){
+    var actions = '';
+    if (u.status==='PENDING') actions += '<button class="btn btn-sm btn-primary" data-action="open-modal" data-modal="approve-user" data-id="'+u.id+'">Duyệt</button>';
+    else if (u.id!==ui.personaId) {
+      actions += u.status==='ACTIVE'
+        ? '<button class="btn btn-sm btn-danger" data-action="toggle-user" data-id="'+u.id+'">Khoá</button>'
+        : '<button class="btn btn-sm" data-action="toggle-user" data-id="'+u.id+'">Mở khoá</button>';
+    }
+    return '<tr>'
+      + '<td><strong>'+esc(u.name)+'</strong><br><span class="l-sub mono" style="font-size:11px;">'+esc(u.email)+'</span></td>'
+      + '<td>'+(u.role?ROLE_LABEL[u.role]:'<span class="value muted">Chưa gán</span>')+'</td>'
+      + '<td>'+pill(USER_STATUS[u.status])+'</td>'
+      + '<td>'+actions+'</td>'
+      + '</tr>';
+  }).join('');
+  return roleNote()
+    + '<div class="panel"><div class="panel-head"><h3>Tài khoản</h3><span class="hint">'+users.length+' người dùng</span></div>'
+    + '<div class="panel-body flush"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Người dùng</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>';
+}
+
+/* ================================ RBAC ================================ */
+function can(action){
+  var p = persona(); if (!p) return false;
+  switch(action){
+    case 'createHorse': case 'editHorse': case 'manageRaces': case 'approveUsers': return p.role==='MANAGER';
+    case 'setLock': case 'createHealthRecord': case 'updateIncident': return p.role==='VET';
+    case 'createSession': case 'updateSession': case 'createPlan': return p.role==='TRAINER' || (action==='updateSession' && p.role==='GROOM');
+    case 'createIncident': return p.role==='GROOM';
+    default: return false;
+  }
+}
+
+/* ================================ MODALS ================================ */
+var MODAL_TITLE = {
+  'add-horse':'Thêm ngựa mới', 'edit-horse':'Sửa hồ sơ ngựa', 'edit-pedigree':'Gán bố / mẹ (phả hệ)',
+  'lock-horse':'Khoá tập luyện', 'create-session':'Tạo buổi tập mới', 'complete-session':'Ghi nhận kết quả buổi tập',
+  'create-plan':'Tạo kế hoạch tập luyện', 'create-record':'Thêm hồ sơ khám bệnh', 'report-incident':'Báo cáo sự cố sức khoẻ',
+  'update-incident':'Cập nhật xử lý sự cố', 'create-race':'Tạo giải đua mới', 'add-entry':'Đăng ký ngựa tham gia giải',
+  'edit-entry':'Cập nhật kết quả thi đấu', 'approve-user':'Duyệt tài khoản'
+};
+function openModal(type, id){
+  var mount = document.getElementById('modal-root');
+  mount.innerHTML = modalShell(type, id);
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+function modalShell(type, id){
+  var body = modalBody(type, id);
+  return '<div class="overlay" data-action="close-modal">'
+    + '<div class="modal" data-stop="1">'
+    +   '<div class="modal-head"><h3>'+MODAL_TITLE[type]+'</h3><button class="modal-close" data-action="close-modal">✕</button></div>'
+    +   '<div class="modal-body">' + body + '</div>'
+    + '</div></div>';
+}
+
+function ownerOptions(selected){
+  return state.USERS.filter(function(u){ return u.role==='OWNER'; }).map(function(u){
+    return '<option value="'+u.id+'"'+(u.id===selected?' selected':'')+'>'+esc(u.name)+'</option>';
+  }).join('');
+}
+function horseOptions(excludeId, selected){
+  return state.HORSES.filter(function(h){ return h.id!==excludeId; }).map(function(h){
+    return '<option value="'+h.id+'"'+(h.id===selected?' selected':'')+'>'+esc(h.name)+'</option>';
+  }).join('');
+}
+
+function modalBody(type, id){
+  var h = id ? byId(state.HORSES, id) : null;
+  switch(type){
+
+    case 'add-horse':
+    case 'edit-horse': {
+      var isEdit = type==='edit-horse';
+      return formTag('save-horse', (isEdit?'data-id="'+id+'"':'')) +
+        '<div class="form-grid">'
+        + fi('Tên ngựa','name','text',isEdit?h.name:'',true)
+        + fi('Giống','breed','text',isEdit?h.breed:'',false)
+        + fi('Ngày sinh','birthDate','date',isEdit?h.birthDate.slice(0,10):'',false)
+        + fSelect('Chủ sở hữu','ownerId', ownerOptions(isEdit?h.ownerId:null), true)
+        + fSelect('Trạng thái','status', Object.keys(HORSE_STATUS).map(function(s){return '<option value="'+s+'"'+(isEdit&&h.status===s?' selected':'')+'>'+HORSE_STATUS[s].l+'</option>';}).join(''), true)
+        + fi('Điểm thể trạng (0-100)','fitnessScore','number',isEdit&&h.fitnessScore!=null?h.fitnessScore:'',false)
+        + '</div>' + formActions('Lưu') + '</form>';
+    }
+
+    case 'edit-pedigree':
+      return formTag('save-pedigree','data-id="'+id+'"') +
+        '<p class="lead">Chỉ chọn được ngựa khác — không thể tự làm cha/mẹ của chính mình, và cha/mẹ không được trùng nhau (đúng validate của API thật).</p>'
+        + '<div class="form-grid">'
+        + fSelect('Ngựa cha (Sire)','sireId','<option value="">— Không chọn —</option>'+horseOptions(id,h.sireId), false)
+        + fSelect('Ngựa mẹ (Dam)','damId','<option value="">— Không chọn —</option>'+horseOptions(id,h.damId), false)
+        + '</div>' + formActions('Lưu phả hệ') + '</form>';
+
+    case 'lock-horse':
+      return formTag('confirm-lock','data-id="'+id+'"') +
+        '<p class="lead">Ngựa <strong>'+esc(h.name)+'</strong> sẽ bị khoá tập luyện — huấn luyện viên sẽ không tạo được buổi tập mới cho đến khi bạn mở khoá.</p>'
+        + '<div class="form-grid one">' + fTextarea('Lý do khoá','reason','vd: Nghi ngờ chấn thương gân, cần theo dõi') + '</div>'
+        + formActions('Xác nhận khoá','btn-danger') + '</form>';
+
+    case 'create-session':
+      var plans = state.PLANS.filter(function(p){ return p.horseId===id; });
+      return formTag('save-session','data-id="'+id+'"') +
+        '<div class="form-grid">'
+        + fi('Thời gian','scheduledAt','datetime-local', toLocalInput(iso(daysFromNow(1))), true)
+        + fSelect('Loại bài tập','type', ['gallop','sprint','trot','dressage','endurance'].map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join(''), true)
+        + fSelect('Thuộc kế hoạch (tuỳ chọn)','planId','<option value="">— Không gắn kế hoạch —</option>'+plans.map(function(p){return '<option value="'+p.id+'">'+esc(p.goal)+'</option>';}).join(''), false)
+        + '<div class="f-item span2"><label>Ghi chú</label><textarea name="notes" rows="2"></textarea></div>'
+        + '</div>' + formActions('Tạo buổi tập') + '</form>';
+
+    case 'complete-session':
+      return formTag('complete-session-submit','data-id="'+id+'"') +
+        '<div class="form-grid">'
+        + fSelect('Kết quả', 'resultMetric', ['time_1200m_s','heart_rate_recovery_s','distance_km','speed_kmh'].map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join(''), true)
+        + fi('Giá trị','resultValue','number','',true)
+        + '</div>' + formActions('Đánh dấu hoàn thành') + '</form>';
+
+    case 'create-plan': {
+      var horseSel = id ? ('<option value="'+id+'" selected>'+esc(h.name)+'</option>') : ('<option value="">— Chọn ngựa —</option>'+state.HORSES.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+'</option>';}).join(''));
+      return formTag('save-plan','') +
+        '<div class="form-grid">'
+        + fSelect('Ngựa','horseId', horseSel, true)
+        + '<div class="f-item span2"><label>Mục tiêu</label><input name="goal" type="text" required placeholder="vd: Xây nền thể lực cho giải mùa xuân"></div>'
+        + fi('Ngày bắt đầu','startDate','date', toDateInput(iso(new Date())), true)
+        + fi('Ngày kết thúc (tuỳ chọn)','endDate','date','', false)
+        + '</div>' + formActions('Tạo kế hoạch') + '</form>';
+    }
+
+    case 'create-record':
+      return formTag('save-record','data-id="'+id+'"') +
+        '<div class="form-grid">'
+        + fi('Ngày khám','examDate','date', toDateInput(iso(new Date())), true)
+        + '<div></div>'
+        + '<div class="f-item span2"><label>Chẩn đoán</label><input name="diagnosis" type="text" required placeholder="vd: Khám định kỳ — sức khoẻ tốt"></div>'
+        + '<div class="f-item span2"><label>Điều trị (tuỳ chọn)</label><textarea name="treatment" rows="2"></textarea></div>'
+        + '</div>' + formActions('Lưu hồ sơ') + '</form>';
+
+    case 'report-incident':
+      return formTag('save-incident','data-id="'+id+'"') +
+        '<div class="form-grid">'
+        + fSelect('Mức độ nghiêm trọng','severity', Object.keys(INCIDENT_SEVERITY).map(function(s){return '<option value="'+s+'">'+INCIDENT_SEVERITY[s].l+'</option>';}).join(''), true)
+        + '<div></div>'
+        + '<div class="f-item span2"><label>Mô tả sự cố</label><textarea name="description" rows="3" required placeholder="Mô tả những gì đã quan sát được"></textarea></div>'
+        + '</div><p class="lead" style="margin-top:10px;margin-bottom:0;">⚠ Nếu chọn mức <strong>Nặng</strong>, hệ thống sẽ tự động khoá tập luyện của ngựa này ngay khi lưu.</p>'
+        + formActions('Gửi báo cáo') + '</form>';
+
+    case 'update-incident': {
+      var inc = byId(state.INCIDENTS, id);
+      var nextStatuses = INCIDENT_ORDER.filter(function(s){ return INCIDENT_ORDER.indexOf(s) >= INCIDENT_ORDER.indexOf(inc.status); });
+      var records = state.HEALTH_RECORDS.filter(function(r){ return r.horseId===inc.horseId; });
+      return formTag('update-incident-submit','data-id="'+id+'"') +
+        '<div class="form-grid">'
+        + fSelect('Trạng thái xử lý','status', nextStatuses.map(function(s){return '<option value="'+s+'"'+(s===inc.status?' selected':'')+'>'+INCIDENT_STATUS[s].l+'</option>';}).join(''), true)
+        + fSelect('Gắn hồ sơ khám (tuỳ chọn)','healthRecordId', '<option value="">— Không gắn —</option>'+records.map(function(r){return '<option value="'+r.id+'"'+(inc.healthRecordId===r.id?' selected':'')+'>'+esc(r.diagnosis)+'</option>';}).join(''), false)
+        + '</div><p class="lead" style="margin-top:10px;margin-bottom:0;">🔓 Nếu chuyển sang <strong>Đã xử lý</strong> và ngựa đang bị khoá, hệ thống sẽ tự động mở khoá.</p>'
+        + formActions('Cập nhật') + '</form>';
+    }
+
+    case 'create-race':
+      return formTag('save-race','') +
+        '<div class="form-grid">'
+        + '<div class="f-item span2"><label>Tên giải</label><input name="name" type="text" required placeholder="vd: Summer Cup 2026"></div>'
+        + fi('Ngày đua','date','date', toDateInput(iso(daysFromNow(30))), true)
+        + fi('Địa điểm','venue','text','', false)
+        + fi('Cự ly (m)','distance','number','1600', false)
+        + fSelect('Mặt sân','surface', ['turf','dirt','sand'].map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join(''), false)
+        + '</div>' + formActions('Tạo giải đua') + '</form>';
+
+    case 'add-entry': {
+      var race = byId(state.RACES, id);
+      var already = state.RACE_ENTRIES.filter(function(e){return e.raceId===id;}).map(function(e){return e.horseId;});
+      var opts = state.HORSES.filter(function(x){ return already.indexOf(x.id)===-1; }).map(function(x){ return '<option value="'+x.id+'">'+esc(x.name)+'</option>'; }).join('');
+      return formTag('save-entry','data-id="'+id+'"') +
+        '<p class="lead">Đăng ký ngựa tham gia <strong>'+esc(race.name)+'</strong>. Mỗi ngựa chỉ đăng ký được 1 lần / giải.</p>'
+        + '<div class="form-grid one">' + fSelect('Ngựa','horseId', opts || '<option value="">Không còn ngựa nào để đăng ký</option>', true) + '</div>'
+        + formActions('Đăng ký') + '</form>';
+    }
+
+    case 'edit-entry': {
+      var entry = byId(state.RACE_ENTRIES, id);
+      return formTag('save-entry-result','data-id="'+id+'"') +
+        '<div class="form-grid">' + fi('Thứ hạng','position','number',entry.position!=null?entry.position:'',false) + fi('Thời gian (vd 1:38.20)','time','text',entry.time||'',false) + '</div>'
+        + formActions('Lưu kết quả') + '</form>';
+    }
+
+    case 'approve-user': {
+      var u = byId(state.USERS, id);
+      return formTag('approve-user-submit','data-id="'+id+'"') +
+        '<p class="lead">Duyệt tài khoản <strong>'+esc(u.name)+'</strong> (<span class="mono">'+esc(u.email)+'</span>) — gán vai trò và kích hoạt.</p>'
+        + '<div class="form-grid one">' + fSelect('Vai trò','role', Object.keys(ROLE_LABEL).map(function(r){return '<option value="'+r+'">'+ROLE_LABEL[r]+'</option>';}).join(''), true) + '</div>'
+        + formActions('Duyệt &amp; kích hoạt') + '</form>';
+    }
+
+    default: return '';
+  }
+}
+function formTag(action, extra){ return '<form data-action="'+action+'" '+(extra||'')+'>'; }
+function fi(label,name,type,value,required){
+  return '<div class="f-item"><label>'+label+'</label><input name="'+name+'" type="'+type+'" value="'+esc(value)+'"'+(required?' required':'')+'></div>';
+}
+function fSelect(label,name,optionsHtml,required){
+  return '<div class="f-item"><label>'+label+'</label><select name="'+name+'"'+(required?' required':'')+'>'+optionsHtml+'</select></div>';
+}
+function fTextarea(label,name,placeholder){
+  return '<div class="f-item"><label>'+label+'</label><textarea name="'+name+'" rows="3" placeholder="'+esc(placeholder||'')+'"></textarea></div>';
+}
+function formActions(label, extraClass){
+  return '<div class="form-actions"><button type="button" class="btn" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-primary '+(extraClass||'')+'">'+label+'</button></div>';
+}
+function toLocalInput(isoStr){ var d=new Date(isoStr); var pad=function(n){return (n<10?'0':'')+n;}; return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function toDateInput(isoStr){ return new Date(isoStr).toISOString().slice(0,10); }
+
+/* ================================ ACTIONS ================================ */
+function formValues(form){
+  var fd = new FormData(form), out = {};
+  fd.forEach(function(v,k){ out[k]=v; });
+  return out;
+}
+
+var ACTIONS = {
+  'nav': function(el){
+    ui.route = el.dataset.route; ui.routeParam = el.dataset.id || null;
+    if (ui.route==='horses' && ui.routeParam) ui.horseTab='profile';
+    ui.personaMenuOpen=false; ui.notifOpen=false;
+    location.hash = '#/'+ui.route+(ui.routeParam?'/'+ui.routeParam:'');
+    render();
+  },
+  'toggle-persona': function(){ ui.personaMenuOpen=!ui.personaMenuOpen; ui.notifOpen=false; render(); },
+  'toggle-notif': function(){ ui.notifOpen=!ui.notifOpen; ui.personaMenuOpen=false; render(); },
+  'set-persona': function(el){ ui.personaId = el.dataset.id; ui.personaMenuOpen=false; ui.route='dashboard'; ui.routeParam=null; location.hash='#/dashboard'; render(); pushToast('Đang xem với vai trò: '+ROLE_LABEL[persona().role]); },
+  'open-notif': function(el){
+    var n = byId(state.NOTIFICATIONS, el.dataset.id); if (n) n.read = true;
+    render();
+  },
+  'horse-search': function(el){ ui.horseSearch = el.value; render(); },
+  'horse-filter': function(el){ ui.horseStatusFilter = el.dataset.status; render(); },
+  'horse-tab': function(el){ ui.horseTab = el.dataset.tab; render(); },
+  'races-tab': function(el){ ui.racesTab = el.dataset.tab; render(); },
+  'open-modal': function(el){ openModal(el.dataset.modal, el.dataset.id); },
+  'close-modal': function(){ closeModal(); },
+  'mark-read': function(el){ var n=byId(state.NOTIFICATIONS, el.dataset.id); if(n) n.read=true; render(); pushToast('Đã đánh dấu đã đọc'); },
+
+  'unlock-horse': function(el){ var h=byId(state.HORSES, el.dataset.id); setHorseLock(h.id,false,null); render(); pushToast(h.name+' đã được mở khoá','🔓'); },
+  'cancel-session': function(el){ var s=byId(state.SESSIONS, el.dataset.id); s.status='CANCELLED'; render(); pushToast('Đã huỷ buổi tập'); },
+
+  'save-horse': function(el,e){
+    var v = formValues(el); var isEdit = !!el.dataset.id;
+    if (isEdit){
+      var h = byId(state.HORSES, el.dataset.id);
+      h.name=v.name; h.breed=v.breed||null; h.birthDate=v.birthDate?new Date(v.birthDate).toISOString():h.birthDate;
+      h.ownerId=v.ownerId; h.status=v.status; h.fitnessScore = v.fitnessScore!==''? Number(v.fitnessScore) : null;
+    } else {
+      state.HORSES.push({ id:uid('horse'), name:v.name, breed:v.breed||null, birthDate:v.birthDate?new Date(v.birthDate).toISOString():null,
+        ownerId:v.ownerId, status:v.status||'ACTIVE', fitnessScore: v.fitnessScore!==''?Number(v.fitnessScore):null,
+        sireId:null, damId:null, locked:false, lockReason:null });
+    }
+    closeModal(); render(); pushToast(isEdit?'Đã lưu hồ sơ ngựa':'Đã thêm ngựa mới');
+  },
+  'save-pedigree': function(el){
+    var v = formValues(el); var h = byId(state.HORSES, el.dataset.id);
+    var sireId = v.sireId||null, damId = v.damId||null;
+    if (sireId===h.id || damId===h.id){ pushToast('Ngựa không thể là cha/mẹ của chính nó','⚠'); return; }
+    if (sireId && damId && sireId===damId){ pushToast('Cha và mẹ không được là cùng 1 con','⚠'); return; }
+    h.sireId=sireId; h.damId=damId; closeModal(); render(); pushToast('Đã cập nhật phả hệ');
+  },
+  'confirm-lock': function(el){
+    var v = formValues(el); var h = byId(state.HORSES, el.dataset.id);
+    setHorseLock(h.id, true, v.reason||'Không rõ lý do'); closeModal(); render(); pushToast(h.name+' đã bị khoá tập luyện','🔒');
+  },
+  'save-session': function(el){
+    var v = formValues(el); var horseId = el.dataset.id; var h = byId(state.HORSES, horseId);
+    if (h.locked){ pushToast('Ngựa đang bị khoá tập luyện: '+(h.lockReason||''), '⚠'); return; }
+    state.SESSIONS.push({ id:uid('sess'), horseId:horseId, trainerId:ui.personaId, planId: v.planId||null,
+      scheduledAt:new Date(v.scheduledAt).toISOString(), type:v.type, status:'PLANNED', resultMetric:null, resultValue:null, notes:v.notes||null });
+    closeModal(); render(); pushToast('Đã tạo buổi tập mới');
+  },
+  'complete-session-submit': function(el){
+    var v = formValues(el); var s = byId(state.SESSIONS, el.dataset.id);
+    s.status='DONE'; s.resultMetric=v.resultMetric; s.resultValue=Number(v.resultValue);
+    closeModal(); render(); pushToast('Đã ghi nhận kết quả buổi tập');
+  },
+  'save-plan': function(el){
+    var v = formValues(el);
+    state.PLANS.push({ id:uid('plan'), horseId:v.horseId, trainerId:ui.personaId, goal:v.goal,
+      startDate:new Date(v.startDate).toISOString(), endDate:v.endDate?new Date(v.endDate).toISOString():null });
+    closeModal(); render(); pushToast('Đã tạo kế hoạch tập luyện');
+  },
+  'save-record': function(el){
+    var v = formValues(el); var horseId = el.dataset.id;
+    state.HEALTH_RECORDS.push({ id:uid('hr'), horseId:horseId, vetId:ui.personaId, examDate:new Date(v.examDate).toISOString(),
+      diagnosis:v.diagnosis, treatment:v.treatment||null, attachmentPath:null });
+    closeModal(); render(); pushToast('Đã lưu hồ sơ khám');
+  },
+  'save-incident': function(el){
+    var v = formValues(el); var horseId = el.dataset.id; var h = byId(state.HORSES, horseId);
+    var inc = { id:uid('inc'), horseId:horseId, reportedById:ui.personaId, description:v.description, severity:v.severity,
+      status:'OPEN', healthRecordId:null, createdAt: iso(new Date()) };
+    state.INCIDENTS.unshift(inc);
+    if (v.severity==='HIGH') setHorseLock(horseId, true, 'Incident: '+v.description);
+    notify([h.ownerId].concat(managerIds()), 'INCIDENT_REPORTED', 'Sự cố mới ('+v.severity+') cho '+h.name+': '+v.description);
+    closeModal(); render(); pushToast('Đã gửi báo cáo sự cố'+(v.severity==='HIGH'?' — ngựa đã tự động bị khoá':''), '⚠');
+  },
+  'update-incident-submit': function(el){
+    var v = formValues(el); var inc = byId(state.INCIDENTS, el.dataset.id); var h = byId(state.HORSES, inc.horseId);
+    inc.status = v.status; inc.healthRecordId = v.healthRecordId || null;
+    if (v.status==='RESOLVED' && h.locked) setHorseLock(h.id, false, null);
+    closeModal(); render(); pushToast('Đã cập nhật xử lý sự cố');
+  },
+  'save-race': function(el){
+    var v = formValues(el);
+    state.RACES.push({ id:uid('race'), name:v.name, date:new Date(v.date).toISOString(), venue:v.venue||null,
+      distance: v.distance?Number(v.distance):null, surface:v.surface||null, prizePool:null });
+    closeModal(); render(); pushToast('Đã tạo giải đua mới');
+  },
+  'save-entry': function(el){
+    var v = formValues(el); var raceId = el.dataset.id;
+    if (!v.horseId) { closeModal(); return; }
+    var dup = state.RACE_ENTRIES.some(function(e){ return e.raceId===raceId && e.horseId===v.horseId; });
+    if (dup){ pushToast('Ngựa này đã đăng ký giải này rồi','⚠'); return; }
+    state.RACE_ENTRIES.push({ id:uid('entry'), raceId:raceId, horseId:v.horseId, position:null, time:null });
+    closeModal(); render(); pushToast('Đã đăng ký tham gia giải');
+  },
+  'save-entry-result': function(el){
+    var v = formValues(el); var entry = byId(state.RACE_ENTRIES, el.dataset.id);
+    entry.position = v.position!==''? Number(v.position) : null; entry.time = v.time||null;
+    closeModal(); render(); pushToast('Đã lưu kết quả thi đấu');
+  },
+  'toggle-user': function(el){
+    var u = byId(state.USERS, el.dataset.id); u.status = u.status==='ACTIVE'?'DISABLED':'ACTIVE'; render();
+    pushToast(u.status==='ACTIVE'?'Đã mở khoá tài khoản':'Đã khoá tài khoản');
+  },
+  'approve-user-submit': function(el){
+    var v = formValues(el); var u = byId(state.USERS, el.dataset.id);
+    u.role = v.role; u.status='ACTIVE'; closeModal(); render(); pushToast('Đã duyệt tài khoản '+u.name);
+  }
+};
+
+/* ================================ EVENT WIRING ================================ */
+function captureFocus(){
+  var el = document.activeElement;
+  if (!el || !el.id) return null;
+  var info = { id: el.id, start: null, end: null };
+  if (typeof el.selectionStart === 'number'){ info.start = el.selectionStart; info.end = el.selectionEnd; }
+  return info;
+}
+function restoreFocus(info){
+  if (!info) return;
+  var el = document.getElementById(info.id);
+  if (!el) return;
+  el.focus();
+  if (info.start!=null && el.setSelectionRange){ try{ el.setSelectionRange(info.start, info.end); }catch(e){} }
+}
+
+document.addEventListener('click', function(e){
+  var overlay = e.target.closest('.overlay');
+  if (overlay && e.target===overlay){ closeModal(); return; }
+  var trigger = e.target.closest('[data-action]');
+  if (!trigger) return;
+  var action = trigger.dataset.action;
+  if (trigger.tagName==='FORM') return; // handled by submit
+  if (trigger.hasAttribute('disabled')) return;
+  if (ACTIONS[action]) { e.preventDefault(); ACTIONS[action](trigger, e); }
+});
+
+document.addEventListener('submit', function(e){
+  var form = e.target.closest('form[data-action]');
+  if (!form) return;
+  e.preventDefault();
+  var action = form.dataset.action;
+  if (ACTIONS[action]) ACTIONS[action](form, e);
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id==='horse-search') ACTIONS['horse-search'](e.target);
+});
+
+document.addEventListener('keydown', function(e){
+  if (e.key==='Escape') closeModal();
+});
+
+/* click-away for popovers (persona menu / notif panel) */
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.pop-wrap')){
+    if (ui.personaMenuOpen || ui.notifOpen){ ui.personaMenuOpen=false; ui.notifOpen=false; render(); }
+  }
+}, true);
+
+/* ================================ ROUTER ================================ */
+function syncFromHash(){
+  var h = location.hash.replace(/^#\/?/, '');
+  var parts = h.split('/').filter(Boolean);
+  ui.route = parts[0] || 'dashboard';
+  ui.routeParam = parts[1] || null;
+  if (!PAGE_TITLE[ui.route]) ui.route = 'dashboard';
+}
+window.addEventListener('hashchange', function(){ syncFromHash(); render(); });
+
+/* ================================ BOOT ================================ */
+function start(hotData){
+  if (hotData && hotData.state) { try{ for (var k in hotData.state) if (state[k]) state[k]=hotData.state[k]; ui = hotData.ui || ui; }catch(e){} }
+  else { loadLocal(); }
+  syncFromHash();
+  render();
+}
+try{
+  if (window.claude && window.claude.hot){
+    window.claude.hot.ready ? window.claude.hot.ready(function(){ start(window.claude.hot.data); }) : start(window.claude.hot.data);
+  } else { start(null); }
+}catch(e){ start(null); }
+
+})();
+</script>

@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Quản lý Huấn luyện Ngựa đua"
+  },
+  "nav": {
+    "horses": "Ngựa",
+    "users": "Người dùng",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "name": "Họ tên",
+    "passwordHint": "Ít nhất 8 ký tự",
+    "noAccount": "Chưa có tài khoản?",
+    "registerDone": "Đã tạo tài khoản. Quản lý sẽ duyệt và gán vai trò trước khi bạn đăng nhập được."
+  },
+  "common": {
+    "create": "Tạo",
+    "cancel": "Huỷ",
+    "save": "Lưu",
+    "update": "Cập nhật"
+  },
+  "role": {
+    "MANAGER": "Quản lý CLB",
+    "TRAINER": "Huấn luyện viên",
+    "VET": "Bác sĩ thú y",
+    "GROOM": "Nhân viên chăm sóc",
+    "OWNER": "Chủ ngựa"
+  },
+  "horse": {
+    "name": "Tên",
+    "breed": "Giống",
+    "birthDate": "Ngày sinh",
+    "owner": "Chủ ngựa",
+    "status": "Trạng thái",
+    "empty": "Chưa có ngựa nào.",
+    "new": "Thêm ngựa"
+  },
+  "tab": {
+    "sessions": "Buổi tập",
+    "health": "Y tế"
+  },
+  "session": {
+    "new": "Buổi tập mới",
+    "scheduledAt": "Thời gian",
+    "type": "Loại",
+    "notes": "Ghi chú",
+    "empty": "Chưa có buổi tập nào.",
+    "result": "Kết quả",
+    "status": "Trạng thái",
+    "resultMetric": "Chỉ số kết quả",
+    "resultValue": "Giá trị kết quả",
+    "keepPlanned": "Giữ nguyên (PLANNED)"
+  },
+  "health": {
+    "new": "Hồ sơ khám mới",
+    "examDate": "Ngày khám",
+    "diagnosis": "Chẩn đoán",
+    "treatment": "Điều trị",
+    "empty": "Chưa có hồ sơ y tế nào.",
+    "openAttachment": "Mở tệp đính kèm",
+    "uploadAttachment": "Tải tệp đính kèm"
+  },
+  "user": {
+    "role": "Vai trò",
+    "status": "Trạng thái",
+    "created": "Ngày tạo",
+    "approve": "Duyệt",
+    "disable": "Khoá",
+    "enable": "Mở lại"
+  },
+  "error": {
+    "VALIDATION_ERROR": "Dữ liệu không hợp lệ",
+    "UNAUTHENTICATED": "Sai email hoặc mật khẩu",
+    "EMAIL_NOT_VERIFIED": "Email chưa được xác minh",
+    "ACCOUNT_PENDING": "Tài khoản đang chờ duyệt",
+    "ACCOUNT_DISABLED": "Tài khoản đã bị khoá",
+    "FORBIDDEN": "Bạn không có quyền thực hiện",
+    "NOT_FOUND": "Không tìm thấy",
+    "CONFLICT": "Email này đã được đăng ký",
+    "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn",
+    "TOKEN_INVALID": "Phiên đăng nhập không hợp lệ",
+    "INTERNAL": "Lỗi hệ thống"
+  }
+}

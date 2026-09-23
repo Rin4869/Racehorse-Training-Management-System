@@ -1,31 +1,47 @@
-# Java
-*.class
+# dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# Build
-build/
+# builds
 dist/
-target/
+build/
+coverage/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# uploads (keep the folder, not the files)
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+
+# logs
+*.log
+npm-debug.log*
+
+# local postgres data (if placed inside the repo)
+pgdata/
+
+# --- kept from the team's original .gitignore ---
+# Java (in case any teammate adds a Java-based tool/module)
+*.class
 
 # NetBeans
 /nbproject/private/
 /nbbuild/
-/dist/
 /.nb-gradle/
 
-# VS Code
+# editor / IDE
 /.vscode/
-
-# IntelliJ
 .idea/
 *.iml
-
-# Eclipse
 .classpath
 .project
 .settings/
-
-# Logs
-*.log
+*.swp
 
 # OS
 .DS_Store

@@ -1,0 +1,145 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { api } from '../lib/api';
+import type { Paginated, Role, User } from '../lib/types';
+import { ErrorText } from '../components/ErrorText';
+import { formatDate } from '../lib/format';
+
+const ROLES: Role[] = ['MANAGER', 'TRAINER', 'VET', 'GROOM', 'OWNER'];
+
+export function AdminUsersPage() {
+  const { t } = useTranslation();
+  const [users, setUsers] = useState<User[]>([]);
+  const [err, setErr] = useState<unknown>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get<Paginated<User>>('/users', {
+        params: { limit: 100 },
+      });
+      setUsers(res.data.data);
+      setErr(null);
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return (
+    <div className="stack">
+      <h1>{t('nav.users')}</h1>
+      {loading ? (
+        <p className="muted">…</p>
+      ) : err ? (
+        <ErrorText err={err} />
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>{t('auth.name')}</th>
+              <th>{t('auth.email')}</th>
+              <th>{t('user.role')}</th>
+              <th>{t('user.status')}</th>
+              <th>{t('user.created')}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <UserRow key={u.id} user={u} onChanged={load} />
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
+  const { t } = useTranslation();
+  const [role, setRole] = useState<Role>(user.role ?? 'OWNER');
+  const [err, setErr] = useState<unknown>(null);
+  const [busy, setBusy] = useState(false);
+
+  const patch = async (body: Record<string, unknown>) => {
+    setErr(null);
+    setBusy(true);
+    try {
+      await api.patch(`/users/${user.id}`, body);
+      onChanged();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <tr>
+      <td>{user.name}</td>
+      <td>{user.email}</td>
+      <td>
+        {user.status === 'PENDING' ? (
+          <select
+            className="input"
+            value={role}
+            onChange={(e) => setRole(e.target.value as Role)}
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {t(`role.${r}`)}
+              </option>
+            ))}
+          </select>
+        ) : user.role ? (
+          t(`role.${user.role}`)
+        ) : (
+          '—'
+        )}
+      </td>
+      <td>
+        <span className="tag">{user.status}</span>
+      </td>
+      <td>{formatDate(user.createdAt)}</td>
+      <td>
+        {user.status === 'PENDING' && (
+          <button
+            type="button"
+            className="btn small-btn"
+            disabled={busy}
+            onClick={() => patch({ role, status: 'ACTIVE' })}
+          >
+            {t('user.approve')}
+          </button>
+        )}
+        {user.status === 'ACTIVE' && (
+          <button
+            type="button"
+            className="btn small-btn"
+            disabled={busy}
+            onClick={() => patch({ status: 'DISABLED' })}
+          >
+            {t('user.disable')}
+          </button>
+        )}
+        {user.status === 'DISABLED' && (
+          <button
+            type="button"
+            className="btn small-btn"
+            disabled={busy}
+            onClick={() => patch({ status: 'ACTIVE' })}
+          >
+            {t('user.enable')}
+          </button>
+        )}
+        <ErrorText err={err} />
+      </td>
+    </tr>
+  );
+}

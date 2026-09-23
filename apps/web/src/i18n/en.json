@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Racehorse Training & Management"
+  },
+  "nav": {
+    "horses": "Horses",
+    "users": "Users",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "passwordHint": "At least 8 characters",
+    "noAccount": "No account yet?",
+    "registerDone": "Account created. A manager will review and assign your role before you can log in."
+  },
+  "common": {
+    "create": "Create",
+    "cancel": "Cancel",
+    "save": "Save",
+    "update": "Update"
+  },
+  "role": {
+    "MANAGER": "Club Manager",
+    "TRAINER": "Head Trainer",
+    "VET": "Veterinarian",
+    "GROOM": "Groom",
+    "OWNER": "Horse Owner"
+  },
+  "horse": {
+    "name": "Name",
+    "breed": "Breed",
+    "birthDate": "Birth date",
+    "owner": "Owner",
+    "status": "Status",
+    "empty": "No horses yet.",
+    "new": "New horse"
+  },
+  "tab": {
+    "sessions": "Sessions",
+    "health": "Health"
+  },
+  "session": {
+    "new": "New session",
+    "scheduledAt": "Scheduled at",
+    "type": "Type",
+    "notes": "Notes",
+    "empty": "No training sessions yet.",
+    "result": "Result",
+    "status": "Status",
+    "resultMetric": "Result metric",
+    "resultValue": "Result value",
+    "keepPlanned": "Keep planned"
+  },
+  "health": {
+    "new": "New health record",
+    "examDate": "Exam date",
+    "diagnosis": "Diagnosis",
+    "treatment": "Treatment",
+    "empty": "No health records yet.",
+    "openAttachment": "Open attachment",
+    "uploadAttachment": "Upload attachment"
+  },
+  "user": {
+    "role": "Role",
+    "status": "Status",
+    "created": "Created",
+    "approve": "Approve",
+    "disable": "Disable",
+    "enable": "Enable"
+  },
+  "error": {
+    "VALIDATION_ERROR": "Invalid data",
+    "UNAUTHENTICATED": "Wrong email or password",
+    "EMAIL_NOT_VERIFIED": "Email not verified",
+    "ACCOUNT_PENDING": "Account awaiting approval",
+    "ACCOUNT_DISABLED": "Account disabled",
+    "FORBIDDEN": "You are not allowed to do this",
+    "NOT_FOUND": "Not found",
+    "CONFLICT": "This email is already registered",
+    "TOKEN_EXPIRED": "Session expired",
+    "TOKEN_INVALID": "Invalid session",
+    "INTERNAL": "System error"
+  }
+}

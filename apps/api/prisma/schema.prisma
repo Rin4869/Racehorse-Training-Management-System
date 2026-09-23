@@ -1,0 +1,255 @@
+// Racehorse Training & Management System — Core API
+// Data model: see ../../../docs/DATA_MODEL.md and ../../../docs/PLAN.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MANAGER
+  TRAINER
+  VET
+  GROOM
+  OWNER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  DISABLED
+}
+
+enum HorseStatus {
+  ACTIVE
+  RESTING
+  RETIRED
+}
+
+enum SessionStatus {
+  PLANNED
+  DONE
+  CANCELLED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum NotificationType {
+  TRAINING_LOCKED
+  TRAINING_UNLOCKED
+  INCIDENT_REPORTED
+}
+
+model User {
+  id              String     @id @default(uuid())
+  name            String
+  email           String     @unique
+  passwordHash    String
+  role            Role? // null while PENDING and not yet assigned
+  status          UserStatus @default(PENDING)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
+
+  horses            Horse[]           @relation("HorseOwner")
+  trainerSessions   TrainingSession[] @relation("SessionTrainer")
+  trainingPlans     TrainingPlan[]    @relation("PlanTrainer")
+  vetRecords        HealthRecord[]
+  reportedIncidents IncidentReport[]  @relation("IncidentReporter")
+  notifications     Notification[]
+  refreshTokens     RefreshToken[]
+  authTokens        AuthToken[]
+
+  @@index([status])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model AuthToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // "VERIFY_EMAIL" | "RESET_PASSWORD"
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+}
+
+model Horse {
+  id           String      @id @default(uuid())
+  name         String
+  breed        String?
+  birthDate    DateTime?
+  ownerId      String
+  owner        User        @relation("HorseOwner", fields: [ownerId], references: [id])
+  status       HorseStatus @default(ACTIVE)
+  photoPath    String?
+  sireId       String?
+  sire         Horse?      @relation("HorsePedigree_Sire", fields: [sireId], references: [id])
+  damId        String?
+  dam          Horse?      @relation("HorsePedigree_Dam", fields: [damId], references: [id])
+  fitnessScore Int? // 0..100, nullable — chưa đánh giá
+  locked       Boolean     @default(false) // Training Lock — VET ban hành
+  lockReason   String? // chỉ có ý nghĩa khi locked=true
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+
+  sessions      TrainingSession[]
+  trainingPlans TrainingPlan[]
+  healthRecords HealthRecord[]
+  raceEntries   RaceEntry[]
+  incidents     IncidentReport[]
+  siredFoals    Horse[]           @relation("HorsePedigree_Sire")
+  damFoals      Horse[]           @relation("HorsePedigree_Dam")
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([sireId])
+  @@index([damId])
+}
+
+model TrainingSession {
+  id           String        @id @default(uuid())
+  horseId      String
+  horse        Horse         @relation(fields: [horseId], references: [id])
+  trainerId    String
+  trainer      User          @relation("SessionTrainer", fields: [trainerId], references: [id])
+  planId       String?
+  plan         TrainingPlan? @relation(fields: [planId], references: [id])
+  scheduledAt  DateTime
+  type         String
+  status       SessionStatus @default(PLANNED)
+  resultMetric String?
+  resultValue  Float?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([horseId, scheduledAt])
+  @@index([status])
+  @@index([planId])
+}
+
+model TrainingPlan {
+  id        String    @id @default(uuid())
+  horseId   String
+  horse     Horse     @relation(fields: [horseId], references: [id])
+  trainerId String
+  trainer   User      @relation("PlanTrainer", fields: [trainerId], references: [id])
+  goal      String
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sessions TrainingSession[]
+
+  @@index([horseId])
+}
+
+model HealthRecord {
+  id             String   @id @default(uuid())
+  horseId        String
+  horse          Horse    @relation(fields: [horseId], references: [id])
+  vetId          String
+  vet            User     @relation(fields: [vetId], references: [id])
+  examDate       DateTime
+  diagnosis      String
+  treatment      String?
+  attachmentPath String?
+  createdAt      DateTime @default(now())
+
+  incidents IncidentReport[]
+
+  @@index([horseId, examDate])
+}
+
+model Race {
+  id        String   @id @default(uuid())
+  name      String
+  date      DateTime
+  venue     String?
+  distance  Int? // meters
+  surface   String? // free text, e.g. "turf" | "dirt"
+  prizePool Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries RaceEntry[]
+
+  @@index([date])
+}
+
+model RaceEntry {
+  id        String   @id @default(uuid())
+  raceId    String
+  race      Race     @relation(fields: [raceId], references: [id])
+  horseId   String
+  horse     Horse    @relation(fields: [horseId], references: [id])
+  position  Int? // null = no result yet
+  time      String? // free text, e.g. "1:38.20"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([raceId, horseId])
+  @@index([horseId])
+}
+
+model IncidentReport {
+  id             String           @id @default(uuid())
+  horseId        String
+  horse          Horse            @relation(fields: [horseId], references: [id])
+  reportedById   String
+  reportedBy     User             @relation("IncidentReporter", fields: [reportedById], references: [id])
+  description    String
+  severity       IncidentSeverity
+  status         IncidentStatus   @default(OPEN)
+  healthRecordId String?
+  healthRecord   HealthRecord?    @relation(fields: [healthRecordId], references: [id])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([horseId])
+  @@index([status])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+}
