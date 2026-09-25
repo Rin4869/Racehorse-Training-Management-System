@@ -13,6 +13,8 @@ import { HealthRecordsModule } from './health/health-records.module';
 import { RacesModule } from './races/races.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { IncidentsModule } from './incidents/incidents.module';
+import { InjuriesModule } from './injuries/injuries.module';
+import { VaccinationsModule } from './vaccinations/vaccinations.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -34,6 +36,8 @@ import { RolesGuard } from './common/guards/roles.guard';
     RacesModule,
     NotificationsModule,
     IncidentsModule,
+    InjuriesModule,
+    VaccinationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

@@ -9,6 +9,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { HorsesService } from '../horses/horses.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { FileStorageService } from '../files/file-storage.service';
 import { AppException } from '../common/app-exception';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
 import type { Paginated } from '../horses/horses.service';
@@ -23,9 +24,13 @@ const INCIDENT_INCLUDE = {
   horse: { select: { id: true, name: true, ownerId: true } },
 } satisfies Prisma.IncidentReportInclude;
 
-type IncidentView = Prisma.IncidentReportGetPayload<{
+type IncidentWithRelations = Prisma.IncidentReportGetPayload<{
   include: typeof INCIDENT_INCLUDE;
 }>;
+
+export interface IncidentView extends IncidentWithRelations {
+  photoUrl: string | null;
+}
 
 // Forward-only status progression; skipping ahead (OPEN -> RESOLVED) is allowed.
 const STATUS_ORDER: IncidentStatus[] = [
@@ -34,13 +39,26 @@ const STATUS_ORDER: IncidentStatus[] = [
   IncidentStatus.RESOLVED,
 ];
 
+// Keep in sync with the global prefix in main.ts.
+const API_PREFIX = '/api/v1';
+
 @Injectable()
 export class IncidentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly horses: HorsesService,
     private readonly notifications: NotificationsService,
+    private readonly storage: FileStorageService,
   ) {}
+
+  private toView(incident: IncidentWithRelations): IncidentView {
+    return {
+      ...incident,
+      photoUrl: incident.photoPath
+        ? `${API_PREFIX}/files/${incident.photoPath}`
+        : null,
+    };
+  }
 
   private assertHorseVisible(
     horse: { ownerId: string } | null,
@@ -91,7 +109,7 @@ export class IncidentsService {
       `Sự cố mới (${dto.severity}) cho ${incident.horse.name}: ${incident.description}`,
     );
 
-    return incident;
+    return this.toView(incident);
   }
 
   async listByHorse(
@@ -112,7 +130,10 @@ export class IncidentsService {
       }),
       this.prisma.incidentReport.count({ where }),
     ]);
-    return { data, meta: { page: q.page, limit: q.limit, total } };
+    return {
+      data: data.map((i) => this.toView(i)),
+      meta: { page: q.page, limit: q.limit, total },
+    };
   }
 
   async get(id: string, user: AuthUser): Promise<IncidentView> {
@@ -122,7 +143,7 @@ export class IncidentsService {
     });
     if (!incident) throw new AppException('NOT_FOUND', 'Incident not found');
     this.assertHorseVisible(incident.horse, user);
-    return incident;
+    return this.toView(incident);
   }
 
   async update(id: string, dto: UpdateIncidentDto): Promise<IncidentView> {
@@ -184,6 +205,35 @@ export class IncidentsService {
       }
     }
 
-    return incident;
+    return this.toView(incident);
+  }
+
+  /** UC-19 (Phase 10) — 1 photo/incident, overwrite, best-effort delete of the old file. */
+  async setPhoto(id: string, photoPath: string): Promise<IncidentView> {
+    const current = await this.prisma.incidentReport.findUnique({
+      where: { id },
+      select: { photoPath: true },
+    });
+    if (!current) throw new AppException('NOT_FOUND', 'Incident not found');
+
+    const incident = await this.prisma.incidentReport.update({
+      where: { id },
+      data: { photoPath },
+      include: INCIDENT_INCLUDE,
+    });
+    if (current.photoPath && current.photoPath !== photoPath) {
+      this.storage.removeQuietly(current.photoPath);
+    }
+    return this.toView(incident);
+  }
+
+  /** Ownership-checked lookup used when serving an incident photo file. */
+  async findForPhoto(photoPath: string, user: AuthUser): Promise<void> {
+    const incident = await this.prisma.incidentReport.findFirst({
+      where: { photoPath },
+      select: { horse: { select: { ownerId: true } } },
+    });
+    if (!incident) throw new AppException('NOT_FOUND', 'File not found');
+    this.assertHorseVisible(incident.horse, user);
   }
 }

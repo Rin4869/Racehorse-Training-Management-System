@@ -35,6 +35,20 @@ export class NotificationsService {
     return managers.map((m) => m.id);
   }
 
+  /**
+   * All ACTIVE, non-deleted GROOM user ids — recipients for the fitness
+   * threshold warning (Phase 9). Sessions have no per-horse groom
+   * assignment in the schema, so "relevant GROOM" means every active
+   * groom, same pattern as managerIds().
+   */
+  async groomIds(): Promise<string[]> {
+    const grooms = await this.prisma.user.findMany({
+      where: { role: 'GROOM', status: 'ACTIVE', deletedAt: null },
+      select: { id: true },
+    });
+    return grooms.map((g) => g.id);
+  }
+
   async list(
     q: ListNotificationsQueryDto,
     currentUser: AuthUser,

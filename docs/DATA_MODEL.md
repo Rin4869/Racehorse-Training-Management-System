@@ -1,14 +1,19 @@
 # Data Model
 
-## ERD — MVP + Phase 6/7/8 (12 bảng thực tế)
+## ERD — MVP + Phase 6-10 (16 bảng thực tế)
 
 Đây là schema Prisma **đang chạy** (`apps/api/prisma/schema.prisma`, migration
 `20260908032635_init` + `..._phase6_pedigree_races` +
-`..._phase7_training_plan_lock` + `..._phase8_incidents_notifications`). Cả
-**3 luồng mở rộng sau-MVP** (Pedigree & Races, Training Plan & Lock, Health
-& Injury) chốt ngày 2026-09-12 nay đã vào code. Phần "bản đầy đủ" bên dưới
-chỉ còn `stalls`, `vaccinations`, `medications`, `daily_care_logs`,
-`facility_tasks`, `audit_logs` — vẫn là tầm nhìn, **chưa** vào code.
+`..._phase7_training_plan_lock` + `..._phase8_incidents_notifications` +
+`..._phase9_fitness_warning_notification` +
+`..._phase10_health_injury_extensions`). Cả **3 luồng mở rộng sau-MVP**
+(Pedigree & Races, Training Plan & Lock, Health & Injury) chốt ngày
+2026-09-12 nay đã vào code, cộng thêm phần đối chiếu với
+`CLAUDE_CODE_BACKEND_FULL.md` (2026-09-24, xem DECISIONS.md): Phase 9 (rule
+an toàn Training) + Phase 10 (`healthStatus`, `injury_locations`,
+`vaccinations`, `treatment_plans`+`medications`, ảnh sự cố). Phần "bản đầy
+đủ" bên dưới chỉ còn `stalls`, `daily_care_logs`, `facility_tasks`,
+`audit_logs` — vẫn là tầm nhìn, **chưa** vào code.
 
 ```mermaid
 erDiagram
@@ -29,6 +34,12 @@ erDiagram
     Race  ||--o{ RaceEntry : has
     TrainingPlan ||--o{ TrainingSession : "groups (optional)"
     HealthRecord ||--o{ IncidentReport : "linked (optional)"
+    Horse ||--o{ Vaccination : has
+    HealthRecord ||--o{ TreatmentPlan : has
+    HealthRecord ||--o{ Medication : has
+    TreatmentPlan ||--o{ Medication : "groups (optional)"
+    IncidentReport ||--o{ InjuryLocation : "or"
+    HealthRecord ||--o{ InjuryLocation : "or"
 
     User {
         uuid id PK
@@ -72,6 +83,7 @@ erDiagram
         int fitnessScore "nullable, 0..100 — Phase 6"
         boolean locked "default false — Training Lock, Phase 7"
         string lockReason "nullable — Phase 7"
+        HealthStatus healthStatus "FIT|MONITORING|QUARANTINED|INJURED, default FIT — Phase 10"
         datetime createdAt
         datetime updatedAt
         datetime deletedAt "nullable — soft delete"
@@ -138,24 +150,63 @@ erDiagram
         IncidentSeverity severity "LOW|MEDIUM|HIGH"
         IncidentStatus status "OPEN|IN_PROGRESS|RESOLVED"
         uuid healthRecordId FK "nullable"
+        string photoPath "nullable — Phase 10 (UC-19)"
         datetime createdAt
         datetime updatedAt
     }
     Notification {
         uuid id PK
         uuid userId FK
-        NotificationType type "TRAINING_LOCKED|TRAINING_UNLOCKED|INCIDENT_REPORTED"
+        NotificationType type "TRAINING_LOCKED|TRAINING_UNLOCKED|INCIDENT_REPORTED|FITNESS_WARNING"
         string message
         boolean read "default false"
+        datetime createdAt
+    }
+    InjuryLocation {
+        uuid id PK
+        uuid incidentReportId FK "nullable — đúng 1 trong 2 FK có giá trị"
+        uuid healthRecordId FK "nullable"
+        string bodyRegion
+        string side "nullable"
+        string notes "nullable"
+        datetime createdAt
+    }
+    TreatmentPlan {
+        uuid id PK
+        uuid healthRecordId FK
+        string description
+        datetime startDate
+        datetime endDate "nullable"
+        TreatmentPlanStatus status "ACTIVE|COMPLETED|CANCELLED, default ACTIVE"
+        datetime createdAt
+        datetime updatedAt
+    }
+    Medication {
+        uuid id PK
+        uuid healthRecordId FK
+        uuid treatmentPlanId FK "nullable"
+        string name
+        string dosage "nullable"
+        datetime startDate "nullable"
+        datetime endDate "nullable"
+        datetime createdAt
+    }
+    Vaccination {
+        uuid id PK
+        uuid horseId FK
+        string vaccineName
+        datetime date
+        datetime nextDueDate "nullable"
         datetime createdAt
     }
 ```
 
 Ghi chú:
 - `TrainingSession`, `TrainingPlan`, `HealthRecord`, `Race`, `RaceEntry`,
-  `IncidentReport`, `Notification`
-  **không** có `deletedAt` (không soft-delete); `HealthRecord` cũng **không**
-  có `updatedAt`.
+  `IncidentReport`, `Notification`, `InjuryLocation`, `TreatmentPlan`,
+  `Medication`, `Vaccination`
+  **không** có `deletedAt` (không soft-delete, không DELETE endpoint);
+  `HealthRecord` cũng **không** có `updatedAt`.
 - `TrainingSession.planId` optional — buổi tập không bắt buộc gắn kế hoạch.
 - Mọi query domain lọc `deletedAt: null` cho `User` / `Horse`.
 - Timestamp lưu UTC (`timestamptz`), hiển thị `Asia/Ho_Chi_Minh` ở frontend.
@@ -168,18 +219,29 @@ Ghi chú:
   khoá → tự `locked=false`. Mọi lần `locked` đổi (tay hoặc tự động) đều tạo
   `Notification` cho chủ ngựa + mọi MANAGER (xem
   [specs/phase-8-health-injury.md](specs/phase-8-health-injury.md) §5).
+- `Horse.healthStatus` **độc lập** với `Horse.status` (career) và
+  `Horse.locked` (Training Lock) — 3 trục riêng biệt, không tự động hoá
+  chéo. Chỉ ghi qua `POST /horses/:id/health-records`
+  (xem [specs/phase-10-health-injury-extensions.md](specs/phase-10-health-injury-extensions.md) §5).
+- `InjuryLocation` có 2 FK nullable (`incidentReportId`, `healthRecordId`) —
+  ràng buộc "đúng 1 trong 2" ở tầng service, không ở tầng DB.
+- `Medication.treatmentPlanId` nullable — 1 medication có thể đứng độc lập
+  (gắn thẳng `healthRecordId`) hoặc thuộc 1 `TreatmentPlan`.
 
 ---
 
 # Data Model — bản đầy đủ (mở rộng sau MVP)
 
-> **Cả 3 luồng mở rộng sau-MVP đã vào code (2026-09-14)** — Phase 6:
+> **Cả 3 luồng mở rộng sau-MVP đã vào code** — Phase 6 (2026-09-14):
 > `races`/`race_entries` + `sire_id`/`dam_id`/`fitness_score` trên `horses`;
-> Phase 7: `training_plans` + `locked` trên `horses`; Phase 8:
-> `incident_reports` + `notifications`. Xem ERD ở đầu file. Các bảng/cột còn
-> lại dưới đây (`stalls`, `vaccinations`, `medications`, `daily_care_logs`,
-> `facility_tasks`, `audit_logs`) **vẫn chỉ là tầm nhìn, chưa vào code** —
-> không nằm trong 3 luồng đã chốt, chờ yêu cầu mới nếu có.
+> Phase 7 (2026-09-14): `training_plans` + `locked` trên `horses`; Phase 8
+> (2026-09-14): `incident_reports` + `notifications`; Phase 10 (2026-09-25):
+> `health_status` trên `horses`, `vaccinations`, `medications`,
+> **`injury_locations`, `treatment_plans` (2 bảng mới, không có trong bản
+> "tầm nhìn" gốc dưới đây — thêm theo yêu cầu `CLAUDE_CODE_BACKEND_FULL.md`,
+> xem DECISIONS.md 2026-09-25)**. Xem ERD ở đầu file. Các bảng/cột còn lại
+> dưới đây (`stalls`, `daily_care_logs`, `facility_tasks`, `audit_logs`)
+> **vẫn chỉ là tầm nhìn, chưa vào code** — chờ yêu cầu mới nếu có.
 
 Quy ước chung:
 - Mọi bảng có `id`, `created_at`, `updated_at`.
@@ -268,23 +330,9 @@ Quy ước chung:
 | treatment | text | |
 | follow_up_date | date | nullable |
 
-### vaccinations
-| cột | kiểu | ghi chú |
-|---|---|---|
-| id | uuid PK | |
-| horse_id | uuid FK → horses.id | |
-| vaccine_name | text | |
-| date | date | |
-| next_due_date | date | |
-
-### medications
-| cột | kiểu | ghi chú |
-|---|---|---|
-| id | uuid PK | |
-| health_record_id | uuid FK → health_records.id | |
-| name | text | |
-| dosage | text | |
-| start_date / end_date | date | |
+**`vaccinations`, `medications` — đã vào code ở Phase 10** (cộng thêm
+`injury_locations`, `treatment_plans` không có trong bản vision gốc) — xem
+ERD ở đầu file, không lặp lại bảng cột ở đây.
 
 ## Nhóm thi đấu & pedigree
 

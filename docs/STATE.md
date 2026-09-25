@@ -4,9 +4,12 @@
 > mới tới [PLAN.md](PLAN.md) và [DECISIONS.md](DECISIONS.md).
 > Cập nhật file này mỗi khi kết thúc một mảng việc.
 
-Cập nhật lần cuối: **2026-09-14** — kết thúc Phase 8 (Health & Injury), luồng
-3/3 (cuối) của việc mở rộng sau-MVP. **MVP (Phase 0-5) vẫn DONE**; cả 3 luồng
-mở rộng (Phase 6-8) nay đã xong phần API.
+Cập nhật lần cuối: **2026-09-25** — kết thúc Phase 10 (Health & Injury
+extensions), hoàn tất Sprint 3 theo `CLAUDE_CODE_BACKEND_FULL.md` (xem
+[DECISIONS.md](DECISIONS.md)). **MVP (Phase 0-5) vẫn DONE**; 3 luồng mở rộng
+(Phase 6-8) xong phần API; Phase 9 (Sprint 2 remainder) + Phase 10 (Sprint 3
+remainder) **xong** — toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) đã
+được đối chiếu/hoàn thành phía API. Còn lại chủ yếu là **frontend** — xem §4.
 
 ---
 
@@ -24,6 +27,13 @@ mở rộng (Phase 6-8) nay đã xong phần API.
 - **Phase 8 (Health & Injury) — XONG (API).** Luồng 3/3 (cuối cùng) — **cả 3
   luồng mở rộng sau-MVP đã xong phần API.** Frontend cho cả 3 (pedigree/races,
   training-plan/lock, incidents/notifications) **chưa làm** — xem §4.
+- **2026-09-24 — nhận file `CLAUDE_CODE_BACKEND_FULL.md`** (task list backend
+  đầy đủ theo Sprint 0-3 + UC/EX numbering của nhóm) — đối chiếu với code thật,
+  ghi mâu thuẫn + câu hỏi mở vào [DECISIONS.md](DECISIONS.md). **Phase 9
+  (Sprint 2 remainder: EX-01 + UC-12) — XONG.**
+- **Phase 10 (Sprint 3 remainder: healthStatus, injury_locations,
+  vaccinations, treatment_plans/medications, ảnh sự cố) — XONG (2026-09-25).**
+  Toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` nay đã xong phía API.
 - Từ Phase 2: mỗi phase có file đặc tả trong [specs/](specs/) viết trước khi code.
 
 ## 2. Môi trường máy (đã dựng sẵn)
@@ -414,21 +424,108 @@ Migration mới `phase8_incidents_notifications` (2 bảng mới + 3 enum, khôn
 Chưa làm: UI frontend cho incidents/notifications (không chặn "xong" phase
 này — xem §4).
 
+## 3j. Phase 9 đã làm gì (Training safety rules — EX-01 + UC-12)
+
+Đặc tả đầy đủ: **[specs/phase-9-training-safety.md](specs/phase-9-training-safety.md)**.
+Nguồn: `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 2 remainder) — xem đối chiếu
+đầy đủ trong [DECISIONS.md](DECISIONS.md) mục "2026-09-24 — Đối chiếu...".
+Migration mới `phase9_fitness_warning_notification` (chỉ +1 giá trị enum).
+
+### apps/api — mở rộng `src/training/` + `src/notifications/`
+- `src/notifications/notifications.service.ts`: `+groomIds()` (mọi GROOM
+  `ACTIVE`) song song `managerIds()` đã có từ Phase 8.
+- `src/training/training.module.ts`: import `NotificationsModule`.
+- `src/training/training.service.ts`:
+  - `+assertNoScheduleConflict()` trong `create()` — 409 `CONFLICT` nếu
+    ngựa có session `PLANNED` khác trong ±60 phút. Chạy **sau** rule
+    Training Lock + validate `planId` đã có.
+  - `+maybeWarnFitness()` trong `update()` — khi chuyển `DONE` với
+    `resultMetric="heart_rate_max"` và `resultValue>195` → tạo
+    `Notification` (`FITNESS_WARNING`) cho HLV + mọi GROOM + chủ ngựa.
+  - 2 hằng số `SESSION_CONFLICT_WINDOW_MIN=60`, `FITNESS_HEART_RATE_MAX=195`.
+- `test/training-safety.e2e-spec.ts` (8 test): trùng lịch trong/ngoài cửa
+  sổ 60', ngựa khác không bị ảnh hưởng, khoá ưu tiên trước trùng lịch,
+  cảnh báo đúng ngưỡng/đúng metric, không cảnh báo dưới ngưỡng hoặc metric
+  khác.
+- Sửa 2 test cũ (`training.e2e-spec.ts`, `training-plan.e2e-spec.ts`) —
+  bị vỡ vì tạo nhiều session "now" cho cùng ngựa, nay va rule EX-01 mới;
+  dời giờ lệch +2 tiếng, không đổi hành vi được test.
+
+**Đã verify:** `npm run build` ✅ · `npm run lint` ✅ · `npm run test:e2e`
+**(125/125:** 117 cũ + 8 mới**)** ✅.
+
+Chưa làm: Sprint 3 remainder — **nay đã xong ở Phase 10** (§3k dưới đây).
+
+## 3k. Phase 10 đã làm gì (Health & Injury extensions — Sprint 3 remainder)
+
+Đặc tả đầy đủ: **[specs/phase-10-health-injury-extensions.md](specs/phase-10-health-injury-extensions.md)**.
+Nguồn: `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 3) — hoàn tất phần "chưa làm"
+còn lại sau Phase 9 (UC-14, 16, 18, 19, 20; UC-17 đã xong từ Phase 7/8).
+Migration mới `phase10_health_injury_extensions` (+`Horse.healthStatus`,
++`IncidentReport.photoPath`, +4 bảng mới, +2 enum).
+
+### apps/api — 2 module mới `src/injuries/` + `src/vaccinations/` + mở rộng `src/health/`, `src/incidents/`
+- `Horse.healthStatus` (enum `FIT|MONITORING|QUARANTINED|INJURED`, default
+  `FIT`) — **độc lập** với `status` (career) và `locked` (Training Lock),
+  không tách/đổi tên field cũ nào.
+- `ListHorsesQueryDto` + `horses.service.ts`: lọc thêm theo `healthStatus`
+  (UC-14).
+- `CreateHealthRecordDto` +`healthStatus?`; `health-records.service.ts`
+  ghi lên `Horse.healthStatus` nếu VET gửi (UC-15 mở rộng).
+- `src/injuries/`: `InjuryLocation` (2 FK nullable — `incidentReportId`
+  hoặc `healthRecordId`, ràng buộc "đúng 1" ở service). 2 cặp route
+  `POST/GET .../injury-locations` theo từng nguồn gốc (VET tạo, ownership
+  khi đọc).
+- `src/vaccinations/`: `POST/GET /horses/:id/vaccinations` (VET tạo,
+  ownership) + `GET /vaccinations?upcoming=` (view toàn CLB, chặn OWNER
+  403 thẳng thay vì lọc). `upcoming=true` lọc `nextDueDate` trong 30 ngày.
+- `src/health/treatment-plans.{controller,service}.ts` (trong
+  `HealthRecordsModule`): `TreatmentPlan` (`status` mặc định `ACTIVE`) +
+  `Medication` (`treatmentPlanId` nullable — có thể đứng độc lập hoặc
+  thuộc 1 plan, đúng yêu cầu STEP 0 mục 6).
+- `IncidentsService` đổi từ trả thẳng Prisma payload sang `toView()`
+  (tính `photoUrl`, giống Horses/HealthRecords) — áp dụng lại cho cả
+  `create/listByHorse/get/update` đã có, không chỉ 2 method mới.
+  `POST /incidents/:id/photo` (GROOM, multipart) + `GET
+  /files/incident-photos/:filename` (ownership) — tái dùng nguyên
+  `FileStorageService`/`upload.ts` (thêm `INCIDENT_PHOTO_KIND` +
+  `buildIncidentPhotoMulterOptions()`), không thêm dependency mới.
+- `prisma/seed.ts` (raw prisma, không qua service — không có side-effect
+  nào cần replicate cho phần Phase 10): `healthStatus` cho Sea Breeze
+  (`MONITORING`) + Midnight (`INJURED`), 1 vaccination Thunderbolt
+  (`Tetanus`, due 20 ngày), 1 injury-location gắn incident HIGH của
+  Midnight, 1 treatment-plan+medication gắn health record "Mild colic".
+- `test/health-injury-ext.e2e-spec.ts` (15 test): filter healthStatus, ghi
+  healthStatus qua health-record, injury-location cả 2 nguồn + ownership +
+  role (VET-only), vaccination create + upcoming view + chặn OWNER, upload
+  ảnh sự cố + ownership tải ảnh, treatment-plan + medication + ownership.
+
+**Đã verify:** `npm run build` ✅ · `npm run lint` ✅ · `npm run test:e2e`
+**(140/140:** 125 cũ + 15 mới**)** ✅ · seed chạy lại idempotent.
+
+**Sprint 3 (Health & Injury) theo `CLAUDE_CODE_BACKEND_FULL.md` nay đã đầy
+đủ.** Chưa làm: UI frontend cho toàn bộ tính năng Phase 6-10 (không chặn
+"xong" phase này — xem §4).
+
 ## 4. Việc tiếp theo
 
-MVP (Phase 0-5) đủ 4 main flow gốc. **Cả 3 luồng mở rộng sau-MVP (Phase
-6-8: Pedigree & Races, Training Plan & Lock, Health & Injury) nay đã xong
-phần API** — không còn luồng activity-diagram nào chờ spec từ chốt
-2026-09-12. Còn lại:
-- **Frontend cho cả 3 luồng** (pedigree/races, training-plan/lock,
-  incidents/notifications) — API đã đủ, chưa có UI; làm khi người dùng cần
-  demo trực quan (không bắt buộc để các phase trên tính "xong").
-- Việc khác (chưa ưu tiên, chờ chốt): tách web con theo role, `stalls`,
-  `vaccinations`, `medications`, `care_logs`, `facility_tasks`, `audit_logs`
-  (nếu có yêu cầu mới ngoài 3 luồng đã chốt), CI (GitHub Actions), Dockerfile
-  build thật, test frontend (Playwright/Vitest), deliverable giảng viên
-  (ERD/UML, Scrum, coverage).
-- `git init` — vẫn **chưa làm**, chờ người dùng quyết.
+MVP (Phase 0-5) đủ 4 main flow gốc. 3 luồng mở rộng sau-MVP (Phase 6-8)
+xong phần API. **Phase 9 + Phase 10 vá xong toàn bộ Sprint 2/3 remainder
+của `CLAUDE_CODE_BACKEND_FULL.md`.** Còn lại:
+- **Frontend cho toàn bộ tính năng Phase 6-10** (pedigree/races,
+  training-plan/lock, incidents/notifications, healthStatus/injury-
+  locations/vaccinations/treatment-plans) — API đã đủ, chưa có UI; làm khi
+  cần demo trực quan (không bắt buộc để các phase trên tính "xong"). Đây là
+  hạng mục lớn nhất còn lại.
+- Việc khác (chưa ưu tiên, chờ chốt): `stalls`, `care_logs`,
+  `facility_tasks`, `audit_logs` (nếu có yêu cầu mới), CI (GitHub Actions),
+  Dockerfile build thật, test frontend (Playwright/Vitest), deliverable
+  giảng viên (ERD/UML, Scrum, coverage).
+- `git init` + push — **đã xong** (2026-09-24): repo
+  `Rin4869/Racehorse-Training-Management-System`, branch
+  `feat/core-api-backend-and-docs` → PR #1, chờ nhóm review/họp trước khi
+  merge (đúng `TEAM_RULES.md` §6 — không push thẳng `main`). **Phase 9/10
+  chưa push thêm** — cần commit + push cập nhật lên cùng branch/PR đó.
 
 ## 5. Cách một phiên mới tiếp tục
 

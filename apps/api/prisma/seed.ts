@@ -405,6 +405,104 @@ async function main(): Promise<void> {
   }
   console.log('Seeded resolved LOW incident for Thunderbolt');
 
+  // Phase 10: healthStatus, 1 vaccination, 1 injury-location, 1 treatment
+  // plan + medication. Raw prisma here too — same "no Nest DI in seed"
+  // constraint as Phase 8/9, so no side effects to replicate (these writes
+  // don't trigger notifications or locks).
+  if (seaBreezeId) {
+    await prisma.horse.update({
+      where: { id: seaBreezeId },
+      data: { healthStatus: 'MONITORING' },
+    });
+  }
+  if (midnightId) {
+    await prisma.horse.update({
+      where: { id: midnightId },
+      data: { healthStatus: 'INJURED' },
+    });
+  }
+  console.log('Seeded healthStatus: Sea Breeze=MONITORING, Midnight=INJURED');
+
+  if (thunderboltId) {
+    const existingVaccination = await prisma.vaccination.findFirst({
+      where: { horseId: thunderboltId, vaccineName: 'Tetanus' },
+    });
+    if (!existingVaccination) {
+      await prisma.vaccination.create({
+        data: {
+          horseId: thunderboltId,
+          vaccineName: 'Tetanus',
+          date: daysFromNow(-345),
+          nextDueDate: daysFromNow(20),
+        },
+      });
+    }
+  }
+  console.log('Seeded vaccination: Thunderbolt / Tetanus (due in 20 days)');
+
+  if (midnightId) {
+    const midnightIncident = await prisma.incidentReport.findFirst({
+      where: {
+        horseId: midnightId,
+        description: 'Va chạm khi vận chuyển, nghi ngờ chấn thương chân sau',
+      },
+    });
+    if (midnightIncident) {
+      const existingInjury = await prisma.injuryLocation.findFirst({
+        where: { incidentReportId: midnightIncident.id },
+      });
+      if (!existingInjury) {
+        await prisma.injuryLocation.create({
+          data: {
+            incidentReportId: midnightIncident.id,
+            bodyRegion: 'Right hind leg',
+            side: 'right',
+            notes: 'Swelling observed near the fetlock',
+          },
+        });
+      }
+    }
+  }
+  console.log('Seeded injury location for Midnight incident');
+
+  if (midnightId) {
+    const colicRecord = await prisma.healthRecord.findFirst({
+      where: { horseId: midnightId, diagnosis: 'Mild colic' },
+    });
+    if (colicRecord) {
+      let plan = await prisma.treatmentPlan.findFirst({
+        where: { healthRecordId: colicRecord.id },
+      });
+      if (!plan) {
+        plan = await prisma.treatmentPlan.create({
+          data: {
+            healthRecordId: colicRecord.id,
+            description: 'Monitor and rest, review in 48h',
+            startDate: colicRecord.examDate,
+            endDate: daysFromNow(-1),
+            status: 'COMPLETED',
+          },
+        });
+      }
+      const existingMed = await prisma.medication.findFirst({
+        where: { treatmentPlanId: plan.id },
+      });
+      if (!existingMed) {
+        await prisma.medication.create({
+          data: {
+            healthRecordId: colicRecord.id,
+            treatmentPlanId: plan.id,
+            name: 'Flunixin meglumine',
+            dosage: '1.1 mg/kg IV',
+            startDate: colicRecord.examDate,
+            endDate: daysFromNow(-2),
+          },
+        });
+      }
+    }
+  }
+  console.log('Seeded treatment plan + medication for Midnight (Mild colic)');
+
   console.log('\nDemo accounts (all password "<Role>123!"):');
   console.log('  manager@racehorse.local  / Manager123!  (MANAGER)');
   console.log('  trainer@racehorse.local  / Trainer123!  (TRAINER)');

@@ -9,6 +9,7 @@ import { AppException } from '../common/app-exception';
 
 export const HORSE_PHOTO_KIND = 'horse-photos';
 export const HEALTH_ATTACHMENT_KIND = 'health-attachments';
+export const INCIDENT_PHOTO_KIND = 'incident-photos';
 
 export const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -98,6 +99,45 @@ export function buildMulterOptions(config: ConfigService): MulterModuleOptions {
         const raw = req.params.id;
         const horseId = typeof raw === 'string' && raw ? raw : 'horse';
         cb(null, `${horseId}-${randomBytes(4).toString('hex')}.${ext}`);
+      },
+    }),
+  };
+}
+
+/**
+ * Multer options for the incident-report photo route (Phase 10, UC-19).
+ * Built from `process.env` for the same reason as
+ * buildAttachmentMulterOptions() — usable inline in a FileInterceptor
+ * decorator without injecting ConfigService.
+ */
+export function buildIncidentPhotoMulterOptions(): MulterModuleOptions {
+  const base = process.env.UPLOAD_DIR ?? './uploads';
+  const dir = join(process.cwd(), base, INCIDENT_PHOTO_KIND);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  const maxMb = Number(process.env.UPLOAD_MAX_MB) || 5;
+
+  return {
+    limits: { fileSize: maxMb * 1024 * 1024, files: 1 },
+    fileFilter: (_req, file, cb) => {
+      if (!MIME_TO_EXT[file.mimetype]) {
+        cb(
+          new AppException(
+            'VALIDATION_ERROR',
+            'Only JPEG, PNG or WebP images are allowed',
+          ),
+          false,
+        );
+        return;
+      }
+      cb(null, true);
+    },
+    storage: diskStorage({
+      destination: (_req, _file, cb) => cb(null, dir),
+      filename: (req: Request, file, cb) => {
+        const ext = MIME_TO_EXT[file.mimetype];
+        const raw = req.params.id;
+        const incidentId = typeof raw === 'string' && raw ? raw : 'incident';
+        cb(null, `${incidentId}-${randomBytes(4).toString('hex')}.${ext}`);
       },
     }),
   };

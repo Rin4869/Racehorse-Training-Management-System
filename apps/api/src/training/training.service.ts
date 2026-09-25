@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role, SessionStatus } from '@prisma/client';
+import { NotificationType, Prisma, Role, SessionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { AppException } from '../common/app-exception';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
 import {
@@ -11,6 +12,13 @@ import {
   UpdateSessionDto,
   UpdateTrainingPlanDto,
 } from './dto/training.dto';
+
+// Phase 9 — training safety rules (Sprint 2 remainder, see
+// docs/specs/phase-9-training-safety.md §5 for why these are fixed
+// constants rather than a `duration` field / env config.
+const SESSION_CONFLICT_WINDOW_MIN = 60;
+const FITNESS_HEART_RATE_MAX = 195;
+const FITNESS_METRIC_KEY = 'heart_rate_max';
 
 const PLAN_INCLUDE = {
   trainer: { select: { id: true, name: true, email: true } },
@@ -37,7 +45,10 @@ const TERMINAL: SessionStatus[] = [SessionStatus.DONE, SessionStatus.CANCELLED];
 
 @Injectable()
 export class TrainingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   private assertHorseVisible(
     horse: { ownerId: string } | null,
@@ -50,6 +61,59 @@ export class TrainingService {
         'This horse belongs to another owner',
       );
     }
+  }
+
+  /**
+   * EX-01 (Phase 9) — reject creating a new session if the horse already
+   * has a PLANNED one within SESSION_CONFLICT_WINDOW_MIN minutes either
+   * side. Create-time only — see docs/specs/phase-9-training-safety.md §5.
+   */
+  private async assertNoScheduleConflict(
+    horseId: string,
+    scheduledAt: Date,
+  ): Promise<void> {
+    const windowMs = SESSION_CONFLICT_WINDOW_MIN * 60_000;
+    const conflict = await this.prisma.trainingSession.findFirst({
+      where: {
+        horseId,
+        status: SessionStatus.PLANNED,
+        scheduledAt: {
+          gte: new Date(scheduledAt.getTime() - windowMs),
+          lte: new Date(scheduledAt.getTime() + windowMs),
+        },
+      },
+      select: { scheduledAt: true },
+    });
+    if (conflict) {
+      throw new AppException(
+        'CONFLICT',
+        `This horse already has a planned session within ${SESSION_CONFLICT_WINDOW_MIN} minutes of ${conflict.scheduledAt.toISOString()}`,
+      );
+    }
+  }
+
+  /**
+   * UC-12 (Phase 9) — fires only for the fixed metric key
+   * FITNESS_METRIC_KEY; other resultMetric values are free text and not
+   * evaluated. Notifies the session's trainer, every active groom, and
+   * the horse's owner. Never throws — a notification failure must not
+   * block the result write that already succeeded.
+   */
+  private async maybeWarnFitness(session: SessionView): Promise<void> {
+    if (
+      session.resultMetric !== FITNESS_METRIC_KEY ||
+      session.resultValue === null ||
+      session.resultValue <= FITNESS_HEART_RATE_MAX
+    ) {
+      return;
+    }
+    const groomIds = await this.notifications.groomIds();
+    const recipients = [session.trainerId, ...groomIds, session.horse.ownerId];
+    await this.notifications.notifyUsers(
+      recipients,
+      NotificationType.FITNESS_WARNING,
+      `${session.horse.name} ghi nhận ${FITNESS_METRIC_KEY}=${session.resultValue} (>${FITNESS_HEART_RATE_MAX}) ở buổi tập ${session.type} ngày ${session.scheduledAt.toISOString()}`,
+    );
   }
 
   async create(
@@ -84,6 +148,8 @@ export class TrainingService {
         );
       }
     }
+
+    await this.assertNoScheduleConflict(horseId, new Date(dto.scheduledAt));
 
     return this.prisma.trainingSession.create({
       data: {
@@ -204,11 +270,17 @@ export class TrainingService {
       }
     }
 
-    return this.prisma.trainingSession.update({
+    const updated = await this.prisma.trainingSession.update({
       where: { id },
       data,
       include: SESSION_INCLUDE,
     });
+
+    if (dto.status === SessionStatus.DONE) {
+      await this.maybeWarnFitness(updated);
+    }
+
+    return updated;
   }
 
   // --- Training plans (Phase 7) ---

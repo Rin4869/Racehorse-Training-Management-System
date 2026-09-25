@@ -18,3 +18,5 @@ Thứ tự đọc khi vào phiên mới: [../STATE.md](../STATE.md) → [../PLAN
 | 6 | [phase-6-pedigree.md](phase-6-pedigree.md) | ✅ xong |
 | 7 | [phase-7-training-plan-lock.md](phase-7-training-plan-lock.md) | ✅ xong |
 | 8 | [phase-8-health-injury.md](phase-8-health-injury.md) | ✅ xong |
+| 9 | [phase-9-training-safety.md](phase-9-training-safety.md) | ✅ xong |
+| 10 | [phase-10-health-injury-extensions.md](phase-10-health-injury-extensions.md) | ✅ xong |

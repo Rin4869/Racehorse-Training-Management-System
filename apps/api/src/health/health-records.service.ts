@@ -99,6 +99,16 @@ export class HealthRecordsService {
       },
       include: RECORD_INCLUDE,
     });
+
+    // Phase 10 (UC-15) — only when the VET explicitly sends it; no other
+    // route writes Horse.healthStatus (see phase-10 spec §5, decision #2).
+    if (dto.healthStatus !== undefined) {
+      await this.prisma.horse.update({
+        where: { id: horseId },
+        data: { healthStatus: dto.healthStatus },
+      });
+    }
+
     return this.toView(record);
   }
 

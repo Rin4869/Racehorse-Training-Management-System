@@ -151,6 +151,7 @@ export class HorsesService {
       deletedAt: null,
       ...(ownerId ? { ownerId } : {}),
       ...(q.status ? { status: q.status } : {}),
+      ...(q.healthStatus ? { healthStatus: q.healthStatus } : {}),
       ...(q.q ? { name: { contains: q.q, mode: 'insensitive' } } : {}),
     };
 

@@ -30,6 +30,21 @@ enum HorseStatus {
   RETIRED
 }
 
+// Phase 10 — deliberately separate from HorseStatus (career lifecycle):
+// this tracks current medical condition, HorseStatus tracks career stage.
+enum HealthStatus {
+  FIT
+  MONITORING
+  QUARANTINED
+  INJURED
+}
+
+enum TreatmentPlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 enum SessionStatus {
   PLANNED
   DONE
@@ -52,6 +67,7 @@ enum NotificationType {
   TRAINING_LOCKED
   TRAINING_UNLOCKED
   INCIDENT_REPORTED
+  FITNESS_WARNING
 }
 
 model User {
@@ -117,10 +133,11 @@ model Horse {
   damId        String?
   dam          Horse?      @relation("HorsePedigree_Dam", fields: [damId], references: [id])
   fitnessScore Int? // 0..100, nullable — chưa đánh giá
-  locked       Boolean     @default(false) // Training Lock — VET ban hành
+  locked       Boolean      @default(false) // Training Lock — VET ban hành
   lockReason   String? // chỉ có ý nghĩa khi locked=true
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  healthStatus HealthStatus @default(FIT) // Phase 10 — độc lập với `status` (career)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   deletedAt    DateTime?
 
   sessions      TrainingSession[]
@@ -128,11 +145,13 @@ model Horse {
   healthRecords HealthRecord[]
   raceEntries   RaceEntry[]
   incidents     IncidentReport[]
+  vaccinations  Vaccination[]
   siredFoals    Horse[]           @relation("HorsePedigree_Sire")
   damFoals      Horse[]           @relation("HorsePedigree_Dam")
 
   @@index([ownerId])
   @@index([status])
+  @@index([healthStatus])
   @@index([sireId])
   @@index([damId])
 }
@@ -188,7 +207,10 @@ model HealthRecord {
   attachmentPath String?
   createdAt      DateTime @default(now())
 
-  incidents IncidentReport[]
+  incidents       IncidentReport[]
+  injuryLocations InjuryLocation[]
+  treatmentPlans  TreatmentPlan[]
+  medications     Medication[]
 
   @@index([horseId, examDate])
 }
@@ -235,8 +257,11 @@ model IncidentReport {
   status         IncidentStatus   @default(OPEN)
   healthRecordId String?
   healthRecord   HealthRecord?    @relation(fields: [healthRecordId], references: [id])
+  photoPath      String? // Phase 10 (UC-19) — 1 ảnh/sự cố, ghi đè, giống horse-photos
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+
+  injuryLocations InjuryLocation[]
 
   @@index([horseId])
   @@index([status])
@@ -252,4 +277,66 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, read])
+}
+
+// --- Phase 10 — Health & Injury extensions (Sprint 3 remainder) ---
+
+model InjuryLocation {
+  id               String          @id @default(uuid())
+  incidentReportId String?
+  incidentReport   IncidentReport? @relation(fields: [incidentReportId], references: [id])
+  healthRecordId   String?
+  healthRecord     HealthRecord?   @relation(fields: [healthRecordId], references: [id])
+  bodyRegion       String
+  side             String?
+  notes            String?
+  createdAt        DateTime        @default(now())
+
+  @@index([incidentReportId])
+  @@index([healthRecordId])
+}
+
+model TreatmentPlan {
+  id             String              @id @default(uuid())
+  healthRecordId String
+  healthRecord   HealthRecord        @relation(fields: [healthRecordId], references: [id])
+  description    String
+  startDate      DateTime
+  endDate        DateTime?
+  status         TreatmentPlanStatus @default(ACTIVE)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  medications Medication[]
+
+  @@index([healthRecordId])
+}
+
+model Medication {
+  id              String         @id @default(uuid())
+  healthRecordId  String
+  healthRecord    HealthRecord   @relation(fields: [healthRecordId], references: [id])
+  treatmentPlanId String?
+  treatmentPlan   TreatmentPlan? @relation(fields: [treatmentPlanId], references: [id])
+  name            String
+  dosage          String?
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([healthRecordId])
+  @@index([treatmentPlanId])
+}
+
+model Vaccination {
+  id          String    @id @default(uuid())
+  horseId     String
+  horse       Horse     @relation(fields: [horseId], references: [id])
+  vaccineName String
+  date        DateTime
+  nextDueDate DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([horseId])
+  @@index([nextDueDate])
 }
