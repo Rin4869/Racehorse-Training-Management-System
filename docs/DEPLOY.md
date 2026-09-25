@@ -50,9 +50,15 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
    |---|---|
    | Root Directory | `apps/api` |
    | Runtime | Node |
-   | Build Command | `npm install && npm run prisma:generate && npm run build` |
+   | Build Command | `npm install --include=dev && npm run prisma:generate && npm run build` |
    | Start Command | `npx prisma migrate deploy && node dist/main.js` |
    | Instance Type | Free |
+
+   ⚠️ `--include=dev` là bắt buộc — vì `NODE_ENV=production` (khai ở bước
+   sau) khiến `npm install` mặc định bỏ qua `devDependencies`, trong đó có
+   `@nestjs/cli` (lệnh `nest` để build). Thiếu cờ này build sẽ lỗi
+   `sh: 1: nest: not found`. `--include=dev` không ảnh hưởng lúc chạy thật —
+   `dist/main.js` sau khi build xong không cần devDependencies nữa.
 4. Tab **Environment** → thêm các biến (copy từ `apps/api/.env.example`,
    điền giá trị thật):
 
