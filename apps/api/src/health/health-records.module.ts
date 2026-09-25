@@ -7,6 +7,11 @@ import {
   HorseHealthRecordsController,
 } from './health-records.controller';
 import { HealthRecordsService } from './health-records.service';
+import {
+  HealthRecordTreatmentPlansController,
+  TreatmentPlanMedicationsController,
+} from './treatment-plans.controller';
+import { TreatmentPlansService } from './treatment-plans.service';
 
 @Module({
   imports: [FilesModule],
@@ -14,7 +19,9 @@ import { HealthRecordsService } from './health-records.service';
     HorseHealthRecordsController,
     HealthRecordsController,
     HealthFilesController,
+    HealthRecordTreatmentPlansController,
+    TreatmentPlanMedicationsController,
   ],
-  providers: [HealthRecordsService, HorseOwnershipGuard],
+  providers: [HealthRecordsService, TreatmentPlansService, HorseOwnershipGuard],
 })
 export class HealthRecordsModule {}

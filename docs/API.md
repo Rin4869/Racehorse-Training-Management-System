@@ -116,6 +116,49 @@ POST   /horses/:id/sessions          (TRAINER)  + planId? (route sẵn có, mở
 ```
 `endDate` (nếu có) phải `>= startDate`. Không có DELETE cho `TrainingPlan`.
 
+## Training safety rules ✅ (Phase 9 — spec: specs/phase-9-training-safety.md)
+
+```
+POST   /horses/:id/sessions   (TRAINER)  # route sẵn có (Phase 3), + rule EX-01:
+                              # chặn 409 CONFLICT nếu ngựa đã có session PLANNED
+                              # trong ±60 phút quanh giờ đang tạo
+PATCH  /sessions/:id          (TRAINER/GROOM)  # route sẵn có, + rule UC-12:
+                              # chuyển DONE với resultMetric="heart_rate_max" và
+                              # resultValue>195 → tạo Notification FITNESS_WARNING
+                              # cho HLV + mọi GROOM active + chủ ngựa
+```
+Không có route mới — 2 rule an toàn gắn vào route đã có. Thứ tự lỗi khi
+tạo session: khoá ngựa (400) → `planId` sai (400) → trùng lịch (409).
+
+## Health & Injury extensions ✅ (Phase 10 — spec: specs/phase-10-health-injury-extensions.md)
+
+```
+GET    /horses?healthStatus=                    # lọc thêm, độc lập với status (career)
+POST   /horses/:id/health-records  (VET)  + healthStatus?  # route sẵn có, ghi thêm Horse.healthStatus
+
+POST   /incidents/:id/injury-locations       (VET)  {bodyRegion, side?, notes?}
+GET    /incidents/:id/injury-locations       (mọi role, ownership)
+POST   /health-records/:id/injury-locations  (VET)  {bodyRegion, side?, notes?}
+GET    /health-records/:id/injury-locations  (mọi role, ownership)
+
+POST   /horses/:id/vaccinations              (VET)  {vaccineName, date, nextDueDate?}
+GET    /horses/:id/vaccinations?page=&limit= (mọi role, ownership)
+GET    /vaccinations?upcoming=&page=&limit=  (MANAGER/TRAINER/VET/GROOM — OWNER 403)
+
+POST   /incidents/:id/photo                  (GROOM)  multipart field "file" (jpg/png/webp ≤5MB)
+GET    /files/incident-photos/:filename      (auth, ownership qua incident→horse)
+
+POST   /health-records/:id/treatment-plans      (VET)  {description, startDate, endDate?}
+GET    /health-records/:id/treatment-plans       (mọi role, ownership)
+POST   /treatment-plans/:id/medications          (VET)  {name, dosage?, startDate?, endDate?}
+GET    /treatment-plans/:id/medications           (mọi role, ownership qua plan→record→horse)
+```
+`healthStatus` (`FIT|MONITORING|QUARANTINED|INJURED`) độc lập với `status`
+(career: `ACTIVE|RESTING|RETIRED`) và với `locked` (Training Lock) — 3 trục
+riêng biệt, không tự động hoá chéo. `upcoming=true` lọc `nextDueDate` trong
+30 ngày tới. Không có DELETE cho `InjuryLocation`/`TreatmentPlan`/
+`Medication`/`Vaccination`.
+
 ## Pedigree & Races ✅ (Phase 6 — spec: specs/phase-6-pedigree.md)
 
 ```

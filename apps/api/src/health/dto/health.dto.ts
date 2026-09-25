@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsEnum,
   IsInt,
   IsISO8601,
   IsNotEmpty,
@@ -10,6 +11,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
+import { HealthStatus } from '@prisma/client';
 
 export class CreateHealthRecordDto {
   @IsISO8601()
@@ -24,6 +26,11 @@ export class CreateHealthRecordDto {
   @IsString()
   @MaxLength(2000)
   treatment?: string;
+
+  // Phase 10 (UC-15) — when sent, also writes Horse.healthStatus.
+  @IsOptional()
+  @IsEnum(HealthStatus)
+  healthStatus?: HealthStatus;
 }
 
 export class UpdateHealthRecordDto {

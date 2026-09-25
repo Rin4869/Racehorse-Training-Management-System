@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { HorseOwnershipGuard } from '../common/guards/horse-ownership.guard';
 import {
   HorseSessionsController,
@@ -9,6 +10,7 @@ import {
 import { TrainingService } from './training.service';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [
     HorseSessionsController,
     SessionsController,

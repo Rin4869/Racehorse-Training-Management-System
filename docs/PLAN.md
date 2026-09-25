@@ -2,7 +2,10 @@
 
 Trạng thái: **Phase 0 → 5 XONG (2026-09-09) — MVP hoàn chỉnh** (Core API + frontend React demo).
 **Phase 6/7/8 (Pedigree & Races, Training Plan & Lock, Health & Injury — API)
-XONG (2026-09-14)** — cả 3 luồng mở rộng sau-MVP chốt 2026-09-12; xem
+XONG (2026-09-14)** — cả 3 luồng mở rộng sau-MVP chốt 2026-09-12.
+**Phase 9 + Phase 10 (Training safety rules + Health & Injury extensions)
+XONG (2026-09-24/25)** — toàn bộ Sprint 2/3 remainder theo
+`CLAUDE_CODE_BACKEND_FULL.md` nay đã đầy đủ phía API. Xem
 [STATE.md](STATE.md) §4 cho việc còn lại (chủ yếu là frontend).
 Đặc tả từng phase (từ Phase 2): [specs/](specs/).
 
@@ -471,3 +474,33 @@ tự động (Phase 8). e2e 21 test (tổng 117/117 xanh). Chi tiết:
 
 **Cả 3 luồng mở rộng sau-MVP nay đã xong phần API.** Việc còn lại: xem
 [STATE.md](STATE.md) §4 (chủ yếu là frontend cho 3 luồng này).
+
+### Phase 9 — Training safety rules ✅ XONG (2026-09-24) — [specs/phase-9-training-safety.md](specs/phase-9-training-safety.md)
+
+Nguồn: `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 2 remainder — sau khi đối
+chiếu task list này với code thật, xem [DECISIONS.md](DECISIONS.md)
+2026-09-24). Migration `phase9_fitness_warning_notification` — chỉ thêm
+`NotificationType.FITNESS_WARNING`. EX-01: `POST /horses/:id/sessions`
+chặn 409 nếu ngựa có session `PLANNED` khác trong ±60 phút. UC-12:
+`PATCH /sessions/:id` chuyển `DONE` với `resultMetric="heart_rate_max"` +
+`resultValue>195` → thông báo `FITNESS_WARNING` cho HLV + mọi GROOM + chủ
+ngựa. Không route mới — gắn vào 2 route đã có từ Phase 3. e2e 8 test (tổng
+125/125 xanh). Chi tiết: [STATE.md](STATE.md) §3j.
+
+### Phase 10 — Health & Injury extensions ✅ XONG (2026-09-25) — [specs/phase-10-health-injury-extensions.md](specs/phase-10-health-injury-extensions.md)
+
+Sprint 3 remainder — UC-14, 16, 18, 19, 20 (UC-15 mở rộng nhẹ; UC-17 đã
+xong từ Phase 7/8). Migration `phase10_health_injury_extensions` —
+`Horse.healthStatus` (mới, độc lập với `status`/`locked`),
+`IncidentReport.photoPath`, 4 bảng mới (`InjuryLocation`, `TreatmentPlan`,
+`Medication`, `Vaccination`), 2 enum mới. `GET /horses?healthStatus=`;
+`POST /horses/:id/health-records` ghi thêm `healthStatus`; 2 cặp route
+injury-location theo nguồn gốc (incident/health-record); vaccination
+CRUD + `GET /vaccinations?upcoming=` (chặn OWNER); `POST
+/incidents/:id/photo` (tái dùng hạ tầng upload sẵn có); treatment-plan +
+medication. e2e 15 test (tổng 140/140 xanh). Chi tiết:
+[STATE.md](STATE.md) §3k.
+
+**Toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) nay đã đối chiếu/hoàn
+thành phía API.** Việc còn lại: xem [STATE.md](STATE.md) §4 (chủ yếu là
+frontend cho các tính năng Phase 6-10).

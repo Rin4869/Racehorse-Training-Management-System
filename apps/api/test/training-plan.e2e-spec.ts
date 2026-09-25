@@ -231,7 +231,13 @@ describe('Training plans & lock (e2e)', () => {
     const res = await api()
       .post(`/api/v1/horses/${horseAId}/sessions`)
       .set(auth('trainer'))
-      .send({ scheduledAt: new Date().toISOString(), type: 'sprint', planId });
+      .send({
+        // +2h — Phase 9's EX-01 would otherwise conflict with the session
+        // the previous test just created for horseA at "now".
+        scheduledAt: new Date(Date.now() + 2 * 3_600_000).toISOString(),
+        type: 'sprint',
+        planId,
+      });
     expect(res.status).toBe(201);
     expect(res.body.planId).toBe(planId);
   });

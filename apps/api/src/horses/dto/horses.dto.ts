@@ -12,7 +12,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { HorseStatus } from '@prisma/client';
+import { HealthStatus, HorseStatus } from '@prisma/client';
 
 export class CreateHorseDto {
   @IsString()
@@ -98,6 +98,11 @@ export class ListHorsesQueryDto {
   @IsOptional()
   @IsEnum(HorseStatus)
   status?: HorseStatus;
+
+  // Phase 10 (UC-14) — independent of `status` (career lifecycle).
+  @IsOptional()
+  @IsEnum(HealthStatus)
+  healthStatus?: HealthStatus;
 
   @IsOptional()
   @IsString()

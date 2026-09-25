@@ -5,6 +5,7 @@ import { join } from 'path';
 import {
   HEALTH_ATTACHMENT_KIND,
   HORSE_PHOTO_KIND,
+  INCIDENT_PHOTO_KIND,
   uploadKindDir,
 } from './upload';
 
@@ -19,7 +20,11 @@ export class FileStorageService {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit(): void {
-    for (const kind of [HORSE_PHOTO_KIND, HEALTH_ATTACHMENT_KIND]) {
+    for (const kind of [
+      HORSE_PHOTO_KIND,
+      HEALTH_ATTACHMENT_KIND,
+      INCIDENT_PHOTO_KIND,
+    ]) {
       const dir = uploadKindDir(this.config, kind);
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     }

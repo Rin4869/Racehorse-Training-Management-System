@@ -206,7 +206,10 @@ describe('Training sessions (e2e)', () => {
 
   it('a session can be CANCELLED without a result (200)', async () => {
     const s = await createSession('trainer', {
-      scheduledAt: new Date().toISOString(),
+      // +2h — Phase 9's EX-01 rejects a 2nd PLANNED session within 60' of
+      // another for the same horse; the 'walk' session above is still
+      // PLANNED at this point.
+      scheduledAt: new Date(Date.now() + 2 * 3_600_000).toISOString(),
       type: 'rest-check',
     });
     sessionIds.push(s.body.id);

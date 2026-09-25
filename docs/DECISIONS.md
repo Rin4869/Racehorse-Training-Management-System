@@ -5,6 +5,144 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-25 — Phase 10 (Health & Injury extensions) hoàn thành — Sprint 3 xong
+
+**Nguồn:** [specs/phase-10-health-injury-extensions.md](specs/phase-10-health-injury-extensions.md)
++ Claude Code. Hoàn tất phần "chưa làm" còn lại của mục "Đối chiếu
+`CLAUDE_CODE_BACKEND_FULL.md`" (2026-09-24) — UC-14, 16, 18, 19, 20 (UC-15
+mở rộng nhẹ; UC-17 đã xong từ Phase 7/8, không đụng lại).
+**Quyết định:**
+- **Không tách `Horse.status` thành `careerStatus`** — chỉ thêm
+  `healthStatus` mới (`FIT|MONITORING|QUARANTINED|INJURED`, default `FIT`)
+  bên cạnh `status` hiện có. Đổi tên field cũ sẽ phải sửa hàng trăm chỗ
+  tham chiếu chỉ để đổi tên — rủi ro cao, lợi ích thấp.
+- **`healthStatus` chỉ ghi qua `POST /horses/:id/health-records`**
+  (`healthStatus?` optional trên DTO) — không có `PATCH /horses/:id` riêng
+  cho field này, tránh 2 nơi ghi cùng 1 field.
+- **`InjuryLocation` có 2 FK nullable** (`incidentReportId`,
+  `healthRecordId`), ràng buộc "đúng 1 trong 2" ở tầng service (route nào
+  gọi thì set đúng FK đó), không ở tầng DB.
+- **Chỉ VET tạo injury-location/vaccination/treatment-plan/medication** —
+  nhất quán với health-records/incidents PATCH đã có.
+- **`GET /vaccinations` (view toàn CLB) chặn OWNER hẳn (403)** thay vì lọc
+  theo ngựa sở hữu — OWNER dùng `GET /horses/:id/vaccinations` (đã có
+  ownership) cho ngựa của mình.
+- **Ảnh sự cố (UC-19) dùng route riêng `POST /incidents/:id/photo`**, không
+  gộp vào `POST /horses/:id/incidents` — nhất quán với ảnh ngựa (Phase 2) và
+  đính kèm hồ sơ khám (Phase 4), tái dùng nguyên hạ tầng
+  `FileStorageService`/`upload.ts` đã có, không thêm dependency mới (trả
+  lời OPEN QUESTION #4 từ mục 2026-09-24: dùng local disk, không phải S3).
+- **Không tự động đổi `healthStatus` khi có incident/lock đổi** — Training
+  Lock (trục "tập được không") và `healthStatus` (trục "tình trạng sức
+  khoẻ") giữ độc lập, không tự động hoá chéo.
+- **Không có DELETE** cho 4 bảng mới — giữ đúng pattern các phase trước.
+- Migration `phase10_health_injury_extensions`: 1 lần cho cả 4 bảng + 1
+  field + 2 enum, không tách nhỏ.
+**Trạng thái:** ✅ build/lint/e2e (140/140: 125 cũ + 15 mới) xanh.
+**Sprint 3 (Health & Injury) theo `CLAUDE_CODE_BACKEND_FULL.md` nay đã đầy đủ.**
+
+## 2026-09-24 — Phase 9 (Training safety rules) hoàn thành
+
+**Nguồn:** [specs/phase-9-training-safety.md](specs/phase-9-training-safety.md)
++ Claude Code. Trả lời phần "chưa làm" của mục "Đối chiếu
+`CLAUDE_CODE_BACKEND_FULL.md`" ngay bên dưới (Sprint 2 remainder: EX-01 +
+UC-12).
+**Quyết định:**
+- **EX-01 — cửa sổ trùng lịch cố định 60 phút**, không thêm field
+  `duration` cho `TrainingSession`. Chỉ check lúc **tạo mới**
+  (`POST /horses/:id/sessions`), không check khi sửa giờ qua `PATCH`.
+- **UC-12 — chỉ đánh giá 1 metric cố định `heart_rate_max`**, ngưỡng cố
+  định `> 195` (đúng ví dụ minh hoạ trong task list gốc) — `resultMetric`
+  là free text, không suy luận được ý nghĩa các giá trị khác.
+- **"GROOM liên quan" = mọi user role GROOM đang ACTIVE** — schema không
+  gán 1 GROOM riêng cho từng ngựa/session, nên không lọc hẹp hơn được;
+  thêm `NotificationsService.groomIds()` song song `managerIds()`.
+- **Thêm `NotificationType.FITNESS_WARNING`** — migration chỉ thêm 1 giá
+  trị enum, không đổi bảng nào khác.
+- Sửa 2 test cũ (`training.e2e-spec.ts`, `training-plan.e2e-spec.ts`) vì
+  chúng tạo nhiều session "now" cho cùng 1 ngựa — nay va vào rule EX-01
+  mới; dời giờ lệch +2 tiếng, không đổi hành vi được test.
+**Trạng thái:** ✅ build/lint/e2e (125/125: 117 cũ + 8 mới) xanh.
+
+## 2026-09-24 — Đối chiếu `CLAUDE_CODE_BACKEND_FULL.md` với code thật — mâu thuẫn + câu hỏi mở
+
+**Nguồn:** người dùng dán file `CLAUDE_CODE_BACKEND_FULL.md` (task list backend
+đầy đủ, phạm vi của Bình, xác nhận với nhóm 2026-09-24) + Claude Code audit lại
+code thật trong `apps/api`.
+
+**Bối cảnh:** file task này viết ra như thể một số phần "đã có sẵn" trong
+`docs/`, nhưng đối chiếu code thì vài giả định đó sai. Theo đúng chỉ dẫn của
+chính file đó ("nếu mâu thuẫn với `docs/` thì `docs/` thắng, nhưng phải flag
+lại thay vì tự chọn") — ghi lại đây, **chưa tự sửa gì**, chờ nhóm xác nhận.
+
+### Mâu thuẫn đã phát hiện (docs/code hiện tại thắng, file task sai)
+
+| File task giả định | Thực tế trong code |
+|---|---|
+| Auth chỉ có access token, **không có refresh token** | Sai — đã có refresh token + rotation từ Phase 1 (xem mục 2026-09-08 Phase 1 dưới đây) |
+| UC-02: chưa có `POST /auth/register` công khai, chỉ MANAGER tạo qua `POST /users` | Sai — `POST /auth/register` đã có từ Phase 1 (đăng ký công khai → `PENDING` → MANAGER duyệt) |
+| UC-07: `POST /races/:id/entries` do MANAGER hoặc TRAINER | Thực tế chỉ **MANAGER** (chốt ở Phase 6) |
+| UC-09: route là `POST /training-plans` | Thực tế là `POST /horses/:id/training-plans` (gắn theo ngựa, chốt ở Phase 7) |
+| `incident_reports.status`: `OPEN \| IN_REVIEW \| RESOLVED` | Thực tế enum `OPEN \| IN_PROGRESS \| RESOLVED` (chốt ở Phase 8) |
+| STEP 0: `vaccinations`/`medications` là bảng "đã có sẵn" trong DATA_MODEL.md | Sai — 2 bảng đó **chỉ là tầm nhìn** trong DATA_MODEL.md §"bản đầy đủ", chưa vào code (ghi rõ trong chính file đó) |
+
+### Phần đã làm khớp với file task (không cần làm lại)
+
+STEP 0: `sireId`/`damId`/`locked`/`fitnessScore` trên `Horse`, bảng
+`Race`/`RaceEntry`, bảng `IncidentReport` (thiếu `photoUrl`, enum tên khác —
+xem trên), bảng `Notification`. SPRINT 0: SETUP-01→04, UC-01. SPRINT 1: UC-03,
+UC-04, UC-05 (pedigree, đúng y hệt — `PATCH` + `GET /horses/:id/pedigree` 3
+đời), UC-06 (dùng chung `PATCH /horses/:id`, đúng default file đề xuất),
+UC-08. SPRINT 2: UC-10, UC-11 (đúng y hệt: TRAINER mọi field khi PLANNED,
+GROOM chỉ status+result, enforce ở service), UC-13 (dạng list, không phải
+aggregate — xem OPEN QUESTIONS), EX-02 (khoá ngựa + thông báo cross-role).
+SPRINT 3: UC-15 (không ghi `health_status` vì field đó chưa tồn tại), UC-17
+(khoá khẩn từ VET **kèm `lockReason`** — đã có sẵn, còn tự động hoá thêm ở
+Phase 8 khi sự cố `HIGH`), UC-19 (có endpoint báo sự cố, **không có** upload
+ảnh). PROJECT COMPLETION: TEST-01 (117 e2e, cover RBAC 403 + ownership +
+lock chặn session — tương đương EX-02/UC-17; **không có** test cho EX-01 vì
+chưa build), DOC-01 (Swagger `/api/docs` đã có).
+
+### Chưa làm — hoàn toàn mới so với mọi phase trước
+
+- Tách `Horse.status` thành `careerStatus` (ACTIVE/RESTING/RETIRED, giữ
+  nguyên) + `healthStatus` (FIT/MONITORING/QUARANTINED/INJURED, mới).
+- Bảng `injury_locations` (UC-16).
+- Bảng `treatment_plans` + liên kết `medications` (UC-20) — bản thân bảng
+  `medications` cũng chưa hề tồn tại.
+- Bảng `vaccinations` (UC-18).
+- Cảnh báo ngưỡng thể lực (UC-12) — chưa có rule/threshold, chưa có
+  notification loại này.
+- Chặn trùng lịch buổi tập (EX-01) — tạo 2 session cùng giờ cho 1 ngựa hiện
+  vẫn được, không có validate 409 nào.
+- Upload ảnh cho `incident_reports` (UC-19, `photoUrl`).
+
+### OPEN QUESTIONS từ file task — chưa trả lời, chờ nhóm/người dùng chốt
+
+1. UC-02 "Register" — giữ nguyên `POST /auth/register` công khai đã có
+   (đăng ký tự do → PENDING), hay đổi hướng khác? *(Claude Code đề xuất: giữ
+   nguyên, vì đã hoạt động + có test — nhưng để nhóm xác nhận vì file task
+   ngầm định "chưa có endpoint này".)*
+2. UC-06 — dùng chung `PATCH /horses/:id` (đã làm vậy) hay tách endpoint
+   riêng cho "gán chủ sở hữu"? *(Đã làm theo default file đề xuất — coi như
+   xác nhận trừ khi nhóm nói khác.)*
+3. UC-17's lock — đã có `lockReason` (text) riêng biệt với boolean `locked`
+   từ Phase 7, tên field `lockReason` không phải `lock_reason` (naming
+   convention camelCase toàn bộ API, không phải snake_case như file task
+   dùng — xem thêm quy ước Prisma/TS hiện có).
+4. UC-19 upload ảnh — chưa quyết định lưu ở đâu. Dự án đã có sẵn hạ tầng
+   `FileStorageService` (lưu đĩa local `apps/api/uploads/`, dùng cho ảnh
+   ngựa + đính kèm hồ sơ khám từ Phase 2/4) — đề xuất tái dùng đúng hạ tầng
+   đó cho `incident_reports.photoUrl` thay vì thêm dependency mới (S3...).
+   Chờ xác nhận.
+5. Sheet gốc của nhóm có DOC-02 trùng nội dung UC-20 — nghi copy-paste lỗi,
+   chưa xác nhận nội dung thật của DOC-02.
+
+**Trạng thái:** ⏳ Chỉ mới ghi nhận — **chưa code gì** cho phần "chưa làm" ở
+trên. Việc kế tiếp: người dùng xác nhận 5 câu hỏi mở (đặc biệt #4, ảnh hưởng
+hạ tầng), rồi viết spec theo đúng thứ tự Sprint 0 (schema) → Sprint 3
+(UC-14..20) như file task yêu cầu.
+
 ## 2026-09-14 — Phase 8 (Health & Injury) hoàn thành — 3/3 luồng mở rộng XONG
 
 **Nguồn:** [specs/phase-8-health-injury.md](specs/phase-8-health-injury.md) + Claude Code.
