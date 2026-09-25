@@ -517,15 +517,19 @@ của `CLAUDE_CODE_BACKEND_FULL.md`.** Còn lại:
   locations/vaccinations/treatment-plans) — API đã đủ, chưa có UI; làm khi
   cần demo trực quan (không bắt buộc để các phase trên tính "xong"). Đây là
   hạng mục lớn nhất còn lại.
+- **Deploy — chốt 2026-09-25** (mục đích demo): Render (API) + Neon
+  (Postgres) + Vercel (frontend), free cả 3. Hướng dẫn từng bước:
+  [DEPLOY.md](DEPLOY.md). Chưa ai thực hiện (cần tạo tài khoản trên 3 dịch
+  vụ, không phải việc Claude Code làm thay được).
 - Việc khác (chưa ưu tiên, chờ chốt): `stalls`, `care_logs`,
   `facility_tasks`, `audit_logs` (nếu có yêu cầu mới), CI (GitHub Actions),
-  Dockerfile build thật, test frontend (Playwright/Vitest), deliverable
-  giảng viên (ERD/UML, Scrum, coverage).
+  test frontend (Playwright/Vitest), deliverable giảng viên (ERD/UML, Scrum,
+  coverage).
 - `git init` + push — **đã xong** (2026-09-24): repo
   `Rin4869/Racehorse-Training-Management-System`, branch
   `feat/core-api-backend-and-docs` → PR #1, chờ nhóm review/họp trước khi
   merge (đúng `TEAM_RULES.md` §6 — không push thẳng `main`). **Phase 9/10
-  chưa push thêm** — cần commit + push cập nhật lên cùng branch/PR đó.
+  đã push thêm** lên cùng branch/PR (commit `2bccf44`, 2026-09-25).
 
 ## 5. Cách một phiên mới tiếp tục
 

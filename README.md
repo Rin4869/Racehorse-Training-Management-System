@@ -17,6 +17,10 @@ frontend (React/Vite). Tài liệu thiết kế trong [`docs/`](docs/) —
 VS Code + extension) và các bước cài đặt từ đầu. Phần dưới đây là bản tóm
 tắt nhanh cho ai đã setup rồi.
 
+**Muốn đưa lên mạng để demo cho giảng viên (không cần chạy local):** đọc
+[docs/DEPLOY.md](docs/DEPLOY.md) — Render (API) + Neon (Postgres) + Vercel
+(frontend), free hoàn toàn.
+
 ```
 apps/
   api/   NestJS + Prisma + PostgreSQL — Core API

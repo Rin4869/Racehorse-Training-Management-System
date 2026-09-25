@@ -5,6 +5,26 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-25 — Chốt hạ tầng deploy: Render + Neon + Vercel (free, cho demo)
+
+**Nguồn:** người dùng (mục đích deploy = demo/nộp bài, không phải vận hành
+lâu dài) + Claude Code.
+**Quyết định:** API deploy trên **Render.com** (Web Service free tier),
+Postgres trên **Neon.tech** (free, không hết hạn — khác free Postgres của
+Render tự xoá sau 30 ngày), frontend trên **Vercel** (free). Hướng dẫn từng
+bước: [DEPLOY.md](DEPLOY.md).
+**Lý do:** cả 3 miễn phí vĩnh viễn ở mức dùng 1 đồ án, không cần thẻ tín
+dụng, tự deploy khi push GitHub — phù hợp nhu cầu "chỉ cần demo", không
+đáng đầu tư công sức tự quản lý VM (Oracle Free Tier) hay trả phí cho ổ đĩa
+bền lúc này.
+**Đánh đổi đã chấp nhận:** `apps/api` lưu file upload (ảnh ngựa, đính kèm
+khám, ảnh sự cố) thẳng vào ổ đĩa server — Render free tier có ổ đĩa **tạm
+thời**, file mất sau mỗi lần server ngủ/deploy lại (dữ liệu Postgres không
+mất). Free Web Service cũng **ngủ sau ~15 phút** không ai gọi (cold start
+~30-60s lần gọi đầu). Chấp nhận được cho demo; nếu sau này cần chạy ổn định
+lâu dài, cần bàn lại (disk bền trả phí, hoặc đổi sang cloud storage cho
+file — xem cuối DEPLOY.md).
+
 ## 2026-09-25 — Phase 10 (Health & Injury extensions) hoàn thành — Sprint 3 xong
 
 **Nguồn:** [specs/phase-10-health-injury-extensions.md](specs/phase-10-health-injury-extensions.md)

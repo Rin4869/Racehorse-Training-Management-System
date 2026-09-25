@@ -21,7 +21,7 @@ XONG (2026-09-24/25)** — toàn bộ Sprint 2/3 remainder theo
 | Upload file | Có — lưu ổ đĩa local (`apps/api/uploads/`) |
 | Repo | Monorepo: `apps/api` + `apps/web` |
 | Tenant | Một câu lạc bộ duy nhất (không có bảng clubs) |
-| Deploy | Chưa xác định — vẫn thêm Dockerfile + docker-compose để sẵn |
+| Deploy | **Chốt 2026-09-25** (mục đích demo/nộp bài): Render (API) + Neon (Postgres) + Vercel (frontend), free tier cả 3. Xem [DEPLOY.md](DEPLOY.md). |
 | Ngôn ngữ | Song ngữ i18n ở frontend; API trả `code` lỗi ổn định + message mặc định; enum trả raw |
 | Timeline | Cả học kỳ (> 8 tuần) |
 | Phạm vi mình build | Core API + 1 frontend React/Vite MVP demo |
