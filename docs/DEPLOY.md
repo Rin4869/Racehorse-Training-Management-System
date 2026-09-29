@@ -118,27 +118,111 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
 
 ## Đăng nhập Google — tạo OAuth Client ID (miễn phí, 1 lần)
 
-1. Vào [Google Cloud Console](https://console.cloud.google.com/) → tạo
-   project mới (hoặc dùng project có sẵn) → menu **APIs & Services** →
-   **Credentials**.
-2. **Configure Consent Screen** (nếu chưa có): chọn **External**, điền tên
-   app + email liên hệ → Save (không cần submit review cho mục đích demo,
-   chỉ cần thêm chính email Google của bạn vào mục **Test users** nếu màn
-   hình cảnh báo "app chưa verify").
-3. **Create Credentials** → **OAuth client ID** → Application type
-   **Web application**.
-4. **Authorized JavaScript origins** — thêm cả 2:
-   - `http://localhost:5173` (dev local)
-   - `https://<tên>.vercel.app` (domain Vercel thật ở Bước 3)
-   (Không cần điền "Authorized redirect URIs" — luồng dùng ID-token của
-   Google Identity Services không redirect qua server.)
-5. Copy **Client ID** (dạng `xxxx.apps.googleusercontent.com`) — điền vào
-   `GOOGLE_CLIENT_ID` (Render, Bước 2) **và** `VITE_GOOGLE_CLIENT_ID`
-   (Vercel, Bước 3 — cùng 1 giá trị, Client ID vốn public, an toàn khi lộ
-   ra frontend). Không cần "Client secret" — xem
-   [specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)
-   quyết định #1 để hiểu vì sao.
-6. Redeploy cả Render lẫn Vercel sau khi thêm biến.
+Chỉ cần 1 **Client ID** (không cần Client Secret — xem
+[specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)
+quyết định #1 để hiểu vì sao). Làm theo đúng thứ tự dưới đây, đừng bỏ
+bước nào — Google bắt cấu hình "màn hình xin quyền" (consent screen)
+trước khi cho tạo Client ID.
+
+### 1. Tạo project trên Google Cloud
+
+1. Vào [console.cloud.google.com](https://console.cloud.google.com/) —
+   đăng nhập bằng tài khoản Gmail bất kỳ (không cần tài khoản trả phí,
+   không cần khai thẻ tín dụng cho việc này).
+2. Góc trên bên trái, cạnh chữ "Google Cloud" có 1 dropdown chọn project
+   (mặc định ghi "Select a project" hoặc tên project cũ). Bấm vào đó →
+   **New Project** (góc trên bên phải hộp thoại).
+3. Đặt **Project name** bất kỳ, ví dụ `Racehorse Club` → **Create**. Đợi
+   vài giây, hệ thống tự chuyển sang project vừa tạo (nếu không, bấm lại
+   dropdown ở bước 2 và chọn đúng project vừa tạo).
+
+### 2. Cấu hình màn hình xin quyền (OAuth consent screen)
+
+1. Menu bên trái (bấm icon ☰ nếu bị ẩn) → **APIs & Services** →
+   **OAuth consent screen**. (Nếu không thấy mục này, gõ "OAuth consent
+   screen" vào ô tìm kiếm trên cùng của trang.)
+2. Chọn **User Type = External** → **Create**.
+3. Trang **App information** — chỉ cần điền 3 ô bắt buộc (có dấu \*):
+   - **App name**: `Racehorse Club` (hoặc tên bất kỳ, hiện ra cho người
+     dùng thấy lúc đăng nhập).
+   - **User support email**: chọn email Gmail của bạn trong dropdown.
+   - Kéo xuống mục **Developer contact information** → **Email
+     addresses**: gõ lại email Gmail của bạn.
+   - Các ô khác (logo, domain, policy link...) để trống, không bắt buộc.
+   → **Save and Continue**.
+4. Trang **Scopes** → không cần thêm gì (mặc định đã đủ `email`,
+   `profile`, `openid` do Google Identity Services tự xin) → **Save and
+   Continue**.
+5. Trang **Test users** — **quan trọng**: vì app chưa "Publish" (chưa qua
+   review của Google, không cần thiết cho demo), Google chỉ cho **đúng
+   những email được thêm ở đây** đăng nhập thử. Bấm **+ Add Users** → gõ
+   từng email Gmail sẽ dùng để test (email của bạn, email các bạn cùng
+   nhóm, email của giảng viên nếu biết trước) → **Save and Continue**.
+   ⚠️ Nếu quên bước này, lúc bấm nút "Đăng nhập bằng Google" trên web sẽ
+   hiện lỗi "Access blocked: app has not completed verification" — quay
+   lại đây thêm email là hết lỗi ngay, không cần đợi duyệt.
+6. Trang **Summary** → **Back to Dashboard**. Xong phần consent screen.
+
+### 3. Tạo OAuth Client ID
+
+1. Menu bên trái → **APIs & Services** → **Credentials**.
+2. **+ Create Credentials** (trên cùng) → **OAuth client ID**.
+3. **Application type** → chọn **Web application**.
+4. **Name**: gõ bất kỳ, ví dụ `Racehorse Web` (chỉ để bạn nhận diện,
+   không hiển thị cho người dùng).
+5. Mục **Authorized JavaScript origins** → **+ Add URI** → thêm **lần
+   lượt từng dòng** (không gõ chung 1 dòng, không có dấu `/` ở cuối):
+   ```
+   http://localhost:5173
+   https://<tên-project-vercel-của-bạn>.vercel.app
+   ```
+   Ví dụ thực tế theo domain đã deploy ở Bước 3:
+   `https://binh062117-horse-managing.vercel.app`. Nếu chưa deploy
+   Vercel xong, cứ thêm tạm `http://localhost:5173` trước, quay lại thêm
+   domain thật sau (xem mục "Sửa lại sau" bên dưới).
+6. Mục **Authorized redirect URIs** → **để trống, không thêm gì** (luồng
+   ID-token của Google Identity Services không cần redirect qua server —
+   nếu bạn thấy hướng dẫn nào khác trên mạng bảo phải điền redirect URI,
+   đó là cho luồng OAuth2 kiểu cũ, dự án này không dùng).
+7. **Create**. Một hộp thoại hiện ra "OAuth client created" với 2 dòng
+   **Client ID** và **Client secret** — chỉ cần copy **Client ID** (dạng
+   `123456789-abcxyz.apps.googleusercontent.com`). Bỏ qua Client secret,
+   không cần dùng.
+
+### 4. Điền vào 2 nơi
+
+Cùng 1 giá trị Client ID, điền vào **cả hai**:
+
+| Nơi | Biến | Ghi chú |
+|---|---|---|
+| Render (Bước 2 ở trên) | `GOOGLE_CLIENT_ID` | Tab Environment → Add Environment Variable |
+| Vercel (Bước 3 ở trên) | `VITE_GOOGLE_CLIENT_ID` | Settings → Environment Variables, nhớ tick môi trường **Production** |
+
+Client ID vốn là thông tin công khai (Google thiết kế để lộ ra ở
+frontend, không phải bí mật như secret/API key) — an toàn khi đặt trong
+biến `VITE_...` dù nó sẽ bị "bake" vào file JS công khai.
+
+Sau khi thêm biến: **Render** tự deploy lại; **Vercel thì không tự động**
+— vào tab **Deployments** → bản mới nhất → **⋯** → **Redeploy** (nhắc lại
+lỗi hay gặp ở phần "Lỗi hệ thống" bên dưới: Vercel bake biến môi trường
+lúc build, thêm biến mà không Redeploy thì chưa có tác dụng).
+
+### Sửa lại sau khi có domain Vercel thật
+
+Nếu bạn tạo Client ID trước khi deploy Vercel (chỉ có
+`http://localhost:5173`), sau khi có domain Vercel thật quay lại:
+**Credentials** → bấm vào tên Client ID vừa tạo → mục **Authorized
+JavaScript origins** → **+ Add URI** → thêm domain Vercel → **Save**. Có
+hiệu lực gần như ngay lập tức, không cần tạo Client ID mới.
+
+### Lỗi thường gặp
+
+| Thông báo | Nguyên nhân | Cách sửa |
+|---|---|---|
+| "Access blocked: app has not completed verification" | Email đang test chưa được thêm vào **Test users** (mục 2.5) | Quay lại OAuth consent screen → Test users → Add Users |
+| "The given origin is not allowed for the given client ID" | Domain đang mở web không khớp **Authorized JavaScript origins** (thiếu `https://`, sai domain, hoặc quên thêm domain Vercel) | Credentials → sửa lại Authorized JavaScript origins cho đúng domain đang chạy |
+| Nút Google không hiện ra trên web | `VITE_GOOGLE_CLIENT_ID` chưa set (Vercel) hoặc set nhưng chưa Redeploy | Kiểm tra Settings → Environment Variables trên Vercel, Redeploy lại |
+| Bấm nút Google xong báo "Lỗi hệ thống" | `GOOGLE_CLIENT_ID` chưa set bên Render, hoặc sai giá trị | Kiểm tra biến trên Render, xem log Render (tab Logs) lúc bấm thử |
 
 ## Sau khi deploy xong
 
