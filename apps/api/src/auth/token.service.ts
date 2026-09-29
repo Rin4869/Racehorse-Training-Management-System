@@ -1,21 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, randomInt } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppException } from '../common/app-exception';
 import { durationToMs } from '../common/duration';
 
 export const AUTH_TOKEN_TYPES = {
-  VERIFY_EMAIL: 'VERIFY_EMAIL',
   RESET_PASSWORD: 'RESET_PASSWORD',
 } as const;
 export type AuthTokenType = keyof typeof AUTH_TOKEN_TYPES;
 
 const AUTH_TOKEN_TTL_MS: Record<AuthTokenType, number> = {
-  VERIFY_EMAIL: 24 * 60 * 60 * 1000,
   RESET_PASSWORD: 60 * 60 * 1000,
 };
+
+const OTP_TTL_MS = 10 * 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
 
 function sha256(raw: string): string {
   return createHash('sha256').update(raw).digest('hex');
@@ -121,5 +122,49 @@ export class TokenService {
       data: { usedAt: new Date() },
     });
     return row.userId;
+  }
+
+  /** Creates a 6-digit email-verify OTP and returns the plaintext. */
+  async issueOtp(userId: string): Promise<string> {
+    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+    await this.prisma.otpCode.create({
+      data: {
+        userId,
+        codeHash: sha256(code),
+        expiresAt: new Date(Date.now() + OTP_TTL_MS),
+      },
+    });
+    return code;
+  }
+
+  /** Validates the given code against the user's latest unused OTP. */
+  async verifyOtp(userId: string, code: string): Promise<void> {
+    const row = await this.prisma.otpCode.findFirst({
+      where: { userId, usedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!row) {
+      throw new AppException('TOKEN_INVALID', 'No active code, please resend');
+    }
+    if (row.expiresAt.getTime() < Date.now()) {
+      throw new AppException('TOKEN_EXPIRED', 'Code expired, please resend');
+    }
+    if (row.attempts >= OTP_MAX_ATTEMPTS) {
+      throw new AppException(
+        'TOKEN_INVALID',
+        'Too many attempts, please resend',
+      );
+    }
+    if (row.codeHash !== sha256(code)) {
+      await this.prisma.otpCode.update({
+        where: { id: row.id },
+        data: { attempts: { increment: 1 } },
+      });
+      throw new AppException('TOKEN_INVALID', 'Incorrect code');
+    }
+    await this.prisma.otpCode.update({
+      where: { id: row.id },
+      data: { usedAt: new Date() },
+    });
   }
 }

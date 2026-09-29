@@ -62,8 +62,23 @@ export class ResetPasswordDto {
   newPassword!: string;
 }
 
-export class VerifyEmailQueryDto {
+export class VerifyOtpDto {
+  @IsEmail()
+  email!: string;
+
   @IsString()
   @IsNotEmpty()
-  token!: string;
+  @MaxLength(6)
+  code!: string;
+}
+
+export class ResendOtpDto {
+  @IsEmail()
+  email!: string;
+}
+
+export class GoogleLoginDto {
+  @IsString()
+  @IsNotEmpty()
+  idToken!: string;
 }

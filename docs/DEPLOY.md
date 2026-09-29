@@ -77,6 +77,7 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
    | `UPLOAD_DIR` | `./uploads` |
    | `UPLOAD_MAX_MB` | `5` |
    | `NODE_ENV` | `production` |
+   | `GOOGLE_CLIENT_ID` | Google OAuth Client ID — xem "Đăng nhập Google" bên dưới (bỏ trống thì nút Google trên web tự ẩn, không lỗi) |
 
    Render tự cấp biến `PORT` — không cần thêm tay, code đã đọc
    `process.env.PORT` sẵn (`src/main.ts`).
@@ -104,13 +105,40 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
    | Framework Preset | Vite |
    | Build Command | `npm run build` (mặc định) |
    | Output Directory | `dist` (mặc định) |
-3. **Environment Variables** → thêm:
+3. **Environment Variables** → thêm (nhớ chọn môi trường **Production** —
+   Vite bake biến vào lúc build, sai môi trường thì build xong vẫn không
+   có tác dụng, phải Redeploy lại sau khi sửa):
    | Biến | Giá trị |
    |---|---|
    | `VITE_API_URL` | `https://<tên>.onrender.com/api/v1` (URL Render ở Bước 2, nhớ thêm `/api/v1`) |
+   | `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID — xem "Đăng nhập Google" bên dưới (bỏ trống thì nút Google tự ẩn, không lỗi) |
 4. **Deploy**. Xong thì quay lại Render (Bước 2) sửa `APP_WEB_URL` thành
    URL Vercel vừa có (`https://<tên>.vercel.app`) — dùng để dựng link trong
    email xác thực/reset password.
+
+## Đăng nhập Google — tạo OAuth Client ID (miễn phí, 1 lần)
+
+1. Vào [Google Cloud Console](https://console.cloud.google.com/) → tạo
+   project mới (hoặc dùng project có sẵn) → menu **APIs & Services** →
+   **Credentials**.
+2. **Configure Consent Screen** (nếu chưa có): chọn **External**, điền tên
+   app + email liên hệ → Save (không cần submit review cho mục đích demo,
+   chỉ cần thêm chính email Google của bạn vào mục **Test users** nếu màn
+   hình cảnh báo "app chưa verify").
+3. **Create Credentials** → **OAuth client ID** → Application type
+   **Web application**.
+4. **Authorized JavaScript origins** — thêm cả 2:
+   - `http://localhost:5173` (dev local)
+   - `https://<tên>.vercel.app` (domain Vercel thật ở Bước 3)
+   (Không cần điền "Authorized redirect URIs" — luồng dùng ID-token của
+   Google Identity Services không redirect qua server.)
+5. Copy **Client ID** (dạng `xxxx.apps.googleusercontent.com`) — điền vào
+   `GOOGLE_CLIENT_ID` (Render, Bước 2) **và** `VITE_GOOGLE_CLIENT_ID`
+   (Vercel, Bước 3 — cùng 1 giá trị, Client ID vốn public, an toàn khi lộ
+   ra frontend). Không cần "Client secret" — xem
+   [specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)
+   quyết định #1 để hiểu vì sao.
+6. Redeploy cả Render lẫn Vercel sau khi thêm biến.
 
 ## Sau khi deploy xong
 

@@ -1,15 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { User, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { AppException } from '../common/app-exception';
 import { TokenService } from './token.service';
 import {
   ForgotPasswordDto,
+  GoogleLoginDto,
   LoginDto,
   RegisterDto,
+  ResendOtpDto,
   ResetPasswordDto,
+  VerifyOtpDto,
 } from './dto/auth.dto';
 
 const BCRYPT_ROUNDS = 10;
@@ -39,12 +44,18 @@ function toPublicUser(u: User): PublicUser {
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger('Auth');
+  private readonly googleClient: OAuth2Client;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly tokens: TokenService,
     private readonly mail: MailService,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.googleClient = new OAuth2Client(
+      this.config.get<string>('GOOGLE_CLIENT_ID'),
+    );
+  }
 
   async register(dto: RegisterDto): Promise<{ message: string }> {
     const email = dto.email.toLowerCase();
@@ -60,21 +71,42 @@ export class AuthService {
         status: UserStatus.PENDING,
       },
     });
-    const token = await this.tokens.issueAuthToken(user.id, 'VERIFY_EMAIL');
-    await this.mail.sendVerifyEmail(user.email, user.name, token);
+    const code = await this.tokens.issueOtp(user.id);
+    await this.mail.sendVerifyOtp(user.email, user.name, code);
     return {
       message:
-        'Registered. Check your email to verify, then wait for a manager to approve your account.',
+        'Registered. Check your email for the verification code, then wait for a manager to approve your account.',
     };
   }
 
-  async verifyEmail(token: string): Promise<{ message: string }> {
-    const userId = await this.tokens.consumeAuthToken(token, 'VERIFY_EMAIL');
+  async verifyOtp(dto: VerifyOtpDto): Promise<{ message: string }> {
+    const user = await this.prisma.user.findFirst({
+      where: { email: dto.email.toLowerCase(), deletedAt: null },
+    });
+    if (!user) {
+      throw new AppException('TOKEN_INVALID', 'Incorrect code');
+    }
+    await this.tokens.verifyOtp(user.id, dto.code);
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: { emailVerifiedAt: new Date() },
     });
     return { message: 'Email verified. A manager will approve your account.' };
+  }
+
+  async resendOtp(dto: ResendOtpDto): Promise<{ message: string }> {
+    const user = await this.prisma.user.findFirst({
+      where: { email: dto.email.toLowerCase(), deletedAt: null },
+    });
+    if (user && !user.emailVerifiedAt) {
+      const code = await this.tokens.issueOtp(user.id);
+      await this.mail.sendVerifyOtp(user.email, user.name, code);
+    } else {
+      this.logger.warn(`resend-otp for unknown/verified email ${dto.email}`);
+    }
+    return {
+      message: 'If that email needs verification, a new code has been sent.',
+    };
   }
 
   async login(dto: LoginDto): Promise<{
@@ -85,13 +117,88 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       where: { email: dto.email.toLowerCase(), deletedAt: null },
     });
-    const ok = user && (await bcrypt.compare(dto.password, user.passwordHash));
+    const ok =
+      user?.passwordHash &&
+      (await bcrypt.compare(dto.password, user.passwordHash));
     if (!user || !ok) {
       throw new AppException('UNAUTHENTICATED', 'Invalid email or password');
     }
     if (!user.emailVerifiedAt) {
       throw new AppException('EMAIL_NOT_VERIFIED', 'Email not verified');
     }
+    if (user.status === UserStatus.PENDING) {
+      throw new AppException(
+        'ACCOUNT_PENDING',
+        'Account awaiting manager approval',
+      );
+    }
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new AppException('ACCOUNT_DISABLED', 'Account is disabled');
+    }
+    return {
+      accessToken: await this.tokens.signAccessToken(user.id),
+      refreshToken: await this.tokens.issueRefreshToken(user.id),
+      user: toPublicUser(user),
+    };
+  }
+
+  async googleLogin(dto: GoogleLoginDto): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    user: PublicUser;
+  }> {
+    let payload: {
+      email?: string;
+      name?: string;
+      sub: string;
+      email_verified?: boolean;
+    };
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: dto.idToken,
+        audience: this.config.get<string>('GOOGLE_CLIENT_ID'),
+      });
+      const p = ticket.getPayload();
+      if (!p) throw new Error('empty payload');
+      payload = p;
+    } catch {
+      throw new AppException('UNAUTHENTICATED', 'Invalid Google token');
+    }
+    if (!payload.email || !payload.email_verified) {
+      throw new AppException('UNAUTHENTICATED', 'Google email not verified');
+    }
+    const email = payload.email.toLowerCase();
+    const name = payload.name ?? email;
+
+    let user = await this.prisma.user.findFirst({
+      where: { googleId: payload.sub, deletedAt: null },
+    });
+    if (!user) {
+      const byEmail = await this.prisma.user.findFirst({
+        where: { email, deletedAt: null },
+      });
+      if (byEmail) {
+        user = await this.prisma.user.update({
+          where: { id: byEmail.id },
+          data: {
+            googleId: payload.sub,
+            emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(),
+          },
+        });
+      } else {
+        user = await this.prisma.user.create({
+          data: {
+            name,
+            email,
+            passwordHash: null,
+            googleId: payload.sub,
+            status: UserStatus.PENDING,
+            emailVerifiedAt: new Date(),
+          },
+        });
+      }
+    }
+
     if (user.status === UserStatus.PENDING) {
       throw new AppException(
         'ACCOUNT_PENDING',

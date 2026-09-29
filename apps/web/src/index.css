@@ -135,6 +135,21 @@ h2 {
   max-width: 380px;
   margin: 64px auto;
 }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 .muted {
   color: var(--muted);
 }

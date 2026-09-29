@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -6,12 +6,14 @@ import type { AuthUser } from '../common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordDto,
+  GoogleLoginDto,
   LoginDto,
   LogoutDto,
   RefreshDto,
   RegisterDto,
+  ResendOtpDto,
   ResetPasswordDto,
-  VerifyEmailQueryDto,
+  VerifyOtpDto,
 } from './dto/auth.dto';
 
 @ApiTags('auth')
@@ -26,15 +28,27 @@ export class AuthController {
   }
 
   @Public()
-  @Get('verify-email')
-  verifyEmail(@Query() q: VerifyEmailQueryDto) {
-    return this.auth.verifyEmail(q.token);
+  @Post('verify-otp')
+  verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.auth.verifyOtp(dto);
+  }
+
+  @Public()
+  @Post('resend-otp')
+  resendOtp(@Body() dto: ResendOtpDto) {
+    return this.auth.resendOtp(dto);
   }
 
   @Public()
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);
+  }
+
+  @Public()
+  @Post('google')
+  google(@Body() dto: GoogleLoginDto) {
+    return this.auth.googleLogin(dto);
   }
 
   @Public()

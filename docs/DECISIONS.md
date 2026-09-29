@@ -5,6 +5,29 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-29 — Phase 11: Đăng nhập Google + xác thực email bằng OTP
+
+**Nguồn:** người dùng + Claude Code. Chi tiết đầy đủ:
+[specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md).
+**Quyết định:**
+- Xác thực email đăng ký **đổi từ link token sang mã OTP 6 số** (model
+  `OtpCode` mới, TTL 10 phút, tối đa 5 lần nhập sai/mã). `GET
+  /auth/verify-email` xoá hẳn, không giữ song song 2 cơ chế.
+- Đăng nhập Google dùng **luồng ID-token** (Google Identity Services ở
+  frontend verify rồi POST `idToken` lên `/auth/google`, backend verify lại
+  bằng `google-auth-library`) — **không** dùng OAuth2 redirect +
+  `passport-google-oauth20`, vì frontend (Vercel) và API (Render) khác
+  domain, redirect/callback URL + cookie cross-domain phức tạp hơn hẳn. Chỉ
+  cần biến `GOOGLE_CLIENT_ID`, không cần `GOOGLE_CLIENT_SECRET`.
+- Tài khoản tạo qua Google **vẫn phải chờ MANAGER duyệt** — dùng lại đúng
+  luồng `status=PENDING` đã có ở `/admin/users`, không code lại.
+- `User.passwordHash` chuyển sang optional (tài khoản Google không có mật
+  khẩu cục bộ); email trùng tài khoản có sẵn → tự gắn `googleId` vào user
+  đó thay vì báo lỗi CONFLICT (Google đã xác minh chủ email).
+**Đánh đổi đã chấp nhận:** không giới hạn tần suất gửi lại OTP theo thời
+gian (cooldown giây) — chỉ giới hạn số lần nhập sai; đủ cho quy mô demo,
+có thể bổ sung sau nếu cần chống spam email thật.
+
 ## 2026-09-25 — Chốt hạ tầng deploy: Render + Neon + Vercel (free, cho demo)
 
 **Nguồn:** người dùng (mục đích deploy = demo/nộp bài, không phải vận hành

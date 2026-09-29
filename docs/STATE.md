@@ -507,11 +507,53 @@ Migration mới `phase10_health_injury_extensions` (+`Horse.healthStatus`,
 đủ.** Chưa làm: UI frontend cho toàn bộ tính năng Phase 6-10 (không chặn
 "xong" phase này — xem §4).
 
+## 3l. Phase 11 đã làm gì (Đăng nhập Google + xác thực email bằng OTP)
+
+Đặc tả đầy đủ: **[specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)**.
+Nguồn: yêu cầu người dùng (2026-09-29). Migration mới
+`phase11_google_otp` (+`User.googleId`, `passwordHash` → optional, +bảng
+`OtpCode`).
+
+### apps/api — `src/auth/` mở rộng
+- Xác thực email đăng ký đổi từ link token sang **OTP 6 số** (model
+  `OtpCode`, TTL 10 phút, khoá sau 5 lần nhập sai/mã). `GET
+  /auth/verify-email` xoá hẳn, thay bằng `POST /auth/verify-otp` +
+  `POST /auth/resend-otp` (luôn trả message chung, không lộ email tồn tại
+  — giống `forgot-password`).
+- `POST /auth/google` `{idToken}` — verify **Google ID token** bằng
+  `google-auth-library` (`GOOGLE_CLIENT_ID`, không cần secret/redirect
+  URL). User mới tạo `status=PENDING` giống đăng ký thường, **vẫn cần
+  MANAGER duyệt** ở `/admin/users` (không đổi luồng duyệt có sẵn). Email
+  trùng tài khoản cũ → tự gắn `googleId`, không báo CONFLICT.
+- `User.passwordHash` chuyển optional (tài khoản Google-only không có mật
+  khẩu cục bộ) — `login()` thêm guard: `passwordHash` null → coi như sai
+  mật khẩu, không crash.
+
+### apps/web
+- `LoginPage.tsx`: thêm nút "Đăng nhập bằng Google" (component mới
+  `GoogleSignInButton.tsx`, dùng script Google Identity Services nhúng ở
+  `index.html`; tự ẩn nếu chưa cấu hình `VITE_GOOGLE_CLIENT_ID`).
+- `RegisterPage.tsx`: sau khi đăng ký, chuyển sang bước nhập mã OTP (thay
+  màn hình tĩnh cũ) — có nút "Gửi lại mã".
+
+**Đã verify:** `npm run build` ✅ (api+web) · `npm run lint` ✅ (api+web) ·
+`npm run test:e2e` **(145/145:** 139 cũ + 6 mới trong `auth.e2e-spec.ts`,
+mock `google-auth-library`**)** ✅ · seed chạy lại idempotent.
+
+**Chưa làm:** test thủ công nút Google trên trình duyệt thật (cần tạo
+Google OAuth Client ID thật trên Google Cloud Console rồi điền
+`GOOGLE_CLIENT_ID`/`VITE_GOOGLE_CLIENT_ID` — việc của người dùng, không
+phải Claude Code làm thay được).
+
 ## 4. Việc tiếp theo
 
 MVP (Phase 0-5) đủ 4 main flow gốc. 3 luồng mở rộng sau-MVP (Phase 6-8)
 xong phần API. **Phase 9 + Phase 10 vá xong toàn bộ Sprint 2/3 remainder
-của `CLAUDE_CODE_BACKEND_FULL.md`.** Còn lại:
+của `CLAUDE_CODE_BACKEND_FULL.md`.** **Phase 11 (2026-09-29) thêm đăng
+nhập Google + xác thực email bằng OTP.** Còn lại:
+- **Tạo Google OAuth Client ID thật** (Google Cloud Console) rồi điền
+  `GOOGLE_CLIENT_ID` (Render) + `VITE_GOOGLE_CLIENT_ID` (Vercel/local) —
+  nút Google tự ẩn cho tới khi có biến này; việc của người dùng.
 - **Frontend cho toàn bộ tính năng Phase 6-10** (pedigree/races,
   training-plan/lock, incidents/notifications, healthStatus/injury-
   locations/vaccinations/treatment-plans) — API đã đủ, chưa có UI; làm khi

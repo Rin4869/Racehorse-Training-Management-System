@@ -6,9 +6,20 @@ import { AllExceptionsFilter } from './../src/common/filters/all-exceptions.filt
 import { PrismaService } from './../src/prisma/prisma.service';
 import { MailService } from './../src/mail/mail.service';
 
+const mockVerifyIdToken = jest.fn<
+  Promise<{ getPayload: () => Record<string, unknown> }>,
+  unknown[]
+>();
+jest.mock('google-auth-library', () => ({
+  OAuth2Client: jest.fn().mockImplementation(() => ({
+    verifyIdToken: (...args: unknown[]) =>
+      mockVerifyIdToken(...args) as unknown,
+  })),
+}));
+
 /**
- * Full account lifecycle (docs/PLAN.md §6 Phase 1):
- * register -> verify email -> login blocked (PENDING) -> manager approves
+ * Full account lifecycle (docs/PLAN.md §6 Phase 1 + Phase 11 OTP/Google):
+ * register -> verify OTP -> login blocked (PENDING) -> manager approves
  * -> login OK -> refresh (rotation) -> old refresh rejected -> logout.
  */
 describe('Auth & Users (e2e)', () => {
@@ -18,10 +29,10 @@ describe('Auth & Users (e2e)', () => {
   const email = `e2e_${Date.now()}@racehorse.test`;
   const password = 'Secret123!';
   const mail = {
-    verifyTokens: [] as string[],
+    otpCodes: [] as string[],
     resetTokens: [] as string[],
-    sendVerifyEmail: (_to: string, _name: string, token: string) => {
-      mail.verifyTokens.push(token);
+    sendVerifyOtp: (_to: string, _name: string, code: string) => {
+      mail.otpCodes.push(code);
       return Promise.resolve();
     },
     sendResetPassword: (_to: string, _name: string, token: string) => {
@@ -55,17 +66,19 @@ describe('Auth & Users (e2e)', () => {
 
   afterAll(async () => {
     await prisma.user.deleteMany({ where: { email } });
+    await prisma.user.deleteMany({ where: { email: googleEmail } });
     await app.close();
   });
 
   const api = () => request(app.getHttpServer());
+  const googleEmail = `e2e_google_${Date.now()}@racehorse.test`;
 
-  it('registers a PENDING user and sends a verify email', async () => {
+  it('registers a PENDING user and sends an OTP', async () => {
     const res = await api()
       .post('/api/v1/auth/register')
       .send({ name: 'E2E User', email, password });
     expect(res.status).toBe(201);
-    expect(mail.verifyTokens).toHaveLength(1);
+    expect(mail.otpCodes).toHaveLength(1);
 
     const user = await prisma.user.findUnique({ where: { email } });
     expect(user?.status).toBe('PENDING');
@@ -88,11 +101,29 @@ describe('Auth & Users (e2e)', () => {
     expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
   });
 
-  it('verifies email with the emailed token', async () => {
+  it('rejects the wrong OTP', async () => {
     const res = await api()
-      .get('/api/v1/auth/verify-email')
-      .query({ token: mail.verifyTokens[0] });
-    expect(res.status).toBe(200);
+      .post('/api/v1/auth/verify-otp')
+      .send({ email, code: '000000' });
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('TOKEN_INVALID');
+  });
+
+  it('resend-otp always returns a generic message', async () => {
+    const res = await api()
+      .post('/api/v1/auth/resend-otp')
+      .send({ email: 'unknown@racehorse.test' });
+    expect(res.status).toBe(201);
+  });
+
+  it('verifies email with the newest emailed OTP', async () => {
+    await api().post('/api/v1/auth/resend-otp').send({ email });
+    expect(mail.otpCodes).toHaveLength(2);
+
+    const res = await api()
+      .post('/api/v1/auth/verify-otp')
+      .send({ email, code: mail.otpCodes[mail.otpCodes.length - 1] });
+    expect(res.status).toBe(201);
     const user = await prisma.user.findUnique({ where: { email } });
     expect(user?.emailVerifiedAt).not.toBeNull();
   });
@@ -166,5 +197,66 @@ describe('Auth & Users (e2e)', () => {
       .post('/api/v1/auth/refresh')
       .send({ refreshToken: rotated.body.refreshToken });
     expect(afterLogout.status).toBe(401);
+  });
+
+  it('rejects an unverifiable Google idToken', async () => {
+    mockVerifyIdToken.mockRejectedValueOnce(new Error('bad token'));
+    const res = await api()
+      .post('/api/v1/auth/google')
+      .send({ idToken: 'bad' });
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHENTICATED');
+  });
+
+  it('creates a PENDING user on first Google login', async () => {
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
+        sub: `google-${Date.now()}`,
+        email: googleEmail,
+        email_verified: true,
+        name: 'Google User',
+      }),
+    });
+    const res = await api()
+      .post('/api/v1/auth/google')
+      .send({ idToken: 'good' });
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('ACCOUNT_PENDING');
+
+    const user = await prisma.user.findUnique({
+      where: { email: googleEmail },
+    });
+    expect(user?.status).toBe('PENDING');
+    expect(user?.googleId).not.toBeNull();
+    expect(user?.emailVerifiedAt).not.toBeNull();
+  });
+
+  it('lets an approved Google user log in and issues tokens', async () => {
+    const login = await api()
+      .post('/api/v1/auth/login')
+      .send({ email: 'manager@racehorse.local', password: 'Manager123!' });
+    const managerToken = login.body.accessToken as string;
+    const target = await prisma.user.findUnique({
+      where: { email: googleEmail },
+    });
+    await api()
+      .patch(`/api/v1/users/${target!.id}`)
+      .set('Authorization', `Bearer ${managerToken}`)
+      .send({ role: 'OWNER', status: 'ACTIVE' });
+
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
+        sub: target!.googleId,
+        email: googleEmail,
+        email_verified: true,
+        name: 'Google User',
+      }),
+    });
+    const res = await api()
+      .post('/api/v1/auth/google')
+      .send({ idToken: 'good' });
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeDefined();
+    expect(res.body.user.email).toBe(googleEmail);
   });
 });
