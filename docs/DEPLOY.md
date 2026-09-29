@@ -242,3 +242,5 @@ Xem lại 2 vấn đề đã nêu ở đầu file (server ngủ + mất file upl
 lý triệt để là chuyển sang gói trả phí có ổ đĩa bền (Render persistent
 disk, ~vài đô/tháng) hoặc đổi hạ tầng lưu file sang cloud storage
 (S3-compatible) — đây là thay đổi kiến trúc, cần bàn riêng khi tới lúc.
+
+<!-- trigger redeploy after Vercel repo reconnect (2026-09-29) -->
