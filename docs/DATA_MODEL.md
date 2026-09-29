@@ -1,19 +1,20 @@
 # Data Model
 
-## ERD — MVP + Phase 6-10 (16 bảng thực tế)
+## ERD — MVP + Phase 6-11 (17 bảng thực tế)
 
 Đây là schema Prisma **đang chạy** (`apps/api/prisma/schema.prisma`, migration
 `20260908032635_init` + `..._phase6_pedigree_races` +
 `..._phase7_training_plan_lock` + `..._phase8_incidents_notifications` +
 `..._phase9_fitness_warning_notification` +
-`..._phase10_health_injury_extensions`). Cả **3 luồng mở rộng sau-MVP**
-(Pedigree & Races, Training Plan & Lock, Health & Injury) chốt ngày
-2026-09-12 nay đã vào code, cộng thêm phần đối chiếu với
+`..._phase10_health_injury_extensions` + `..._phase11_google_otp`). Cả **3
+luồng mở rộng sau-MVP** (Pedigree & Races, Training Plan & Lock, Health &
+Injury) chốt ngày 2026-09-12 nay đã vào code, cộng thêm phần đối chiếu với
 `CLAUDE_CODE_BACKEND_FULL.md` (2026-09-24, xem DECISIONS.md): Phase 9 (rule
 an toàn Training) + Phase 10 (`healthStatus`, `injury_locations`,
-`vaccinations`, `treatment_plans`+`medications`, ảnh sự cố). Phần "bản đầy
-đủ" bên dưới chỉ còn `stalls`, `daily_care_logs`, `facility_tasks`,
-`audit_logs` — vẫn là tầm nhìn, **chưa** vào code.
+`vaccinations`, `treatment_plans`+`medications`, ảnh sự cố) + Phase 11
+(đăng nhập Google, OTP xác thực email). Phần "bản đầy đủ" bên dưới chỉ còn
+`stalls`, `daily_care_logs`, `facility_tasks`, `audit_logs` — vẫn là tầm
+nhìn, **chưa** vào code.
 
 ```mermaid
 erDiagram
@@ -25,6 +26,7 @@ erDiagram
     User ||--o{ Notification : receives
     User ||--o{ RefreshToken : has
     User ||--o{ AuthToken : has
+    User ||--o{ OtpCode : has
     Horse ||--o{ TrainingSession : has
     Horse ||--o{ TrainingPlan : has
     Horse ||--o{ HealthRecord : has
@@ -45,7 +47,8 @@ erDiagram
         uuid id PK
         string name
         string email UK
-        string passwordHash
+        string passwordHash "nullable — null cho tài khoản Google-only"
+        string googleId UK "nullable"
         Role role "nullable — null khi PENDING"
         UserStatus status "PENDING|ACTIVE|DISABLED"
         datetime emailVerifiedAt "nullable"
@@ -64,9 +67,18 @@ erDiagram
     AuthToken {
         uuid id PK
         uuid userId FK
-        string type "VERIFY_EMAIL|RESET_PASSWORD"
+        string type "RESET_PASSWORD"
         string tokenHash
         datetime expiresAt
+        datetime usedAt "nullable"
+        datetime createdAt
+    }
+    OtpCode {
+        uuid id PK
+        uuid userId FK
+        string codeHash "SHA-256 của mã 6 số"
+        int attempts "default 0, khoá sau 5"
+        datetime expiresAt "TTL 10 phút"
         datetime usedAt "nullable"
         datetime createdAt
     }

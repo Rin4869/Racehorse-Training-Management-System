@@ -5,6 +5,49 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-29 — Phase 11: Đăng nhập Google + xác thực email bằng OTP
+
+**Nguồn:** người dùng + Claude Code. Chi tiết đầy đủ:
+[specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md).
+**Quyết định:**
+- Xác thực email đăng ký **đổi từ link token sang mã OTP 6 số** (model
+  `OtpCode` mới, TTL 10 phút, tối đa 5 lần nhập sai/mã). `GET
+  /auth/verify-email` xoá hẳn, không giữ song song 2 cơ chế.
+- Đăng nhập Google dùng **luồng ID-token** (Google Identity Services ở
+  frontend verify rồi POST `idToken` lên `/auth/google`, backend verify lại
+  bằng `google-auth-library`) — **không** dùng OAuth2 redirect +
+  `passport-google-oauth20`, vì frontend (Vercel) và API (Render) khác
+  domain, redirect/callback URL + cookie cross-domain phức tạp hơn hẳn. Chỉ
+  cần biến `GOOGLE_CLIENT_ID`, không cần `GOOGLE_CLIENT_SECRET`.
+- Tài khoản tạo qua Google **vẫn phải chờ MANAGER duyệt** — dùng lại đúng
+  luồng `status=PENDING` đã có ở `/admin/users`, không code lại.
+- `User.passwordHash` chuyển sang optional (tài khoản Google không có mật
+  khẩu cục bộ); email trùng tài khoản có sẵn → tự gắn `googleId` vào user
+  đó thay vì báo lỗi CONFLICT (Google đã xác minh chủ email).
+**Đánh đổi đã chấp nhận:** không giới hạn tần suất gửi lại OTP theo thời
+gian (cooldown giây) — chỉ giới hạn số lần nhập sai; đủ cho quy mô demo,
+có thể bổ sung sau nếu cần chống spam email thật.
+
+## 2026-09-25 — Chốt hạ tầng deploy: Render + Neon + Vercel (free, cho demo)
+
+**Nguồn:** người dùng (mục đích deploy = demo/nộp bài, không phải vận hành
+lâu dài) + Claude Code.
+**Quyết định:** API deploy trên **Render.com** (Web Service free tier),
+Postgres trên **Neon.tech** (free, không hết hạn — khác free Postgres của
+Render tự xoá sau 30 ngày), frontend trên **Vercel** (free). Hướng dẫn từng
+bước: [DEPLOY.md](DEPLOY.md).
+**Lý do:** cả 3 miễn phí vĩnh viễn ở mức dùng 1 đồ án, không cần thẻ tín
+dụng, tự deploy khi push GitHub — phù hợp nhu cầu "chỉ cần demo", không
+đáng đầu tư công sức tự quản lý VM (Oracle Free Tier) hay trả phí cho ổ đĩa
+bền lúc này.
+**Đánh đổi đã chấp nhận:** `apps/api` lưu file upload (ảnh ngựa, đính kèm
+khám, ảnh sự cố) thẳng vào ổ đĩa server — Render free tier có ổ đĩa **tạm
+thời**, file mất sau mỗi lần server ngủ/deploy lại (dữ liệu Postgres không
+mất). Free Web Service cũng **ngủ sau ~15 phút** không ai gọi (cold start
+~30-60s lần gọi đầu). Chấp nhận được cho demo; nếu sau này cần chạy ổn định
+lâu dài, cần bàn lại (disk bền trả phí, hoặc đổi sang cloud storage cho
+file — xem cuối DEPLOY.md).
+
 ## 2026-09-25 — Phase 10 (Health & Injury extensions) hoàn thành — Sprint 3 xong
 
 **Nguồn:** [specs/phase-10-health-injury-extensions.md](specs/phase-10-health-injury-extensions.md)

@@ -20,3 +20,4 @@ Thứ tự đọc khi vào phiên mới: [../STATE.md](../STATE.md) → [../PLAN
 | 8 | [phase-8-health-injury.md](phase-8-health-injury.md) | ✅ xong |
 | 9 | [phase-9-training-safety.md](phase-9-training-safety.md) | ✅ xong |
 | 10 | [phase-10-health-injury-extensions.md](phase-10-health-injury-extensions.md) | ✅ xong |
+| 11 | [phase-11-google-auth-otp.md](phase-11-google-auth-otp.md) | ✅ xong |

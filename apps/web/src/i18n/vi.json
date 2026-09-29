@@ -15,7 +15,14 @@
     "name": "Họ tên",
     "passwordHint": "Ít nhất 8 ký tự",
     "noAccount": "Chưa có tài khoản?",
-    "registerDone": "Đã tạo tài khoản. Quản lý sẽ duyệt và gán vai trò trước khi bạn đăng nhập được."
+    "registerDone": "Đã tạo tài khoản. Quản lý sẽ duyệt và gán vai trò trước khi bạn đăng nhập được.",
+    "or": "hoặc",
+    "otpTitle": "Xác thực email",
+    "otpHint": "Nhập mã 6 số vừa gửi tới {{email}}",
+    "otpCode": "Mã xác thực",
+    "otpVerify": "Xác nhận",
+    "otpResend": "Gửi lại mã",
+    "otpResent": "Đã gửi lại mã, kiểm tra email."
   },
   "common": {
     "create": "Tạo",
@@ -81,8 +88,8 @@
     "FORBIDDEN": "Bạn không có quyền thực hiện",
     "NOT_FOUND": "Không tìm thấy",
     "CONFLICT": "Email này đã được đăng ký",
-    "TOKEN_EXPIRED": "Phiên đăng nhập đã hết hạn",
-    "TOKEN_INVALID": "Phiên đăng nhập không hợp lệ",
+    "TOKEN_EXPIRED": "Đã hết hạn, vui lòng thử lại",
+    "TOKEN_INVALID": "Không hợp lệ hoặc đã hết hạn",
     "INTERNAL": "Lỗi hệ thống"
   }
 }

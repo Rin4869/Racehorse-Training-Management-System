@@ -15,7 +15,14 @@
     "name": "Full name",
     "passwordHint": "At least 8 characters",
     "noAccount": "No account yet?",
-    "registerDone": "Account created. A manager will review and assign your role before you can log in."
+    "registerDone": "Account created. A manager will review and assign your role before you can log in.",
+    "or": "or",
+    "otpTitle": "Verify your email",
+    "otpHint": "Enter the 6-digit code sent to {{email}}",
+    "otpCode": "Verification code",
+    "otpVerify": "Verify",
+    "otpResend": "Resend code",
+    "otpResent": "A new code was sent, check your email."
   },
   "common": {
     "create": "Create",
@@ -81,8 +88,8 @@
     "FORBIDDEN": "You are not allowed to do this",
     "NOT_FOUND": "Not found",
     "CONFLICT": "This email is already registered",
-    "TOKEN_EXPIRED": "Session expired",
-    "TOKEN_INVALID": "Invalid session",
+    "TOKEN_EXPIRED": "Expired, please try again",
+    "TOKEN_INVALID": "Invalid or expired",
     "INTERNAL": "System error"
   }
 }

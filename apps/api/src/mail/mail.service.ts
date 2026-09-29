@@ -51,19 +51,14 @@ export class MailService implements OnModuleInit {
     this.logger.log(`Sent "${subject}" to ${to}`);
   }
 
-  async sendVerifyEmail(
-    to: string,
-    name: string,
-    token: string,
-  ): Promise<void> {
-    const link = this.webUrl(`/verify-email?token=${token}`);
+  async sendVerifyOtp(to: string, name: string, code: string): Promise<void> {
     await this.send(
       to,
       'Verify your Racehorse Club account',
       `<p>Hi ${name},</p>
-       <p>Confirm your email to finish registration:</p>
-       <p><a href="${link}">${link}</a></p>
-       <p>This link expires in 24 hours. After verification a manager will approve your account.</p>`,
+       <p>Enter this code on the website to confirm your email:</p>
+       <p style="font-size:28px;font-weight:bold;letter-spacing:4px">${code}</p>
+       <p>This code expires in 10 minutes. After verification a manager will approve your account.</p>`,
     );
   }
 

@@ -5,8 +5,9 @@ Trạng thái: **Phase 0 → 5 XONG (2026-09-09) — MVP hoàn chỉnh** (Core A
 XONG (2026-09-14)** — cả 3 luồng mở rộng sau-MVP chốt 2026-09-12.
 **Phase 9 + Phase 10 (Training safety rules + Health & Injury extensions)
 XONG (2026-09-24/25)** — toàn bộ Sprint 2/3 remainder theo
-`CLAUDE_CODE_BACKEND_FULL.md` nay đã đầy đủ phía API. Xem
-[STATE.md](STATE.md) §4 cho việc còn lại (chủ yếu là frontend).
+`CLAUDE_CODE_BACKEND_FULL.md` nay đã đầy đủ phía API.
+**Phase 11 (Đăng nhập Google + xác thực email bằng OTP) XONG (2026-09-29).**
+Xem [STATE.md](STATE.md) §4 cho việc còn lại (chủ yếu là frontend).
 Đặc tả từng phase (từ Phase 2): [specs/](specs/).
 
 ## 0. Chốt từ Q&A (2026-09-08)
@@ -21,7 +22,7 @@ XONG (2026-09-24/25)** — toàn bộ Sprint 2/3 remainder theo
 | Upload file | Có — lưu ổ đĩa local (`apps/api/uploads/`) |
 | Repo | Monorepo: `apps/api` + `apps/web` |
 | Tenant | Một câu lạc bộ duy nhất (không có bảng clubs) |
-| Deploy | Chưa xác định — vẫn thêm Dockerfile + docker-compose để sẵn |
+| Deploy | **Chốt 2026-09-25** (mục đích demo/nộp bài): Render (API) + Neon (Postgres) + Vercel (frontend), free tier cả 3. Xem [DEPLOY.md](DEPLOY.md). |
 | Ngôn ngữ | Song ngữ i18n ở frontend; API trả `code` lỗi ổn định + message mặc định; enum trả raw |
 | Timeline | Cả học kỳ (> 8 tuần) |
 | Phạm vi mình build | Core API + 1 frontend React/Vite MVP demo |
@@ -504,3 +505,16 @@ medication. e2e 15 test (tổng 140/140 xanh). Chi tiết:
 **Toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) nay đã đối chiếu/hoàn
 thành phía API.** Việc còn lại: xem [STATE.md](STATE.md) §4 (chủ yếu là
 frontend cho các tính năng Phase 6-10).
+
+### Phase 11 — Đăng nhập Google + xác thực email bằng OTP ✅ XONG (2026-09-29) — [specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)
+
+Theo yêu cầu người dùng, ngoài phạm vi `CLAUDE_CODE_BACKEND_FULL.md`.
+Migration `phase11_google_otp` — `User.passwordHash` → optional, +
+`User.googleId` (unique), + bảng `OtpCode`. Xác thực email đăng ký đổi từ
+link token sang **OTP 6 số** (`POST /auth/verify-otp`, `POST
+/auth/resend-otp`, bỏ `GET /auth/verify-email`). `POST /auth/google`
+`{idToken}` — đăng nhập/đăng ký qua Google ID-token (Google Identity
+Services ở frontend, verify bằng `google-auth-library` ở backend, chỉ cần
+`GOOGLE_CLIENT_ID`) — tài khoản mới vẫn `status=PENDING`, **cần MANAGER
+duyệt** như đăng ký thường, không đổi luồng duyệt có sẵn. e2e +6 test
+(tổng 145/145 xanh). Chi tiết: [STATE.md](STATE.md) §3l.

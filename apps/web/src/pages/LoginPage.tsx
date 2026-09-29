@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/useAuth';
 import { Field } from '../components/Field';
 import { ErrorText } from '../components/ErrorText';
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 
 interface LocationState {
   from?: { pathname: string };
@@ -11,7 +12,7 @@ interface LocationState {
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const { user, login } = useAuth();
+  const { user, login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,6 +20,24 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+
+  const goAfterLogin = useCallback(() => {
+    const dest = (location.state as LocationState | null)?.from?.pathname;
+    navigate(dest ?? '/horses', { replace: true });
+  }, [location.state, navigate]);
+
+  const onGoogleToken = useCallback(
+    async (idToken: string) => {
+      setErr(null);
+      try {
+        await loginWithGoogle(idToken);
+        goAfterLogin();
+      } catch (e2) {
+        setErr(e2);
+      }
+    },
+    [loginWithGoogle, goAfterLogin],
+  );
 
   if (user) return <Navigate to="/horses" replace />;
 
@@ -28,8 +47,7 @@ export function LoginPage() {
     setBusy(true);
     try {
       await login(email.trim(), password);
-      const dest = (location.state as LocationState | null)?.from?.pathname;
-      navigate(dest ?? '/horses', { replace: true });
+      goAfterLogin();
     } catch (e2) {
       setErr(e2);
     } finally {
@@ -66,6 +84,10 @@ export function LoginPage() {
           {t('auth.login')}
         </button>
       </form>
+      <div className="auth-divider">{t('auth.or')}</div>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <GoogleSignInButton onToken={onGoogleToken} />
+      </div>
       <p className="muted">
         {t('auth.noAccount')} <Link to="/register">{t('auth.register')}</Link>
       </p>

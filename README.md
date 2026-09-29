@@ -17,6 +17,10 @@ frontend (React/Vite). Tài liệu thiết kế trong [`docs/`](docs/) —
 VS Code + extension) và các bước cài đặt từ đầu. Phần dưới đây là bản tóm
 tắt nhanh cho ai đã setup rồi.
 
+**Muốn đưa lên mạng để demo cho giảng viên (không cần chạy local):** đọc
+[docs/DEPLOY.md](docs/DEPLOY.md) — Render (API) + Neon (Postgres) + Vercel
+(frontend), free hoàn toàn.
+
 ```
 apps/
   api/   NestJS + Prisma + PostgreSQL — Core API
@@ -105,7 +109,7 @@ notifications) — xem [docs/STATE.md](docs/STATE.md) §4 và thử nhanh qua
 ```powershell
 cd apps/api
 npm test           # unit
-npm run test:e2e   # end-to-end, 117 test (cần PostgreSQL + đã seed)
+npm run test:e2e   # end-to-end, 145 test (cần PostgreSQL + đã seed)
 
 cd apps/web
 npm run build      # tsc + vite build
