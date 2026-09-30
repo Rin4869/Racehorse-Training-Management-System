@@ -50,7 +50,7 @@ powershell -File scripts/pg-start.ps1
 
 # 2. cài & cấu hình API
 cd apps/api
-copy .env.example .env        # sửa lại nếu cần (SMTP, secrets...)
+copy .env.example .env        # sửa lại nếu cần (Resend API key, secrets...)
 npm install
 npm run prisma:generate
 npm run prisma:migrate        # tạo bảng

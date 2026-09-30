@@ -89,9 +89,9 @@ copy .env.example .env
 ```
 
 Mở `.env`, kiểm tra `DATABASE_URL` khớp với cách bạn chọn ở §3 (mặc định đã
-khớp sẵn với Cách A). Các biến còn lại (`JWT_*`, `SMTP_*`) để nguyên giá trị
-mẫu cũng chạy được — **thiếu `SMTP_USER`/`SMTP_PASS` thì API tự log email ra
-console thay vì gửi thật**, không chặn việc chạy local.
+khớp sẵn với Cách A). Các biến còn lại (`JWT_*`, `RESEND_API_KEY`) để
+nguyên giá trị mẫu cũng chạy được — **thiếu `RESEND_API_KEY` thì API tự
+log email ra console thay vì gửi thật**, không chặn việc chạy local.
 
 ## 5. Migrate + seed dữ liệu mẫu
 
