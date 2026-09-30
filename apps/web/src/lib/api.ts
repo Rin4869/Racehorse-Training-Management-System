@@ -11,6 +11,7 @@ export const api = axios.create({ baseURL });
 
 const ACCESS_TOKEN_KEY = 'racehorse.accessToken';
 const REFRESH_TOKEN_KEY = 'racehorse.refreshToken';
+const LAST_EMAIL_KEY = 'racehorse.lastEmail';
 
 function read(key: string): string | null {
   try {
@@ -38,6 +39,12 @@ export function setTokens(
   write(ACCESS_TOKEN_KEY, tokens?.accessToken ?? null);
   write(REFRESH_TOKEN_KEY, tokens?.refreshToken ?? null);
 }
+
+/** Remembers the last email used to log in, so the login form can
+ * pre-fill it once the ~2-day session expires and the user only has to
+ * retype their password. */
+export const getLastEmail = () => read(LAST_EMAIL_KEY);
+export const setLastEmail = (email: string) => write(LAST_EMAIL_KEY, email);
 
 /** Called when a refresh attempt fails — wired up by AuthProvider. */
 let onAuthLost: (() => void) | null = null;

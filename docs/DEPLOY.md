@@ -68,7 +68,7 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
    | `JWT_ACCESS_SECRET` | chuỗi ngẫu nhiên dài (tự gõ bừa hoặc dùng [1password.com/password-generator](https://1password.com/password-generator/)) |
    | `JWT_ACCESS_TTL` | `15m` |
    | `JWT_REFRESH_SECRET` | 1 chuỗi ngẫu nhiên **khác** chuỗi trên |
-   | `JWT_REFRESH_TTL` | `7d` |
+   | `JWT_REFRESH_TTL` | `2d` |
    | `APP_WEB_URL` | URL Vercel ở Bước 3 (điền sau khi có, có thể để tạm `http://localhost:5173` rồi sửa lại) |
    | `BREVO_API_KEY` | API key từ Brevo — xem "Gửi email" bên dưới (để trống thì API tự log email ra console thay vì gửi, không lỗi) |
    | `MAIL_FROM` | `Racehorse Club <email-đã-verify>` — xem "Gửi email" bên dưới (⚠️ không bọc dấu `"` khi dán vào Render) |
