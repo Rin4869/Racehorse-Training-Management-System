@@ -3,9 +3,35 @@
     "title": "Quản lý Huấn luyện Ngựa đua"
   },
   "nav": {
-    "horses": "Ngựa",
+    "dashboard": "Tổng quan",
+    "horses": "Ngựa đua",
+    "plans": "Kế hoạch tập",
+    "races": "Giải đua",
+    "incidents": "Sự cố y tế",
+    "notifications": "Thông báo",
     "users": "Người dùng",
     "logout": "Đăng xuất"
+  },
+  "dashboard": {
+    "title": "Tổng quan Hệ thống",
+    "welcome": "Chào mừng trở lại,",
+    "subtitle": "Theo dõi trạng thái đội ngựa đua và tiến độ huấn luyện hôm nay.",
+    "kpi": {
+      "totalHorses": "Tổng số ngựa",
+      "lockedHorses": "Đang bị khoá tập",
+      "activeHorses": "Sẵn sàng thi đấu",
+      "pendingUsers": "Tài khoản chờ duyệt"
+    },
+    "recentHorses": "Danh sách ngựa đua gần đây",
+    "viewAll": "Xem tất cả",
+    "quickActions": "Thao tác nhanh",
+    "newHorse": "Thêm ngựa mới",
+    "manageUsers": "Duyệt thành viên",
+    "viewRecords": "Xem hồ sơ ngựa",
+    "systemAlerts": "Cảnh báo & Tình trạng",
+    "noAlerts": "Tất cả các cá thể ngựa đều đang trong điều kiện an toàn và hoạt động bình thường.",
+    "recentNotifs": "Thông báo gần nhất",
+    "noNotifs": "Chưa có thông báo nào."
   },
   "auth": {
     "login": "Đăng nhập",

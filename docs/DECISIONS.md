@@ -5,6 +5,22 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-30 — Thiết kế Giao diện Dashboard & Shell Rail + Phân quyền RBAC & Icon đơn sắc
+
+**Nguồn:** Yêu cầu người dùng (cấu trúc Dashboard dạng demo, phân quyền nghiêm ngặt theo 5 vai trò nghiệp vụ, loại bỏ 100% emoji và dùng icon tối giản đơn sắc, giữ nguyên trang login).
+**Quyết định:** 
+- **Thiết kế Icon**: Loại bỏ toàn bộ emoji màu mè (📊, 🐴, 📋, 🏇, 🩺, 🔔, 👥, 🔒, ✎, 🗑, 📷). Thay bằng bộ thư viện SVG vector tối giản, đơn sắc (`Icons.tsx`) kích thước chuẩn 14-16px, nét mảnh `stroke="currentColor"`, `strokeWidth={1.8}`.
+- **Trang Login**: Revert lại nguyên trạng ban đầu (`LoginPage.tsx`).
+- **Phân quyền thanh điều hướng (Sidebar Rail)**:
+  - `Head Trainer`: Dashboard, Ngựa đua (toàn bộ chiến mã CLB), Giáo án huấn luyện (Lập giáo án chi tiết), Giải đua (Đăng ký giải đua), Cảnh báo thể lực & sự cố.
+  - `Veterinarian`: Dashboard, Sơ đồ đàn ngựa, Hồ sơ khám bệnh & Phác đồ điều trị, Lịch tiêm phòng & móng định kỳ.
+  - `Groom / Stable Hand`: Dashboard, Chuồng & Khẩu phần dinh dưỡng, Báo cáo sự cố chuồng.
+  - `Horse Owner`: Dashboard, Ngựa của tôi (phạm vi sở hữu), Lịch tập & Nhật ký HLV, Lịch sử giải đua.
+  - `Club Manager`: Toàn quyền tất cả các phân hệ, bao gồm Quản trị hệ thống & Phân quyền thành viên (`/admin/users`).
+- **Cá nhân hóa DashboardPage (`/dashboard`)**:
+  - Từng vai trò có hệ thống thẻ KPI riêng (ví dụ: Vet theo dõi 4 trạng thái FIT/MONITORING/INJURED/QUARANTINED; Trainer theo dõi thể lực và giáo án; Groom theo dõi việc chăm sóc; Owner theo dõi ngựa sở hữu; Manager theo dõi danh mục tổng).
+  - Khối Thao tác nhanh (Quick Actions) hiển thị chính xác các tác vụ được phép làm theo nghiệp vụ của vai trò đó.
+
 ## 2026-09-30 — Nhớ email lần đăng nhập trước (giữ nguyên phiên 7 ngày)
 
 **Nguồn:** yêu cầu người dùng — ban đầu định rút phiên đăng nhập xuống 2
@@ -600,7 +616,30 @@ Tiếp theo: Phase 1 (Auth & Users) — còn chờ chốt cách trả refresh to
 
 ---
 
+## 2026-09-30 — Flow 1: Thiết kế & Triển khai Giao diện Quản lý Hồ sơ Ngựa (Horse Profile Management)
+
+**Nguồn:** Yêu cầu người dùng (SWP391 Team RHTMS).
+**Quyết định:**
+1. Áp dụng chuẩn **Racehorse Design System** từ `racehorse-design-system.html`:
+   - Màu thương hiệu chính: Navy `#1c2b3a` (Header, Buttons chính, Avatars).
+   - Màu nền: Cream `#f5f4f1`, Card nền trắng `#ffffff`.
+   - Màu phụ: Blue accent `#1a4b8a`.
+   - Typography: Font Inter đồng nhất; huy hiệu StatusBadges (FIT, MONITORING, INJURED, LOCKED, ACTIVE, RESTING, RETIRED).
+2. Hoàn thiện 2 use case chính của Flow 1 trên Frontend:
+   - **Use Case 1 (View horse list & detail)**:
+     - `HorsesPage`: Metric cards tóm tắt (Tổng số, Đang hoạt động, Nghỉ dưỡng, Cần chú ý), tìm kiếm theo tên, bộ lọc chip trạng thái, bảng danh sách có avatar và status badges.
+     - `HorseDetailPage`: Hero banner, avatar lớn, nút đổi ảnh, trạng thái kết hợp, banner cảnh báo khóa tập luyện (Training Lock), tab Hồ sơ chi tiết (key-value grid), tab Cây phả hệ 3 đời (PedigreeTree).
+   - **Use Case 2 (Add / Edit / Delete horse profile)**:
+     - `CreateHorseModal`: Thêm mới ngựa (chọn chủ từ role OWNER, validate ngày sinh không vượt quá hiện tại).
+     - `EditHorseModal`: Sửa thông tin, gán ngựa cha (sireId), ngựa mẹ (damId), điểm thể trạng (fitnessScore), trạng thái, đổi chủ.
+     - `DeleteHorseModal`: Xác nhận xóa mềm an toàn (soft-delete bảo lưu lịch sử buổi tập và y tế).
+     - `PhotoUploadModal`: Tải ảnh đại diện lên (multipart file, tối đa 5MB).
+3. Tài liệu thiết kế chi tiết: Lưu tại `docs/FLOW1_HORSE_PROFILE_DESIGN.md`.
+
+---
+
 ## Mẫu ghi quyết định mới
+
 
 ```
 ## YYYY-MM-DD — <tiêu đề ngắn>

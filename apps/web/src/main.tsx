@@ -15,6 +15,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { HorsesPage } from './pages/HorsesPage';
 import { HorseDetailPage } from './pages/HorseDetailPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -26,7 +27,8 @@ const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: <Navigate to="/horses" replace /> },
+      { path: '/', element: <Navigate to="/dashboard" replace /> },
+      { path: '/dashboard', element: <DashboardPage /> },
       { path: '/horses', element: <HorsesPage /> },
       { path: '/horses/:id', element: <HorseDetailPage /> },
       {
@@ -37,7 +39,7 @@ const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
-      { path: '*', element: <Navigate to="/horses" replace /> },
+      { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },
 ]);

@@ -1,15 +1,28 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
-import type { Horse, Paginated, User } from '../lib/types';
+import type { Horse, HorseStatus, Paginated } from '../lib/types';
 import { useAuth } from '../auth/useAuth';
-import { Field } from '../components/Field';
 import { ErrorText } from '../components/ErrorText';
 import { formatDate } from '../lib/format';
+import { HorseStatusBadge } from '../components/horse/HorseStatusBadge';
+import { HorseMetricCards } from '../components/horse/HorseMetricCards';
+import { CreateHorseModal } from '../components/horse/CreateHorseModal';
+import { EditHorseModal } from '../components/horse/EditHorseModal';
+import { DeleteHorseModal } from '../components/horse/DeleteHorseModal';
+import { PlusIcon, EditIcon, TrashIcon } from '../components/Icons';
+
+function calculateAge(birthDate: string | null): string {
+  if (!birthDate) return '—';
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return '—';
+  const ageYears = Math.floor(
+    (Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
+  );
+  return ageYears >= 0 ? `${ageYears} tuổi` : '—';
+}
 
 export function HorsesPage() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
 
@@ -17,10 +30,24 @@ export function HorsesPage() {
   const [loadErr, setLoadErr] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
 
+  // Filters & Search
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | HorseStatus>('ALL');
+
+  // Modal States
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editingHorse, setEditingHorse] = useState<Horse | null>(null);
+  const [deletingHorse, setDeletingHorse] = useState<Horse | null>(null);
+
   const load = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await api.get<Paginated<Horse>>('/horses', {
-        params: { limit: 100 },
+        params: {
+          limit: 100,
+          ...(search.trim() ? { q: search.trim() } : {}),
+          ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+        },
       });
       setHorses(res.data.data);
       setLoadErr(null);
@@ -29,167 +56,202 @@ export function HorsesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [search, statusFilter]);
 
   useEffect(() => {
-    void load();
+    const timer = setTimeout(() => {
+      void load();
+    }, 200);
+    return () => clearTimeout(timer);
   }, [load]);
 
   return (
     <div className="stack">
-      <h1>{t('nav.horses')}</h1>
+      <div>
+        <h1>Hồ sơ Ngựa đua</h1>
+        <p className="muted" style={{ margin: '4px 0 0', fontSize: '13px' }}>
+          Quản lý toàn bộ hồ sơ ngựa, theo dõi phả hệ, thể trạng và trạng thái hoạt động trong câu lạc bộ.
+        </p>
+      </div>
 
-      {isManager && <CreateHorseForm onCreated={load} />}
+      {/* KPI / Metric Summary Cards */}
+      <HorseMetricCards horses={horses} />
 
-      {loading ? (
-        <p className="muted">…</p>
+      {/* Toolbar: Search, Filter Chips, Action Button */}
+      <div className="toolbar">
+        <input
+          className="search-input"
+          type="text"
+          placeholder="Tìm theo tên ngựa..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <div className="chip-row">
+          <button
+            type="button"
+            className={`chip ${statusFilter === 'ALL' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('ALL')}
+          >
+            Tất cả
+          </button>
+          <button
+            type="button"
+            className={`chip ${statusFilter === 'ACTIVE' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('ACTIVE')}
+          >
+            Đang thi đấu (ACTIVE)
+          </button>
+          <button
+            type="button"
+            className={`chip ${statusFilter === 'RESTING' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('RESTING')}
+          >
+            Nghỉ dưỡng (RESTING)
+          </button>
+          <button
+            type="button"
+            className={`chip ${statusFilter === 'RETIRED' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('RETIRED')}
+          >
+            Giải nghệ (RETIRED)
+          </button>
+        </div>
+
+        {isManager && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setCreateOpen(true)}
+          >
+            <PlusIcon /> Thêm ngựa mới
+          </button>
+        )}
+      </div>
+
+      {/* Main Table / Roster */}
+      {loading && horses.length === 0 ? (
+        <p className="muted">Đang tải danh sách ngựa…</p>
       ) : loadErr ? (
         <ErrorText err={loadErr} />
       ) : horses.length === 0 ? (
-        <p className="muted">{t('horse.empty')}</p>
+        <div className="card center" style={{ padding: '40px 20px' }}>
+          <p className="muted" style={{ margin: 0, fontSize: '14px' }}>
+            Không tìm thấy hồ sơ ngựa nào phù hợp với bộ lọc hiện tại.
+          </p>
+        </div>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>{t('horse.name')}</th>
-              <th>{t('horse.breed')}</th>
-              <th>{t('horse.birthDate')}</th>
-              <th>{t('horse.owner')}</th>
-              <th>{t('horse.status')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {horses.map((h) => (
-              <tr key={h.id}>
-                <td>
-                  <Link to={`/horses/${h.id}`}>{h.name}</Link>
-                </td>
-                <td>{h.breed ?? '—'}</td>
-                <td>{formatDate(h.birthDate)}</td>
-                <td>{h.owner.name}</td>
-                <td>
-                  <span className="tag">{h.status}</span>
-                </td>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Ngựa &amp; Giống</th>
+                <th>Tuổi &amp; Ngày sinh</th>
+                <th>Chủ sở hữu</th>
+                <th>Thể trạng</th>
+                <th>Trạng thái</th>
+                {isManager && <th style={{ textAlign: 'right' }}>Thao tác</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {horses.map((h) => (
+                <tr key={h.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="avatar">
+                        {h.photoUrl ? (
+                          <img src={h.photoUrl} alt={h.name} />
+                        ) : (
+                          h.name.slice(0, 1).toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <Link
+                          to={`/horses/${h.id}`}
+                          style={{ fontWeight: 600, fontSize: '14px', color: 'var(--brand-navy)' }}
+                        >
+                          {h.name}
+                        </Link>
+                        <div className="muted" style={{ fontSize: '12px' }}>
+                          {h.breed ?? 'Chưa rõ giống'}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>{calculateAge(h.birthDate)}</div>
+                    <div className="muted" style={{ fontSize: '12px' }}>
+                      {formatDate(h.birthDate)}
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{h.owner.name}</div>
+                    <div className="muted" style={{ fontSize: '12px' }}>
+                      {h.owner.email}
+                    </div>
+                  </td>
+                  <td>
+                    {h.fitnessScore != null ? (
+                      <div style={{ fontWeight: 600 }}>{h.fitnessScore} / 100</div>
+                    ) : (
+                      <span className="muted" style={{ fontSize: '12px' }}>Chưa đánh giá</span>
+                    )}
+                  </td>
+                  <td>
+                    <HorseStatusBadge
+                      status={h.status}
+                      healthStatus={h.healthStatus}
+                      locked={h.locked}
+                    />
+                  </td>
+                  {isManager && (
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="row" style={{ justifyContent: 'flex-end', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-ghost"
+                          onClick={() => setEditingHorse(h)}
+                        >
+                          <EditIcon /> Sửa
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-ghost"
+                          style={{ color: 'var(--status-danger)' }}
+                          onClick={() => setDeletingHorse(h)}
+                        >
+                          <TrashIcon /> Xóa
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
+
+      {/* Modals */}
+      <CreateHorseModal
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={load}
+      />
+
+      <EditHorseModal
+        horse={editingHorse}
+        isOpen={editingHorse !== null}
+        onClose={() => setEditingHorse(null)}
+        onUpdated={load}
+      />
+
+      <DeleteHorseModal
+        horse={deletingHorse}
+        isOpen={deletingHorse !== null}
+        onClose={() => setDeletingHorse(null)}
+        onDeleted={load}
+      />
     </div>
-  );
-}
-
-function CreateHorseForm({ onCreated }: { onCreated: () => void }) {
-  const { t } = useTranslation();
-  const [owners, setOwners] = useState<User[]>([]);
-  const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [ownerId, setOwnerId] = useState('');
-  const [err, setErr] = useState<unknown>(null);
-  const [busy, setBusy] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    api
-      .get<Paginated<User>>('/users', { params: { role: 'OWNER', limit: 100 } })
-      .then((r) => setOwners(r.data.data))
-      .catch(() => setOwners([]));
-  }, []);
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setErr(null);
-    setBusy(true);
-    try {
-      await api.post('/horses', {
-        name: name.trim(),
-        ownerId,
-        ...(breed.trim() ? { breed: breed.trim() } : {}),
-        ...(birthDate ? { birthDate: new Date(birthDate).toISOString() } : {}),
-      });
-      setName('');
-      setBreed('');
-      setBirthDate('');
-      setOwnerId('');
-      setOpen(false);
-      onCreated();
-    } catch (e2) {
-      setErr(e2);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className="btn btn-primary self-start"
-        onClick={() => setOpen(true)}
-      >
-        {t('horse.new')}
-      </button>
-    );
-  }
-
-  return (
-    <form className="card form-grid" onSubmit={submit}>
-      <h2>{t('horse.new')}</h2>
-      <Field label={t('horse.name')}>
-        <input
-          className="input"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </Field>
-      <Field label={t('horse.breed')}>
-        <input
-          className="input"
-          value={breed}
-          onChange={(e) => setBreed(e.target.value)}
-        />
-      </Field>
-      <Field label={t('horse.birthDate')}>
-        <input
-          className="input"
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-        />
-      </Field>
-      <Field label={t('horse.owner')}>
-        <select
-          className="input"
-          value={ownerId}
-          onChange={(e) => setOwnerId(e.target.value)}
-          required
-        >
-          <option value="" disabled>
-            —
-          </option>
-          {owners.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name} ({o.email})
-            </option>
-          ))}
-        </select>
-      </Field>
-      <ErrorText err={err} />
-      <div className="row">
-        <button type="submit" className="btn btn-primary" disabled={busy}>
-          {t('common.create')}
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => setOpen(false)}
-          disabled={busy}
-        >
-          {t('common.cancel')}
-        </button>
-      </div>
-    </form>
   );
 }

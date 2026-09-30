@@ -3,9 +3,35 @@
     "title": "Racehorse Training & Management"
   },
   "nav": {
+    "dashboard": "Dashboard",
     "horses": "Horses",
+    "plans": "Training Plans",
+    "races": "Races",
+    "incidents": "Health Incidents",
+    "notifications": "Notifications",
     "users": "Users",
     "logout": "Log out"
+  },
+  "dashboard": {
+    "title": "System Overview Dashboard",
+    "welcome": "Welcome back,",
+    "subtitle": "Monitor your racehorse fleet and daily training progress.",
+    "kpi": {
+      "totalHorses": "Total Horses",
+      "lockedHorses": "Training Locked",
+      "activeHorses": "Ready to Train",
+      "pendingUsers": "Pending Users"
+    },
+    "recentHorses": "Recent Racehorses",
+    "viewAll": "View all",
+    "quickActions": "Quick Actions",
+    "newHorse": "New Horse Profile",
+    "manageUsers": "Review Members",
+    "viewRecords": "Browse Records",
+    "systemAlerts": "Alerts & Status",
+    "noAlerts": "All racehorses are safe and operating under normal training conditions.",
+    "recentNotifs": "Recent Notifications",
+    "noNotifs": "No notifications yet."
   },
   "auth": {
     "login": "Log in",

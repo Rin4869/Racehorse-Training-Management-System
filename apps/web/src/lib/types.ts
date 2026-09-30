@@ -19,6 +19,8 @@ export interface UserRef {
   email: string;
 }
 
+export type HealthStatus = 'FIT' | 'MONITORING' | 'QUARANTINED' | 'INJURED';
+
 export interface Horse {
   id: string;
   name: string;
@@ -27,12 +29,27 @@ export interface Horse {
   ownerId: string;
   owner: UserRef;
   status: HorseStatus;
+  healthStatus: HealthStatus;
+  fitnessScore: number | null;
+  sireId: string | null;
+  damId: string | null;
+  locked: boolean;
+  lockReason: string | null;
   photoPath: string | null;
   photoUrl: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
 }
+
+export interface PedigreeNode {
+  id: string;
+  name: string;
+  fitnessScore: number | null;
+  sire: PedigreeNode | null;
+  dam: PedigreeNode | null;
+}
+
 
 export interface TrainingSession {
   id: string;
@@ -61,6 +78,15 @@ export interface HealthRecord {
   treatment: string | null;
   attachmentPath: string | null;
   attachmentUrl: string | null;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  message: string;
+  read: boolean;
   createdAt: string;
 }
 
