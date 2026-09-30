@@ -5,25 +5,22 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
-## 2026-09-30 — Phiên đăng nhập rút còn 2 ngày + nhớ email lần đăng nhập trước
+## 2026-09-30 — Nhớ email lần đăng nhập trước (giữ nguyên phiên 7 ngày)
 
-**Nguồn:** yêu cầu người dùng.
-**Quyết định:**
-1. `JWT_REFRESH_TTL` mặc định đổi từ `7d` → `2d` (code fallback trong
-   `token.service.ts` + `.env.example`) — sau 2 ngày không hoạt động,
-   refresh token hết hạn, user bị đăng xuất, phải đăng nhập lại.
-2. Frontend nhớ email của lần đăng nhập gần nhất (`localStorage`, key
-   `racehorse.lastEmail`, ghi trong `lib/api.ts` cạnh cặp hàm đọc/ghi
-   token có sẵn) — tự điền sẵn vào ô Email ở `/login` cho lần sau, người
-   dùng chỉ cần gõ lại mật khẩu.
-**Lưu ý khi deploy:** biến `JWT_REFRESH_TTL` **đã set cứng `7d`** trên
-Render từ trước (theo hướng dẫn DEPLOY.md gốc) — đổi default trong code
-**không tự áp dụng** vì biến env tường minh luôn thắng default. Cần vào
-Render → Environment → sửa tay `JWT_REFRESH_TTL` thành `2d` thì mới có
-hiệu lực trên bản live.
+**Nguồn:** yêu cầu người dùng — ban đầu định rút phiên đăng nhập xuống 2
+ngày, sau đổi ý giữ nguyên `7d` như cũ, chỉ giữ lại phần "nhớ email".
+**Quyết định:** Frontend nhớ email của lần đăng nhập gần nhất
+(`localStorage`, key `racehorse.lastEmail`, ghi trong `lib/api.ts` cạnh
+cặp hàm đọc/ghi token có sẵn) — tự điền sẵn vào ô Email ở `/login` cho
+lần sau, người dùng chỉ cần gõ lại mật khẩu khi phiên (refresh token,
+`JWT_REFRESH_TTL=7d`) hết hạn và bị đăng xuất.
 **Phạm vi:** chỉ áp dụng cho form đăng nhập email/mật khẩu — đăng nhập
 Google không có ô email để tự điền (chọn tài khoản qua popup Google), nên
 không đụng tới.
+**Đã thử và bỏ:** từng đổi `JWT_REFRESH_TTL` mặc định `7d` → `2d`
+(`token.service.ts` + `.env.example`) — người dùng quyết định giữ `7d`
+ngay sau đó, đã revert lại trong cùng ngày. Không cần sửa gì trên Render
+(vẫn đang set cứng `7d` từ trước, không đổi).
 
 ## 2026-09-30 — Google login mới toanh cũng phải qua OTP (không tự động verify nữa)
 
