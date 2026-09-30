@@ -5,6 +5,23 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-30 — Đổi tiếp Resend → Brevo (Resend sandbox chặn gửi cho người khác)
+
+**Nguồn:** log lỗi thật khi test trên Render sau khi đã chuyển sang Resend
+(xem mục ngay dưới đây).
+**Quyết định:** Bỏ Resend, chuyển `MailService` sang
+[Brevo](https://www.brevo.com) (vẫn qua HTTP API thuần, không SDK — dùng
+`fetch` sẵn có của Node 18+, không thêm dependency mới).
+**Lý do:** Resend ở "sandbox mode" (chưa verify domain riêng) chỉ cho gửi
+tới **đúng email dùng đăng ký tài khoản Resend**, không gửi được cho ai
+khác — lỗi cụ thể: `"You can only send testing emails to your own email
+address..."`. Dự án không có domain riêng để verify (ngoài phạm vi demo),
+nên không dùng được Resend đúng nghĩa (gửi OTP cho user bất kỳ). Brevo chỉ
+cần verify **1 địa chỉ email gửi đi** (xác nhận qua link trong email, không
+cần DNS/domain) là gửi được tới **bất kỳ người nhận nào** ngay — đúng nhu
+cầu (gửi OTP cho user đăng ký bất kỳ, không phải lúc nào cũng là chính
+mình). Hướng dẫn: [DEPLOY.md](DEPLOY.md) mục "Gửi email".
+
 ## 2026-09-30 — Đổi gửi mail từ SMTP (nodemailer) sang Resend HTTP API
 
 **Nguồn:** log lỗi thật từ Render khi test luồng OTP trên bản deploy.
