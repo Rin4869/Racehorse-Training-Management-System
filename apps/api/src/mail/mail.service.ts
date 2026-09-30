@@ -28,6 +28,11 @@ export class MailService implements OnModuleInit {
       port: this.config.get<number>('SMTP_PORT'),
       secure: this.config.get<number>('SMTP_PORT') === 465,
       auth: { user, pass },
+      // Fail fast instead of hanging the whole HTTP request for minutes if
+      // the host can't reach the SMTP server (seen on some PaaS networks).
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
   }
 
