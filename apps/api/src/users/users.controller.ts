@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -36,6 +37,11 @@ export class UsersController {
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
     return this.users.update(id, dto);
+  }
+
+  @Post(':id/reject')
+  reject(@Param('id', ParseUUIDPipe) id: string) {
+    return this.users.reject(id);
   }
 
   @Delete(':id')

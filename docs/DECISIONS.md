@@ -5,6 +5,25 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-30 — Thêm nút "Từ chối" đăng ký cho MANAGER (hard delete, không phải soft delete)
+
+**Nguồn:** người dùng — muốn user bị từ chối phải đăng ký lại (kể cả qua
+Google) nếu vẫn muốn có tài khoản.
+**Quyết định:** `POST /users/:id/reject` (MANAGER, chỉ áp dụng user đang
+`PENDING`) — **xoá thật** (`prisma.user.delete`), khác hẳn `DELETE
+/users/:id` đã có từ trước (soft delete — set `deletedAt` + `status
+DISABLED`, giữ lại hàng).
+**Lý do:** `User.email` có ràng buộc `@unique` ở tầng DB (không phải unique
+có điều kiện `WHERE deletedAt IS NULL`) — nếu chỉ soft-delete, email đó
+vẫn bị khoá vĩnh viễn, không đăng ký lại được (kể cả qua Google, vì
+`googleLogin()` cũng tra theo `email`). Xoá thật là cách duy nhất giải
+phóng email mà không phải đổi kiểu unique constraint (thay đổi lớn hơn,
+ảnh hưởng toàn bộ luồng `DELETE /users/:id` hiện có, không cần thiết cho
+yêu cầu này). An toàn vì giới hạn chỉ áp dụng cho user `PENDING`
+(`role=null`, chưa có bất kỳ dữ liệu nào tham chiếu tới — không sở hữu
+ngựa, không phải trainer/vet buổi tập/hồ sơ nào) — không đụng tới
+`DELETE` cũ (soft delete) vốn dùng cho user đã hoạt động, cần giữ lịch sử.
+
 ## 2026-09-29 — Phase 11: Đăng nhập Google + xác thực email bằng OTP
 
 **Nguồn:** người dùng + Claude Code. Chi tiết đầy đủ:

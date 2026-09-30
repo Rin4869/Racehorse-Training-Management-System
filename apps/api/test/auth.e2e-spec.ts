@@ -153,6 +153,51 @@ describe('Auth & Users (e2e)', () => {
     expect(res.body.status).toBe('ACTIVE');
   });
 
+  it('lets a MANAGER reject a PENDING registration, freeing the email', async () => {
+    const rejectEmail = `e2e_reject_${Date.now()}@racehorse.test`;
+    await api()
+      .post('/api/v1/auth/register')
+      .send({ name: 'Reject Me', email: rejectEmail, password });
+
+    const login = await api()
+      .post('/api/v1/auth/login')
+      .send({ email: 'manager@racehorse.local', password: 'Manager123!' });
+    const managerToken = login.body.accessToken as string;
+
+    const target = await prisma.user.findUnique({
+      where: { email: rejectEmail },
+    });
+    const res = await api()
+      .post(`/api/v1/users/${target!.id}/reject`)
+      .set('Authorization', `Bearer ${managerToken}`);
+    expect(res.status).toBe(201);
+
+    const gone = await prisma.user.findUnique({
+      where: { email: rejectEmail },
+    });
+    expect(gone).toBeNull();
+
+    const reRegister = await api()
+      .post('/api/v1/auth/register')
+      .send({ name: 'Reject Me Again', email: rejectEmail, password });
+    expect(reRegister.status).toBe(201);
+    await prisma.user.deleteMany({ where: { email: rejectEmail } });
+  });
+
+  it('cannot reject a non-PENDING user (CONFLICT)', async () => {
+    const login = await api()
+      .post('/api/v1/auth/login')
+      .send({ email: 'manager@racehorse.local', password: 'Manager123!' });
+    const managerToken = login.body.accessToken as string;
+
+    const target = await prisma.user.findUnique({ where: { email } });
+    const res = await api()
+      .post(`/api/v1/users/${target!.id}/reject`)
+      .set('Authorization', `Bearer ${managerToken}`);
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('CONFLICT');
+  });
+
   it('non-manager cannot list users (FORBIDDEN)', async () => {
     const login = await api()
       .post('/api/v1/auth/login')

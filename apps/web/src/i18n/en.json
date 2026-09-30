@@ -76,6 +76,8 @@
     "status": "Status",
     "created": "Created",
     "approve": "Approve",
+    "reject": "Reject",
+    "rejectConfirm": "Reject this registration? The account will be permanently deleted — this person must register again (including via Google) if they still want an account.",
     "disable": "Disable",
     "enable": "Enable"
   },

@@ -80,6 +80,20 @@ function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
     }
   };
 
+  const reject = async () => {
+    if (!window.confirm(t('user.rejectConfirm'))) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      await api.post(`/users/${user.id}/reject`);
+      onChanged();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <tr>
       <td>{user.name}</td>
@@ -109,14 +123,24 @@ function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
       <td>{formatDate(user.createdAt)}</td>
       <td>
         {user.status === 'PENDING' && (
-          <button
-            type="button"
-            className="btn small-btn"
-            disabled={busy}
-            onClick={() => patch({ role, status: 'ACTIVE' })}
-          >
-            {t('user.approve')}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn small-btn"
+              disabled={busy}
+              onClick={() => patch({ role, status: 'ACTIVE' })}
+            >
+              {t('user.approve')}
+            </button>
+            <button
+              type="button"
+              className="btn small-btn"
+              disabled={busy}
+              onClick={reject}
+            >
+              {t('user.reject')}
+            </button>
+          </>
         )}
         {user.status === 'ACTIVE' && (
           <button
