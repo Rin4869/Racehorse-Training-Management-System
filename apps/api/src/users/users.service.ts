@@ -83,6 +83,22 @@ export class UsersService {
     });
   }
 
+  /** Hard-deletes a still-PENDING registration so the email can be reused. */
+  async reject(id: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!user) throw new AppException('NOT_FOUND', 'User not found');
+    if (user.status !== UserStatus.PENDING) {
+      throw new AppException(
+        'CONFLICT',
+        'Only a pending registration can be rejected',
+      );
+    }
+    await this.prisma.user.delete({ where: { id } });
+    return { message: 'Registration rejected' };
+  }
+
   async remove(
     id: string,
     currentUserId: string,

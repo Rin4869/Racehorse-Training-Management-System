@@ -76,6 +76,8 @@
     "status": "Trạng thái",
     "created": "Ngày tạo",
     "approve": "Duyệt",
+    "reject": "Từ chối",
+    "rejectConfirm": "Từ chối đăng ký này? Tài khoản sẽ bị xoá hẳn — người này phải đăng ký lại (kể cả bằng Google) nếu muốn có tài khoản.",
     "disable": "Khoá",
     "enable": "Mở lại"
   },

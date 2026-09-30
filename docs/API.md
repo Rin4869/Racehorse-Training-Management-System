@@ -33,6 +33,7 @@ tài khoản mới qua Google vẫn cần MANAGER duyệt như đăng ký thư�
 GET    /users?status=&role=&page=&limit=   (MANAGER)  → {data, meta}
 GET    /users/:id                          (MANAGER)
 PATCH  /users/:id       {name?,role?,status?} (MANAGER)  # duyệt PENDING = role + status=ACTIVE
+POST   /users/:id/reject                   (MANAGER)  # chỉ PENDING — hard delete để email dùng đăng ký lại được
 DELETE /users/:id                          (MANAGER)  # soft delete, không tự xoá mình
 ```
 Chưa có `POST /users` (đăng ký qua `/auth/register`).
