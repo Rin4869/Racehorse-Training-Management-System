@@ -99,6 +99,17 @@ npm run dev        # http://localhost:5173
 
 Đổi ngôn ngữ VI/EN ở góc phải header.
 
+5. **Đăng ký + OTP + duyệt** — trang `/register` → điền form → nhập mã
+   OTP 6 số gửi qua email (Brevo trên bản deploy, hoặc log console khi
+   chạy local chưa cấu hình `BREVO_API_KEY`) → tài khoản ở trạng thái
+   PENDING chờ MANAGER duyệt (hoặc **Từ chối** — xoá hẳn, cho đăng ký lại
+   được) ở `/admin/users`.
+6. **Đăng nhập Google** — trang `/login` → nút "Đăng nhập bằng Google"
+   (cần `VITE_GOOGLE_CLIENT_ID`, tự ẩn nếu chưa cấu hình). Tài khoản
+   Google mới cũng phải qua bước nhập OTP (điền sẵn email/tên từ Google,
+   không cần gõ tay) rồi mới tới bước MANAGER duyệt, giống hệt luồng đăng
+   ký thường.
+
 `apps/api` còn có 3 luồng mở rộng đã xong phần API nhưng **chưa có UI**:
 Pedigree & Races, Training Plan & Lock, Health & Injury (incidents +
 notifications) — xem [docs/STATE.md](docs/STATE.md) §4 và thử nhanh qua
@@ -109,7 +120,7 @@ notifications) — xem [docs/STATE.md](docs/STATE.md) §4 và thử nhanh qua
 ```powershell
 cd apps/api
 npm test           # unit
-npm run test:e2e   # end-to-end, 145 test (cần PostgreSQL + đã seed)
+npm run test:e2e   # end-to-end, 149 test (cần PostgreSQL + đã seed)
 
 cd apps/web
 npm run build      # tsc + vite build

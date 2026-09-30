@@ -4,7 +4,7 @@
 > đây **miễn phí hoàn toàn**, không giới hạn thời gian (khác free Postgres
 > của Render, tự xoá dữ liệu sau 30 ngày). Người thực hiện: bất kỳ ai trong
 > nhóm có quyền push code — cần tài khoản GitHub (đã có, repo:
-> `Rin4869/Racehorse-Training-Management-System`).
+> `binh062117/Racehorse-Training-Management-System`).
 
 ## Bức tranh chung
 
@@ -43,7 +43,7 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
 ## Bước 2 — API: Render.com
 
 1. Vào [render.com](https://render.com) → đăng ký bằng GitHub → cho phép
-   truy cập repo `Rin4869/Racehorse-Training-Management-System`.
+   truy cập repo `binh062117/Racehorse-Training-Management-System`.
 2. **New** → **Web Service** → chọn repo đó.
 3. Điền:
    | Trường | Giá trị |

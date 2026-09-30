@@ -509,10 +509,13 @@ Migration mới `phase10_health_injury_extensions` (+`Horse.healthStatus`,
 
 ## 3l. Phase 11 đã làm gì (Đăng nhập Google + xác thực email bằng OTP)
 
-Đặc tả đầy đủ: **[specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)**.
-Nguồn: yêu cầu người dùng (2026-09-29). Migration mới
-`phase11_google_otp` (+`User.googleId`, `passwordHash` → optional, +bảng
-`OtpCode`).
+Đặc tả gốc: **[specs/phase-11-google-auth-otp.md](specs/phase-11-google-auth-otp.md)**.
+Nguồn: yêu cầu người dùng (2026-09-29 → 2026-09-30, hoàn thiện qua nhiều
+vòng khi test trực tiếp trên bản deploy thật — xem
+[DECISIONS.md](DECISIONS.md) các mục ngày 2026-09-30 để biết chi tiết quá
+trình chẩn đoán). Migration `phase11_google_otp` (+`User.googleId`,
+`passwordHash` → optional, +bảng `OtpCode`). **Đã test xong trên bản live**
+(Render + Vercel), không chỉ local.
 
 ### apps/api — `src/auth/` mở rộng
 - Xác thực email đăng ký đổi từ link token sang **OTP 6 số** (model
@@ -522,56 +525,86 @@ Nguồn: yêu cầu người dùng (2026-09-29). Migration mới
   — giống `forgot-password`).
 - `POST /auth/google` `{idToken}` — verify **Google ID token** bằng
   `google-auth-library` (`GOOGLE_CLIENT_ID`, không cần secret/redirect
-  URL). User mới tạo `status=PENDING` giống đăng ký thường, **vẫn cần
-  MANAGER duyệt** ở `/admin/users` (không đổi luồng duyệt có sẵn). Email
-  trùng tài khoản cũ → tự gắn `googleId`, không báo CONFLICT.
+  URL). **Google account mới toanh cũng phải qua OTP** (đổi ngày
+  2026-09-30 — ban đầu tự verify luôn vì Google đã xác minh email, sau đổi
+  ý để nhất quán 1 luồng xác nhận cho mọi cách tạo tài khoản): tạo user
+  `PENDING`, `emailVerifiedAt=null`, phát OTP tới đúng email/tên Google
+  trả về, trả `{otpRequired: true, email}` thay vì token — client tự
+  chuyển màn nhập OTP, không cần gõ tay. Email trùng tài khoản đăng ký
+  thường có sẵn → vẫn tự gắn `googleId` + verify ngay (không bắt OTP lại).
+  Sau khi verify OTP xong, **vẫn cần MANAGER duyệt** ở `/admin/users` như
+  đăng ký thường (không đổi luồng duyệt có sẵn).
+- `POST /users/:id/reject` (MANAGER, chỉ user `PENDING`) — **xoá hẳn**
+  record (khác `DELETE /users/:id` soft-delete có sẵn), để email được
+  giải phóng cho đăng ký lại (kể cả qua Google). Thêm ngày 2026-09-30
+  theo yêu cầu người dùng.
 - `User.passwordHash` chuyển optional (tài khoản Google-only không có mật
   khẩu cục bộ) — `login()` thêm guard: `passwordHash` null → coi như sai
   mật khẩu, không crash.
+- **`MailService` đổi cơ chế gửi 2 lần** sau khi test trên Render (xem
+  DECISIONS.md 2026-09-30 để biết toàn bộ quá trình): SMTP (nodemailer,
+  thiết kế gốc) → phát hiện Render chặn kết nối SMTP ra ngoài
+  (`Connection timeout`, đã thử thêm timeout ngắn + ép DNS ipv4first,
+  không giải quyết được) → **Resend** (HTTP API) → phát hiện Resend
+  sandbox chỉ cho gửi tới đúng email chủ tài khoản Resend, không gửi được
+  cho người khác → **Brevo** (HTTP API cuối cùng, dùng `fetch()` sẵn có,
+  không thêm SDK) — chỉ cần verify 1 sender email (không cần domain), gửi
+  được tới bất kỳ ai. Biến env đổi theo: ~~`SMTP_*`~~ → ~~`RESEND_API_KEY`~~
+  → **`BREVO_API_KEY`** (hiện tại).
 
 ### apps/web
 - `LoginPage.tsx`: thêm nút "Đăng nhập bằng Google" (component mới
   `GoogleSignInButton.tsx`, dùng script Google Identity Services nhúng ở
-  `index.html`; tự ẩn nếu chưa cấu hình `VITE_GOOGLE_CLIENT_ID`).
+  `index.html`; tự ẩn nếu chưa cấu hình `VITE_GOOGLE_CLIENT_ID`). Khi
+  backend trả `otpRequired`, chuyển sang màn nhập OTP ngay trên trang
+  Login (không rời trang) — bắt qua `OtpRequiredError` (`auth/context.ts`).
 - `RegisterPage.tsx`: sau khi đăng ký, chuyển sang bước nhập mã OTP (thay
   màn hình tĩnh cũ) — có nút "Gửi lại mã".
+- `components/OtpStep.tsx` (mới, tách từ `RegisterPage.tsx` ngày
+  2026-09-30) — dùng chung cho cả luồng đăng ký thường lẫn Google mới.
+- `AdminUsersPage.tsx`: thêm nút "Từ chối" cạnh "Duyệt" cho user PENDING,
+  có confirm dialog cảnh báo xoá hẳn.
 
 **Đã verify:** `npm run build` ✅ (api+web) · `npm run lint` ✅ (api+web) ·
-`npm run test:e2e` **(145/145:** 139 cũ + 6 mới trong `auth.e2e-spec.ts`,
-mock `google-auth-library`**)** ✅ · seed chạy lại idempotent.
-
-**Chưa làm:** test thủ công nút Google trên trình duyệt thật (cần tạo
-Google OAuth Client ID thật trên Google Cloud Console rồi điền
-`GOOGLE_CLIENT_ID`/`VITE_GOOGLE_CLIENT_ID` — việc của người dùng, không
-phải Claude Code làm thay được).
+`npm run test:e2e` **(149/149)** ✅ · seed chạy lại idempotent · **đã test
+thủ công trên bản live** (Render+Vercel) — đăng ký → nhận OTP thật qua
+Brevo → xác nhận → MANAGER duyệt; Google login tài khoản mới → màn OTP →
+duyệt → đăng nhập lại được; nút Từ chối hoạt động đúng.
 
 ## 4. Việc tiếp theo
 
 MVP (Phase 0-5) đủ 4 main flow gốc. 3 luồng mở rộng sau-MVP (Phase 6-8)
 xong phần API. **Phase 9 + Phase 10 vá xong toàn bộ Sprint 2/3 remainder
-của `CLAUDE_CODE_BACKEND_FULL.md`.** **Phase 11 (2026-09-29) thêm đăng
-nhập Google + xác thực email bằng OTP.** Còn lại:
-- **Tạo Google OAuth Client ID thật** (Google Cloud Console) rồi điền
-  `GOOGLE_CLIENT_ID` (Render) + `VITE_GOOGLE_CLIENT_ID` (Vercel/local) —
-  nút Google tự ẩn cho tới khi có biến này; việc của người dùng.
+của `CLAUDE_CODE_BACKEND_FULL.md`.** **Phase 11 (2026-09-29 → 30) thêm
+đăng nhập Google + xác thực email bằng OTP + nút Từ chối đăng ký — đã
+deploy và test xong trên bản live.** Còn lại:
 - **Frontend cho toàn bộ tính năng Phase 6-10** (pedigree/races,
   training-plan/lock, incidents/notifications, healthStatus/injury-
   locations/vaccinations/treatment-plans) — API đã đủ, chưa có UI; làm khi
   cần demo trực quan (không bắt buộc để các phase trên tính "xong"). Đây là
   hạng mục lớn nhất còn lại.
-- **Deploy — chốt 2026-09-25** (mục đích demo): Render (API) + Neon
-  (Postgres) + Vercel (frontend), free cả 3. Hướng dẫn từng bước:
-  [DEPLOY.md](DEPLOY.md). Chưa ai thực hiện (cần tạo tài khoản trên 3 dịch
-  vụ, không phải việc Claude Code làm thay được).
+- **Deploy — ĐÃ XONG và đang chạy** (2026-09-25 chốt hạ tầng, hoàn thiện
+  + test thật 2026-09-30): API trên Render
+  (`racehorse-training-management-system.onrender.com`), Postgres trên
+  Neon, frontend trên Vercel
+  (`binh062117-horse-managing.vercel.app`). Repo deploy giờ là
+  `binh062117/Racehorse-Training-Management-System` (Rin4869 đã
+  **transfer ownership** sang `binh062117` ngày 2026-09-29 để Vercel/Render
+  tự build được — trước đó bị lỗi vì Vercel/Render nối nhầm/không nối
+  được đúng repo, xem DECISIONS.md để chi tiết). Gửi giảng viên xem trực
+  tiếp URL Vercel, không cần chạy local. Hướng dẫn đầy đủ (kể cả phần Gửi
+  email/Google OAuth) vẫn ở [DEPLOY.md](DEPLOY.md), đã cập nhật khớp thực
+  tế (Brevo, không phải Resend/SMTP nữa).
 - Việc khác (chưa ưu tiên, chờ chốt): `stalls`, `care_logs`,
   `facility_tasks`, `audit_logs` (nếu có yêu cầu mới), CI (GitHub Actions),
   test frontend (Playwright/Vitest), deliverable giảng viên (ERD/UML, Scrum,
   coverage).
-- `git init` + push — **đã xong** (2026-09-24): repo
-  `Rin4869/Racehorse-Training-Management-System`, branch
-  `feat/core-api-backend-and-docs` → PR #1, chờ nhóm review/họp trước khi
-  merge (đúng `TEAM_RULES.md` §6 — không push thẳng `main`). **Phase 9/10
-  đã push thêm** lên cùng branch/PR (commit `2bccf44`, 2026-09-25).
+- Git: repo hiện tại `binh062117/Racehorse-Training-Management-System`
+  (transfer từ `Rin4869` ngày 2026-09-29). Từ Phase 11 trở đi, các thay
+  đổi được merge thẳng vào `main` qua PR (branch riêng → PR → merge ngay,
+  không đợi họp — quyết định của người dùng khi cần deploy gấp để test,
+  khác quy trình PR #1/#2 trước đó chờ họp nhóm theo `TEAM_RULES.md` §6).
+  PR gần nhất: #10 (`0790d57`).
 
 ## 5. Cách một phiên mới tiếp tục
 
