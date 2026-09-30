@@ -75,6 +75,11 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface OtpRequiredResponse {
+  otpRequired: true;
+  email: string;
+}
+
 export interface ApiErrorBody {
   error: { code: string; message: string; details?: unknown };
 }

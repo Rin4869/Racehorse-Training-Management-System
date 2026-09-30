@@ -5,6 +5,28 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-30 — Google login mới toanh cũng phải qua OTP (không tự động verify nữa)
+
+**Nguồn:** yêu cầu người dùng. Trước đó (Phase 11 gốc), user Google mới
+được tự động set `emailVerifiedAt` ngay (vì Google đã xác minh email hộ)
+rồi báo thẳng `ACCOUNT_PENDING` — bỏ qua bước OTP.
+**Quyết định:** `POST /auth/google` với 1 Google account **chưa từng có
+trong hệ thống** giờ **không** tự set `emailVerifiedAt` nữa — tạo user
+`PENDING` với `emailVerifiedAt=null`, phát OTP tới đúng email/tên Google
+trả về (không bắt gõ tay), trả về `{otpRequired: true, email}` thay vì
+token/lỗi. Frontend tự chuyển sang màn nhập OTP y hệt luồng đăng ký
+thường (`POST /auth/verify-otp`), chỉ khác là không cần điền form
+tên/email/mật khẩu. Bấm nút Google lần nữa trước khi verify → phát OTP
+mới (giống `resend-otp`), không lỗi.
+**Không đổi** trường hợp email đã tồn tại từ trước (đăng ký thường trước
+đó, giờ mới link Google lần đầu) — vẫn tự gắn `googleId` + tự verify
+ngay, không bắt OTP lại (coi như đã "chứng minh" bằng đăng ký gốc, Google
+chỉ xác nhận thêm cùng người).
+**Lý do:** Người dùng muốn nhất quán 1 luồng xác nhận (OTP) cho mọi tài
+khoản mới, không phân biệt tạo qua form hay qua Google — dễ demo, dễ hiểu
+hơn cho người xem, dù Google vốn đã tự xác minh email đủ tin cậy về mặt
+kỹ thuật.
+
 ## 2026-09-30 — Đổi tiếp Resend → Brevo (Resend sandbox chặn gửi cho người khác)
 
 **Nguồn:** log lỗi thật khi test trên Render sau khi đã chuyển sang Resend

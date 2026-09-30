@@ -253,10 +253,61 @@ describe('Auth & Users (e2e)', () => {
     expect(res.body.error.code).toBe('UNAUTHENTICATED');
   });
 
-  it('creates a PENDING user on first Google login', async () => {
+  const googleSub = `google-${Date.now()}`;
+
+  it('sends an OTP instead of tokens on first Google login', async () => {
     mockVerifyIdToken.mockResolvedValueOnce({
       getPayload: () => ({
-        sub: `google-${Date.now()}`,
+        sub: googleSub,
+        email: googleEmail,
+        email_verified: true,
+        name: 'Google User',
+      }),
+    });
+    const before = mail.otpCodes.length;
+    const res = await api()
+      .post('/api/v1/auth/google')
+      .send({ idToken: 'good' });
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ otpRequired: true, email: googleEmail });
+    expect(mail.otpCodes.length).toBe(before + 1);
+
+    const user = await prisma.user.findUnique({
+      where: { email: googleEmail },
+    });
+    expect(user?.status).toBe('PENDING');
+    expect(user?.googleId).toBe(googleSub);
+    expect(user?.emailVerifiedAt).toBeNull();
+  });
+
+  it('still asks for OTP on a repeat Google click before it is verified', async () => {
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
+        sub: googleSub,
+        email: googleEmail,
+        email_verified: true,
+        name: 'Google User',
+      }),
+    });
+    const res = await api()
+      .post('/api/v1/auth/google')
+      .send({ idToken: 'good' });
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ otpRequired: true, email: googleEmail });
+  });
+
+  it('ACCOUNT_PENDING after the Google OTP is verified but not yet approved', async () => {
+    const verify = await api()
+      .post('/api/v1/auth/verify-otp')
+      .send({
+        email: googleEmail,
+        code: mail.otpCodes[mail.otpCodes.length - 1],
+      });
+    expect(verify.status).toBe(201);
+
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
+        sub: googleSub,
         email: googleEmail,
         email_verified: true,
         name: 'Google User',
@@ -267,13 +318,6 @@ describe('Auth & Users (e2e)', () => {
       .send({ idToken: 'good' });
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('ACCOUNT_PENDING');
-
-    const user = await prisma.user.findUnique({
-      where: { email: googleEmail },
-    });
-    expect(user?.status).toBe('PENDING');
-    expect(user?.googleId).not.toBeNull();
-    expect(user?.emailVerifiedAt).not.toBeNull();
   });
 
   it('lets an approved Google user log in and issues tokens', async () => {
@@ -291,7 +335,7 @@ describe('Auth & Users (e2e)', () => {
 
     mockVerifyIdToken.mockResolvedValueOnce({
       getPayload: () => ({
-        sub: target!.googleId,
+        sub: googleSub,
         email: googleEmail,
         email_verified: true,
         name: 'Google User',

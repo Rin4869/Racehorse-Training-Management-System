@@ -6,8 +6,8 @@ import {
   setOnAuthLost,
   setTokens,
 } from '../lib/api';
-import type { LoginResponse, User } from '../lib/types';
-import { AuthContext, type AuthState } from './context';
+import type { LoginResponse, OtpRequiredResponse, User } from '../lib/types';
+import { AuthContext, OtpRequiredError, type AuthState } from './context';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -57,7 +57,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loginWithGoogle = useCallback(async (idToken: string) => {
-    const res = await api.post<LoginResponse>('/auth/google', { idToken });
+    const res = await api.post<LoginResponse | OtpRequiredResponse>(
+      '/auth/google',
+      { idToken },
+    );
+    if ('otpRequired' in res.data) {
+      throw new OtpRequiredError(res.data.email);
+    }
     setTokens(res.data);
     setUser(res.data.user);
   }, []);
