@@ -1,30 +1,36 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
 
-const DEFAULT_FROM = 'Racehorse Club <onboarding@resend.dev>';
+const BREVO_SEND_URL = 'https://api.brevo.com/v3/smtp/email';
+const DEFAULT_FROM = 'Racehorse Club <no-reply@example.com>';
+
+function parseFrom(from: string): { name?: string; email: string } {
+  const match = from.match(/^\s*(.*?)\s*<([^<>]+)>\s*$/);
+  if (match) return { name: match[1] || undefined, email: match[2] };
+  return { email: from.trim() };
+}
 
 /**
- * Sends transactional email via the Resend HTTP API (not raw SMTP — some
+ * Sends transactional email via the Brevo HTTP API (not raw SMTP — some
  * PaaS free tiers, e.g. Render, block/timeout outbound SMTP connections
  * even with correct credentials; HTTPS on 443 is never blocked). When
- * RESEND_API_KEY is absent (e.g. local dev / CI) it logs the message
+ * BREVO_API_KEY is absent (e.g. local dev / CI) it logs the message
  * instead of sending, so flows stay testable.
  */
 @Injectable()
 export class MailService implements OnModuleInit {
   private readonly logger = new Logger('Mail');
-  private resend: Resend | null = null;
+  private apiKey: string | null = null;
 
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit(): void {
-    const apiKey = this.config.get<string>('RESEND_API_KEY');
+    const apiKey = this.config.get<string>('BREVO_API_KEY');
     if (!apiKey) {
-      this.logger.warn('RESEND_API_KEY not set — emails will be logged only');
+      this.logger.warn('BREVO_API_KEY not set — emails will be logged only');
       return;
     }
-    this.resend = new Resend(apiKey);
+    this.apiKey = apiKey;
   }
 
   private webUrl(path: string): string {
@@ -34,21 +40,30 @@ export class MailService implements OnModuleInit {
   }
 
   private async send(to: string, subject: string, html: string): Promise<void> {
-    if (!this.resend) {
+    if (!this.apiKey) {
       this.logger.log(
         `[email:not-sent] to=${to} subject="${subject}"\n${html}`,
       );
       return;
     }
     const from = this.config.get<string>('MAIL_FROM') ?? DEFAULT_FROM;
-    const { error } = await this.resend.emails.send({
-      from,
-      to,
-      subject,
-      html,
+    const res = await fetch(BREVO_SEND_URL, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'api-key': this.apiKey,
+      },
+      body: JSON.stringify({
+        sender: parseFrom(from),
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
     });
-    if (error) {
-      throw new Error(`Resend send failed: ${error.message}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Brevo send failed (${res.status}): ${body}`);
     }
     this.logger.log(`Sent "${subject}" to ${to}`);
   }
