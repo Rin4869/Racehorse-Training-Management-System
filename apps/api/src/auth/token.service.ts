@@ -48,7 +48,7 @@ export class TokenService {
   async issueRefreshToken(userId: string): Promise<string> {
     const raw = randomBytes(48).toString('hex');
     const ttl = durationToMs(
-      this.config.get<string>('JWT_REFRESH_TTL') ?? '7d',
+      this.config.get<string>('JWT_REFRESH_TTL') ?? '2d',
     );
     await this.prisma.refreshToken.create({
       data: {

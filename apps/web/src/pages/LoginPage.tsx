@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/useAuth';
 import { OtpRequiredError } from '../auth/context';
+import { getLastEmail, setLastEmail } from '../lib/api';
 import { Field } from '../components/Field';
 import { ErrorText } from '../components/ErrorText';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
@@ -18,7 +19,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => getLastEmail() ?? '');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
@@ -84,7 +85,9 @@ export function LoginPage() {
     setErr(null);
     setBusy(true);
     try {
-      await login(email.trim(), password);
+      const trimmedEmail = email.trim();
+      await login(trimmedEmail, password);
+      setLastEmail(trimmedEmail);
       goAfterLogin();
     } catch (e2) {
       setErr(e2);
