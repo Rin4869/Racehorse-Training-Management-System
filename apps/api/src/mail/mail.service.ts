@@ -1,39 +1,30 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const DEFAULT_FROM = 'Racehorse Club <onboarding@resend.dev>';
 
 /**
- * Sends transactional email via SMTP (Gmail + App Password in this project).
- * When SMTP credentials are absent (e.g. local dev / CI) it logs the message
- * and the action link instead of sending, so flows stay testable.
+ * Sends transactional email via the Resend HTTP API (not raw SMTP — some
+ * PaaS free tiers, e.g. Render, block/timeout outbound SMTP connections
+ * even with correct credentials; HTTPS on 443 is never blocked). When
+ * RESEND_API_KEY is absent (e.g. local dev / CI) it logs the message
+ * instead of sending, so flows stay testable.
  */
 @Injectable()
 export class MailService implements OnModuleInit {
   private readonly logger = new Logger('Mail');
-  private transporter: nodemailer.Transporter | null = null;
+  private resend: Resend | null = null;
 
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit(): void {
-    const user = this.config.get<string>('SMTP_USER');
-    const pass = this.config.get<string>('SMTP_PASS');
-    if (!user || !pass) {
-      this.logger.warn(
-        'SMTP_USER/SMTP_PASS not set — emails will be logged only',
-      );
+    const apiKey = this.config.get<string>('RESEND_API_KEY');
+    if (!apiKey) {
+      this.logger.warn('RESEND_API_KEY not set — emails will be logged only');
       return;
     }
-    this.transporter = nodemailer.createTransport({
-      host: this.config.get<string>('SMTP_HOST'),
-      port: this.config.get<number>('SMTP_PORT'),
-      secure: this.config.get<number>('SMTP_PORT') === 465,
-      auth: { user, pass },
-      // Fail fast instead of hanging the whole HTTP request for minutes if
-      // the host can't reach the SMTP server (seen on some PaaS networks).
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 10_000,
-    });
+    this.resend = new Resend(apiKey);
   }
 
   private webUrl(path: string): string {
@@ -43,16 +34,22 @@ export class MailService implements OnModuleInit {
   }
 
   private async send(to: string, subject: string, html: string): Promise<void> {
-    if (!this.transporter) {
+    if (!this.resend) {
       this.logger.log(
         `[email:not-sent] to=${to} subject="${subject}"\n${html}`,
       );
       return;
     }
-    const from =
-      this.config.get<string>('MAIL_FROM') ??
-      this.config.get<string>('SMTP_USER');
-    await this.transporter.sendMail({ from, to, subject, html });
+    const from = this.config.get<string>('MAIL_FROM') ?? DEFAULT_FROM;
+    const { error } = await this.resend.emails.send({
+      from,
+      to,
+      subject,
+      html,
+    });
+    if (error) {
+      throw new Error(`Resend send failed: ${error.message}`);
+    }
     this.logger.log(`Sent "${subject}" to ${to}`);
   }
 

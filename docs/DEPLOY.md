@@ -70,10 +70,8 @@ cô, mở link API trước buổi demo ~2 phút để "đánh thức" server.
    | `JWT_REFRESH_SECRET` | 1 chuỗi ngẫu nhiên **khác** chuỗi trên |
    | `JWT_REFRESH_TTL` | `7d` |
    | `APP_WEB_URL` | URL Vercel ở Bước 3 (điền sau khi có, có thể để tạm `http://localhost:5173` rồi sửa lại) |
-   | `SMTP_HOST` | `smtp.gmail.com` (hoặc để trống nếu chưa cần gửi mail thật) |
-   | `SMTP_PORT` | `587` |
-   | `SMTP_USER` / `SMTP_PASS` | Gmail + app password thật, hoặc để trống — thiếu thì API tự log email ra console thay vì gửi, không lỗi |
-   | `MAIL_FROM` | `"Racehorse Club <your-gmail@gmail.com>"` |
+   | `RESEND_API_KEY` | API key từ Resend — xem "Gửi email" bên dưới (để trống thì API tự log email ra console thay vì gửi, không lỗi) |
+   | `MAIL_FROM` | `"Racehorse Club <onboarding@resend.dev>"` (giữ nguyên nếu chưa verify domain riêng — xem "Gửi email" bên dưới) |
    | `UPLOAD_DIR` | `./uploads` |
    | `UPLOAD_MAX_MB` | `5` |
    | `NODE_ENV` | `production` |
@@ -223,6 +221,46 @@ hiệu lực gần như ngay lập tức, không cần tạo Client ID mới.
 | "The given origin is not allowed for the given client ID" | Domain đang mở web không khớp **Authorized JavaScript origins** (thiếu `https://`, sai domain, hoặc quên thêm domain Vercel) | Credentials → sửa lại Authorized JavaScript origins cho đúng domain đang chạy |
 | Nút Google không hiện ra trên web | `VITE_GOOGLE_CLIENT_ID` chưa set (Vercel) hoặc set nhưng chưa Redeploy | Kiểm tra Settings → Environment Variables trên Vercel, Redeploy lại |
 | Bấm nút Google xong báo "Lỗi hệ thống" | `GOOGLE_CLIENT_ID` chưa set bên Render, hoặc sai giá trị | Kiểm tra biến trên Render, xem log Render (tab Logs) lúc bấm thử |
+
+## Gửi email — tạo Resend API Key (miễn phí)
+
+Dùng để gửi mã OTP xác thực đăng ký và link đặt lại mật khẩu.
+
+> ⚠️ **Không dùng SMTP (Gmail + App Password) trên Render** — dự án từng
+> thử cách này và bị lỗi `Connection timeout` liên tục: Render (free tier)
+> không cho kết nối SMTP thò ra ngoài đúng cách. Resend gửi mail qua
+> **HTTP API** (cổng 443, giống mọi request web bình thường) nên không bị
+> chặn. Nếu chạy local (không phải trên Render) thì SMTP vẫn hoạt động
+> bình thường, nhưng dự án đã đổi hẳn sang Resend cho cả 2 môi trường để
+> đồng nhất.
+
+1. Vào [resend.com](https://resend.com) → **Sign Up** (email hoặc GitHub),
+   không cần thẻ tín dụng.
+2. Sau khi vào Dashboard → menu trái → **API Keys** → **Create API Key**.
+3. Đặt tên bất kỳ (vd `racehorse-render`) → **Add** (quyền mặc định "Sending
+   access" là đủ) → copy key hiện ra (dạng `re_xxxxxxxx...`) — **chỉ hiện
+   1 lần**, copy ngay.
+4. Điền vào Render → **Environment** → biến `RESEND_API_KEY` = key vừa copy.
+5. Biến `MAIL_FROM` — có 2 lựa chọn:
+   - **Không cần setup gì thêm** (khuyên dùng cho demo): giữ nguyên
+     `"Racehorse Club <onboarding@resend.dev>"` — đây là domain test có
+     sẵn của Resend, gửi được ngay tới bất kỳ email nào, không cần verify.
+   - **Muốn gửi từ domain riêng** (vd `@racehorseclub.com`, nếu có sẵn
+     domain): vào Resend → **Domains** → **Add Domain** → làm theo hướng
+     dẫn thêm bản ghi DNS (TXT/MX/CNAME) tại nơi quản lý domain → đợi
+     verify xong (vài phút tới vài giờ) → đổi `MAIL_FROM` thành
+     `"Racehorse Club <no-reply@racehorseclub.com>"`. Không bắt buộc cho
+     mục đích demo/nộp bài.
+6. Lưu biến trên Render → tự deploy lại. Thử đăng ký tài khoản mới trên
+   web, mail OTP sẽ tới Inbox trong vài giây.
+
+### Lỗi thường gặp
+
+| Thông báo | Nguyên nhân | Cách sửa |
+|---|---|---|
+| Log Render vẫn ghi `[email:not-sent]` | `RESEND_API_KEY` chưa set hoặc set sai tên biến | Kiểm tra đúng tên biến `RESEND_API_KEY` trên Render |
+| Lỗi `Resend send failed: ...` trong log | Key sai/bị revoke, hoặc gửi từ domain chưa verify | Tạo lại API Key mới; nếu dùng domain riêng thì kiểm tra trạng thái verify ở Resend → Domains |
+| Mail không tới Inbox, cũng không thấy trong Spam | Với `onboarding@resend.dev`, một số nhà cung cấp mail lạ (không phải Gmail/Outlook) đôi khi lọc gắt hơn | Thử với địa chỉ Gmail để test trước; nếu cần độ tin cậy cao hơn, verify domain riêng (mục 5) |
 
 ## Sau khi deploy xong
 

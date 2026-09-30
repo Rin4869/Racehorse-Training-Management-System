@@ -5,6 +5,36 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-09-30 — Đổi gửi mail từ SMTP (nodemailer) sang Resend HTTP API
+
+**Nguồn:** log lỗi thật từ Render khi test luồng OTP trên bản deploy.
+**Quyết định:** Bỏ hẳn `nodemailer`/SMTP (Gmail + App Password), chuyển
+`MailService` sang dùng [Resend](https://resend.com) qua HTTP API
+(`RESEND_API_KEY`, gói `resend`). Áp dụng cho **cả local lẫn Render**
+(không giữ SMTP song song) để nhất quán 1 cơ chế gửi mail duy nhất.
+**Lý do:** Render (free tier Web Service) không cho kết nối SMTP thò ra
+ngoài đúng cách — mọi lần gửi mail qua `smtp.gmail.com:587` đều bị
+`Connection timeout` ở tầng TCP (xác nhận qua log Render), dù mật khẩu
+App Password đúng. Đã thử 2 hướng vá trước khi kết luận là giới hạn nền
+tảng, không phải bug code:
+1. Thêm `connectionTimeout`/`greetingTimeout`/`socketTimeout` cho
+   nodemailer — chỉ giúp request thất bại nhanh hơn (10s thay vì ~2 phút),
+   không giải quyết được gốc rễ.
+2. `dns.setDefaultResultOrder('ipv4first')` — nghi vấn Node ưu tiên AAAA
+   (IPv6) khiến định tuyến egress tới Gmail bị treo — cũng không giải
+   quyết được, cùng lỗi y hệt sau khi deploy lại.
+
+Resend gửi qua HTTPS (cổng 443, giống mọi request web bình thường) nên
+không bị chặn. Không cần verify domain riêng để bắt đầu — dùng domain
+test có sẵn `onboarding@resend.dev` làm `MAIL_FROM` mặc định, gửi được
+tới bất kỳ email nào ngay từ đầu, đủ cho demo. Hướng dẫn tạo API key:
+[DEPLOY.md](DEPLOY.md) mục "Gửi email".
+
+**Không cập nhật ngược** các đoạn nhắc tới SMTP/nodemailer trong
+PLAN.md/STATE.md (viết ở Phase 1, mô tả đúng lựa chọn tại thời điểm đó) —
+giữ nguyên lịch sử, chỉ ghi thay đổi ở đây theo đúng convention
+"most-recent-first" của file này.
+
 ## 2026-09-30 — Thêm nút "Từ chối" đăng ký cho MANAGER (hard delete, không phải soft delete)
 
 **Nguồn:** người dùng — muốn user bị từ chối phải đăng ký lại (kể cả qua
