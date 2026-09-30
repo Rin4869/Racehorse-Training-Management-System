@@ -14,7 +14,8 @@ POST   /auth/verify-otp         {email,code}           → set emailVerifiedAt (
 POST   /auth/resend-otp         {email}                → luôn 200 (không lộ email tồn tại)
 POST   /auth/login              {email,password}       → {accessToken, refreshToken, user}
 POST   /auth/google             {idToken}               → {accessToken, refreshToken, user}
-                                                            (Google ID token, tạo user PENDING nếu mới)
+                                                            HOẶC {otpRequired: true, email} nếu email
+                                                            Google chưa từng xác thực OTP (xem dưới)
 POST   /auth/refresh            {refreshToken}         → cặp token mới (rotation)
 POST   /auth/logout             {refreshToken}         → revoke refresh token
 POST   /auth/forgot-password    {email}                → luôn 200 (không lộ email tồn tại)
@@ -22,10 +23,22 @@ POST   /auth/reset-password     {token,newPassword}    → đổi pass + revoke 
 GET    /auth/me                 (auth)                 → user hiện tại
 ```
 Login lỗi (theo thứ tự kiểm tra): `UNAUTHENTICATED` (sai pass) → `EMAIL_NOT_VERIFIED`
-→ `ACCOUNT_PENDING` → `ACCOUNT_DISABLED`. `/auth/google` áp cùng luật
-`ACCOUNT_PENDING`/`ACCOUNT_DISABLED` sau khi xác thực Google thành công —
-tài khoản mới qua Google vẫn cần MANAGER duyệt như đăng ký thường.
+→ `ACCOUNT_PENDING` → `ACCOUNT_DISABLED`.
 `verify-otp` sai mã / hết hạn / quá 5 lần sai → `TOKEN_INVALID`/`TOKEN_EXPIRED`.
+
+`/auth/google`: sau khi xác thực Google thành công (payload có
+`email_verified=true`), tra `googleId` rồi `email`:
+- Chưa có user nào khớp (Google mới toanh) → tạo user `PENDING`,
+  `emailVerifiedAt=null`, **phát OTP** tới đúng email Google trả về
+  (không cần gõ tay), trả **200 `{otpRequired: true, email}`** — client tự
+  chuyển sang màn nhập OTP (`POST /auth/verify-otp` như đăng ký thường),
+  không cấp token. Bấm nút Google lần nữa trước khi verify OTP → phát OTP
+  mới, vẫn trả `{otpRequired: true, ...}` (không lỗi).
+- Có user khớp theo `email` nhưng chưa gắn `googleId` (đã đăng ký thường
+  trước đó) → tự gắn `googleId`, tự set `emailVerifiedAt` nếu chưa có
+  (Google đã xác minh hộ) — **không** qua bước OTP.
+- User đã `emailVerifiedAt` (dù qua OTP hay tự động gắn ở trên) → áp cùng
+  luật `ACCOUNT_PENDING`/`ACCOUNT_DISABLED`/cấp token như `/auth/login`.
 
 ## Users ✅ (Phase 1)
 

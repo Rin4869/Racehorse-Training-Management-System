@@ -142,11 +142,12 @@ export class AuthService {
     };
   }
 
-  async googleLogin(dto: GoogleLoginDto): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    user: PublicUser;
-  }> {
+  async googleLogin(
+    dto: GoogleLoginDto,
+  ): Promise<
+    | { accessToken: string; refreshToken: string; user: PublicUser }
+    | { otpRequired: true; email: string }
+  > {
     let payload: {
       email?: string;
       name?: string;
@@ -193,12 +194,21 @@ export class AuthService {
             passwordHash: null,
             googleId: payload.sub,
             status: UserStatus.PENDING,
-            emailVerifiedAt: new Date(),
           },
         });
       }
     }
 
+    if (!user.emailVerifiedAt) {
+      // Brand-new Google sign-in (or a previous attempt that never
+      // finished the OTP step) — Google proves the account is real, but
+      // we still run it through the same OTP confirmation as manual
+      // registration for a consistent verify-then-approve flow, minus
+      // having to type name/email by hand.
+      const code = await this.tokens.issueOtp(user.id);
+      await this.mail.sendVerifyOtp(user.email, user.name, code);
+      return { otpRequired: true, email: user.email };
+    }
     if (user.status === UserStatus.PENDING) {
       throw new AppException(
         'ACCOUNT_PENDING',

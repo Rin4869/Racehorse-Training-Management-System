@@ -2,9 +2,11 @@ import { useCallback, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/useAuth';
+import { OtpRequiredError } from '../auth/context';
 import { Field } from '../components/Field';
 import { ErrorText } from '../components/ErrorText';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
+import { OtpStep } from '../components/OtpStep';
 
 interface LocationState {
   from?: { pathname: string };
@@ -20,6 +22,8 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const [googleOtpEmail, setGoogleOtpEmail] = useState<string | null>(null);
+  const [googleOtpDone, setGoogleOtpDone] = useState(false);
 
   const goAfterLogin = useCallback(() => {
     const dest = (location.state as LocationState | null)?.from?.pathname;
@@ -33,6 +37,10 @@ export function LoginPage() {
         await loginWithGoogle(idToken);
         goAfterLogin();
       } catch (e2) {
+        if (e2 instanceof OtpRequiredError) {
+          setGoogleOtpEmail(e2.email);
+          return;
+        }
         setErr(e2);
       }
     },
@@ -40,6 +48,36 @@ export function LoginPage() {
   );
 
   if (user) return <Navigate to="/horses" replace />;
+
+  if (googleOtpDone) {
+    return (
+      <div className="auth-card card">
+        <h1>{t('auth.register')}</h1>
+        <p>{t('auth.registerDone')}</p>
+        <p className="muted">
+          <button
+            type="button"
+            className="btn small-btn"
+            onClick={() => {
+              setGoogleOtpEmail(null);
+              setGoogleOtpDone(false);
+            }}
+          >
+            {t('auth.login')}
+          </button>
+        </p>
+      </div>
+    );
+  }
+
+  if (googleOtpEmail) {
+    return (
+      <OtpStep
+        email={googleOtpEmail}
+        onVerified={() => setGoogleOtpDone(true)}
+      />
+    );
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
