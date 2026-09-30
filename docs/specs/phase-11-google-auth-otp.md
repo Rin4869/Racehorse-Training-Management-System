@@ -284,12 +284,18 @@ bỏ `VerifyEmailQueryDto`) · `src/mail/mail.service.ts` (`sendVerifyEmail`→
 **Kiểm chứng:**
 - `npx prisma migrate deploy` ✅ (migration thủ công áp sạch)
 - `npm run build` ✅ (api + web) · `npm run lint` ✅ (api + web)
-- `npm run test:e2e` → **145/145** (139 cũ + 6 mới trong `auth.e2e-spec.ts`) ✅
+- `npm run test:e2e` → **149/149** ✅ (tăng dần qua các vòng chỉnh sửa sau
+  spec gốc — xem STATE.md §3l + DECISIONS.md ngày 2026-09-30)
 - `npm run db:seed` chạy lại idempotent, không lỗi.
-- Chưa test thủ công nút Google trên trình duyệt thật (cần
-  `GOOGLE_CLIENT_ID`/`VITE_GOOGLE_CLIENT_ID` thật — hướng dẫn tạo ở
-  DEPLOY.md, người dùng tự điền và thử sau).
+- **Đã test thủ công trên bản live (2026-09-30)** — nút Google, OTP đăng
+  ký, OTP Google (tính năng thêm sau spec gốc), duyệt/từ chối admin, mail
+  OTP thật qua Brevo. Toàn bộ quá trình chẩn đoán deploy (Vercel/Render
+  nối sai repo, SMTP bị chặn → Resend sandbox → Brevo, Google OTP-gate)
+  ghi ở [DECISIONS.md](../DECISIONS.md) — các thay đổi này **vượt phạm
+  vi đặc tả gốc** của file này (viết trước khi biết những vấn đề đó), nên
+  không sửa lại nội dung §1-§8 ở trên — chỉ ghi nhận thêm ở đây theo đúng
+  convention "spec mô tả lúc thiết kế, DECISIONS.md ghi thay đổi sau".
 
-Định nghĩa "xong" §9: build/lint/e2e ☑; test thủ công UI Google/OTP để
-sau khi có Google Client ID thật; docs ☑ (mục này + STATE.md/PLAN.md/
+Định nghĩa "xong" §9: build/lint/e2e ☑; test thủ công UI Google/OTP ☑
+(2026-09-30); docs ☑ (mục này + STATE.md/PLAN.md/
 DECISIONS.md/API.md/DATA_MODEL.md/specs/README.md/DEPLOY.md).
