@@ -50,6 +50,48 @@ export interface PedigreeNode {
   dam: PedigreeNode | null;
 }
 
+export interface HorseRaceEntry {
+  id: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+  race: {
+    id: string;
+    name: string;
+    date: string;
+    venue: string | null;
+  };
+}
+
+export interface Race {
+  id: string;
+  name: string;
+  date: string;
+  venue: string | null;
+  distance: number | null;
+  surface: string | null;
+  prizePool: number | null;
+}
+
+export interface RaceEntry {
+  id: string;
+  raceId: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+}
+
+export interface Vaccination {
+  id: string;
+  horseId: string;
+  horse?: { id: string; name: string };
+  careType?: 'VACCINATION' | 'DEWORMING';
+  vaccineName: string;
+  date: string;
+  nextDueDate: string | null;
+  createdAt: string;
+}
+
 
 export interface TrainingPlan {
   id: string;
