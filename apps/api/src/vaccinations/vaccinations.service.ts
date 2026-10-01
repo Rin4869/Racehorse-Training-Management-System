@@ -9,13 +9,23 @@ import {
   ListVaccinationsQueryDto,
 } from './dto/vaccinations.dto';
 
+// Cửa sổ lịch chăm sóc sắp tới: lấy các bản ghi cần nhắc trong 30 ngày tới.
 const UPCOMING_WINDOW_DAYS = 30;
+const UPCOMING_HORSE_SELECT = { id: true, name: true } as const;
+
+// Tạo / list lịch phòng ngừa theo kiểu careType (VACCINATION / DEWORMING).
+// Mục tiêu là tách rõ 2 loại lịch chăm sóc nhưng vẫn dùng chung 1 model Vaccination.
+
+type UpcomingVaccination = Prisma.VaccinationGetPayload<{
+  include: { horse: { select: typeof UPCOMING_HORSE_SELECT } };
+}>;
 
 @Injectable()
 export class VaccinationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(horseId: string, dto: CreateVaccinationDto) {
+    // Kiểm tra ngựa có tồn tại và chưa bị xóa mềm; nếu không có thì trả lỗi ngay để tránh tạo lịch sai.
     const horse = await this.prisma.horse.findFirst({
       where: { id: horseId, deletedAt: null },
       select: { id: true },
@@ -25,6 +35,7 @@ export class VaccinationsService {
     return this.prisma.vaccination.create({
       data: {
         horseId,
+        careType: dto.careType ?? 'VACCINATION',
         vaccineName: dto.vaccineName.trim(),
         date: new Date(dto.date),
         nextDueDate: dto.nextDueDate ? new Date(dto.nextDueDate) : null,
@@ -49,8 +60,10 @@ export class VaccinationsService {
   /** Club-wide view (UC-18) — no per-horse ownership; OWNER is blocked at the route. */
   async listUpcoming(
     q: ListUpcomingVaccinationsQueryDto,
-  ): Promise<Paginated<Prisma.VaccinationGetPayload<object>>> {
-    const where: Prisma.VaccinationWhereInput = {};
+  ): Promise<Paginated<UpcomingVaccination>> {
+    const where: Prisma.VaccinationWhereInput = q.careType
+      ? { careType: q.careType }
+      : {};
     if (q.upcoming) {
       const now = new Date();
       const until = new Date(now.getTime() + UPCOMING_WINDOW_DAYS * 86_400_000);
@@ -60,6 +73,7 @@ export class VaccinationsService {
     const [data, total] = await this.prisma.$transaction([
       this.prisma.vaccination.findMany({
         where,
+        include: { horse: { select: UPCOMING_HORSE_SELECT } },
         orderBy: { nextDueDate: 'asc' },
         skip: (q.page - 1) * q.limit,
         take: q.limit,

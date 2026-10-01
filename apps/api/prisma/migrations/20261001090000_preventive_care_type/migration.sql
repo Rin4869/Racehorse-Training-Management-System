@@ -1,0 +1,4 @@
+CREATE TYPE "PreventiveCareType" AS ENUM ('VACCINATION', 'DEWORMING');
+
+ALTER TABLE "Vaccination"
+ADD COLUMN "careType" "PreventiveCareType" NOT NULL DEFAULT 'VACCINATION';
