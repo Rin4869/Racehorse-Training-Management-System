@@ -4,12 +4,154 @@
 > mới tới [PLAN.md](PLAN.md) và [DECISIONS.md](DECISIONS.md).
 > Cập nhật file này mỗi khi kết thúc một mảng việc.
 
-Cập nhật lần cuối: **2026-09-25** — kết thúc Phase 10 (Health & Injury
+Cập nhật lần cuối: **2026-10-01** — UC-05 frontend; xem mục UC-05 bên dưới.
+
+Tổng kết backend (lịch sử): **2026-09-25** — kết thúc Phase 10 (Health & Injury
 extensions), hoàn tất Sprint 3 theo `CLAUDE_CODE_BACKEND_FULL.md` (xem
 [DECISIONS.md](DECISIONS.md)). **MVP (Phase 0-5) vẫn DONE**; 3 luồng mở rộng
 (Phase 6-8) xong phần API; Phase 9 (Sprint 2 remainder) + Phase 10 (Sprint 3
 remainder) **xong** — toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) đã
 được đối chiếu/hoàn thành phía API. Còn lại chủ yếu là **frontend** — xem §4.
+
+---
+
+## UC-05 frontend — 2026-10-01
+
+Status: **UC-05 frontend implementation complete; ready for review.** Build, lint
+and mocked browser checks passed. The user subsequently confirmed live GET,
+MANAGER editing/PATCH, save-refresh and PostgreSQL parent-ID persistence.
+This is user-reported live verification, not a new agent database check.
+Scope: primary React SPA pedigree viewing and MANAGER sire/dam editing only.
+This dated entry supersedes older statements that the pedigree frontend is absent;
+other Phase 6-10 frontend scope is unchanged. Historical phase/spec results below
+are not checks run in this task.
+
+### Incremental milestones
+
+1. **Types implemented and checked:** `Horse` now includes nullable `sireId`,
+   `damId`, `fitnessScore`; recursive `PedigreeNode` matches the API.
+   `npm --prefix apps/web exec -- tsc -b apps/web/tsconfig.json` passed.
+2. **Read component implemented and type-checked:** `PedigreeTab.tsx` calls the
+   existing pedigree API, renders three nested generations including unknown
+   relationships and nullable fitness scores, and handles loading/error/retry.
+   Scoped CSS implements the normative light/dark tokens (light default).
+   The initial local toggle was removed in review; see correction below.
+   TypeScript check above passed again. Browser behavior
+   was not yet verified at this milestone; mounting/translations were pending.
+3. **MANAGER editor implemented and type-checked:** raw IDs load from Horse;
+   candidate loading follows all `/horses` pages and excludes the current horse.
+   Selectors disable the opposite parent, offer explicit unknown/null clearing,
+   preserve unavailable current IDs, and send only `sireId`/`damId` together via
+   `PATCH /horses/:id`. Successful saves trigger pedigree re-fetch; errors stay
+   visible and cancel is available. Non-manager UI has no editor. The same
+   TypeScript check passed. Runtime browser checks, integration/i18n and final
+   verification were pending at this milestone; no live database writes made.
+4. **Tab and i18n integrated:** Horse Detail now parses/renders all three tabs,
+   supports `?tab=pedigree`, defaults unknown tabs to Sessions, and preserves
+   unrelated query parameters. English/Vietnamese pedigree labels and existing
+   common Save/Cancel keys are wired. JSON parsing and the TypeScript check
+   passed.
+5. **Initial final checks:** `npm run build` in `apps/web` passed (TypeScript +
+   Vite, 119 modules). `npm run lint` exited 0 with five set-state-in-effect
+   warnings: four existing files and one new pedigree loading reset to address.
+   The new warning was fixed by resetting loading in user/save handlers.
+   Re-ran `npm run build`: passed (119 modules). Re-ran `npm run lint`: exit 0,
+   only the four pre-existing warnings in AdminUsersPage, HorsesPage, SessionsTab,
+   HealthTab; none in UC-05. `git diff --check` passed.
+   Headless Edge against the built Vite preview, with every API request mocked,
+   verified loading, seven ancestry slots, zero/null fitness, all five roles,
+   candidate pagination beyond 100, self/duplicate exclusion, independent sire
+   and dam changes/clears, exact two-field PATCH bodies, selector synchronization,
+   no reload, validation errors, candidate retry and post-save refresh retry.
+   Also checked raw IDs when traversal suppresses a branch, unavailable parents,
+   existing duplicate parents, query preservation, Sessions/Health navigation,
+   unknown-tab fallback, mocked OWNER forbidden response, Vietnamese labels,
+   375px mobile/editor overflow and no uncaught browser exceptions. The mocked
+   forbidden case does not prove live backend authorization. Official fonts loaded;
+   light/dark and Vietnamese mobile/editor screenshots visually reviewed.
+   Final source/docs diff reviewed: only UC-05 frontend files and this document.
+
+### Review correction — null ancestry branches
+
+`Ancestor` now renders children only when `depth > 1 && node !== null`.
+A missing parent displays Unknown once and terminates that branch; it does not
+create nested Unknown parents. This supersedes the fixed seven-slot behavior
+recorded in the earlier mocked browser checks above. No other UI behavior changed.
+After this correction, `npm run build` (TypeScript + Vite) passed and
+`npm run lint` exited 0 with the same four pre-existing warnings. The earlier
+browser harness was not rerun; its fixed seven-slot assertion is now obsolete.
+
+### Review correction — remove feature-local theme switch
+
+Removed Pedigree's theme state, toggle button, local `data-theme` attribute and
+unused `pedigree.darkTheme` translations. Light remains the default; dark tokens
+are retained under `[data-theme='dark'] .pedigree` for a future application-level
+ancestor attribute. No global theme system was added. The Design System requires
+both themes, not a feature-local switch. Earlier toggle-driven browser checks
+are historical. After this correction, `npm run build` passed (TypeScript + Vite),
+`npm run lint` exited 0 with the same four pre-existing warnings, and
+`git diff --check` passed. Browser checks were not rerun for this removal.
+
+### Presentation refinement — ancestry layout
+
+In progress: replace nested cards with a compact root and two horizontal ancestry
+branches, collapsing vertically on mobile. Move the existing edit action into
+the heading and retain its form above the tree. Presentation only; no new UC
+capability, API/state/validation changes, database operations or dependencies.
+The null-branch termination fix and ancestor-driven dark tokens remain required.
+
+### Verification commands and remaining manual checklist
+
+Executed from the application repository unless noted:
+
+- `npm --prefix apps/web exec -- tsc -b apps/web/tsconfig.json` after each
+  implementation milestone: passed.
+- In `apps/web`: `npm run build` passed; `npm run lint` exited 0 with the four
+  existing warnings listed above. No backend E2E executed.
+- `git status`, `git branch --show-current`, `git diff --stat`,
+  `git diff -- apps/web`, `git diff -- docs/STATE.md`, `git diff --check`;
+  new (untracked) component/CSS contents also reviewed directly.
+- Scoped formatting only:
+  `node apps/api/node_modules/prettier/bin/prettier.cjs --config apps/api/.prettierrc --write apps/web/src/pages/horse/PedigreeTab.tsx apps/web/src/pages/horse/PedigreeTab.css apps/web/src/pages/HorseDetailPage.tsx`.
+- In `apps/web`: `node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4175 --strictPort`.
+- Temporary smoke harness: `node "$env:TEMP/uc05-smoke-012d1eb7304048d4af758b0a044df6e2/smoke.mjs" "$env:TEMP/uc05-smoke-012d1eb7304048d4af758b0a044df6e2"`.
+  It uses an isolated headless Edge CDP profile on port 9335 and mock API fixtures;
+  no real API/database requests. Harness and screenshots are temporary local
+  artifacts, not repository dependencies or a committed regression suite.
+
+Remaining live/manual checks (use designated disposable horse fixtures for edits):
+
+- [ ] MANAGER: open Horses → Horse Detail → Pedigree; check current horse,
+  sire, dam and both grandparent branches; null parents/grandparents and fitness.
+- [ ] MANAGER: change sire and dam, save and verify refresh without reload;
+  reopen and confirm selections. Clear sire and dam independently, saving each.
+  Confirm self is excluded and identical parents cannot be selected/saved.
+- [ ] TRAINER, VET, GROOM separately: accessible pedigree is readable; no editor.
+- [ ] OWNER: owned horse readable, editor absent; another owner's direct URL
+  denied by the real backend. This task only inspected the server guard.
+- [ ] Exercise loading, API validation/network errors and retries; verify EN/VI,
+  light/dark and mobile. External Google Fonts require network availability.
+- [ ] Check `/horses/:id`, `?tab=health`, `?tab=pedigree` and browser navigation.
+
+All five milestones were documented as work progressed, before starting the next.
+Race UI and the remainder of Phase 6 frontend are not marked complete.
+
+### Inspection findings / implementation constraints
+
+- Workspace `AGENTS.md` and the task make the Markdown design rules normative.
+  The official HTML differs (navy/Inter/20px cards/8px and 10px radii);
+  UC-05 follows Markdown (burgundy/Fraunces, Work Sans, JetBrains Mono/16px
+  cards/10px and 12px radii). Existing purple/system-font SPA styling is drift;
+  use scoped UC-05 styles, not a global migration.
+- Existing backend `assertPedigree` compares only submitted IDs, so a partial
+  PATCH can duplicate the unchanged parent. The UC-05 editor sends both IDs.
+- `pedigreeNode` shares one `seen` set across branches, suppressing repeated
+  ancestors even without a cycle; it also does not filter deleted ancestors.
+  Display the API tree as returned; initialize edits from raw Horse parent IDs,
+  never infer absent relationships from truncated tree nodes. Backend unchanged.
+- Ownership guards the root horse; ancestor nodes are not separately owner-filtered.
+  Do not create ancestor profile links that imply independent access.
+- No database, migration, seed, backend E2E, dependency, commit or push work.
 
 ---
 

@@ -29,9 +29,20 @@ export interface Horse {
   status: HorseStatus;
   photoPath: string | null;
   photoUrl: string | null;
+  sireId: string | null;
+  damId: string | null;
+  fitnessScore: number | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+}
+
+export interface PedigreeNode {
+  id: string;
+  name: string;
+  fitnessScore: number | null;
+  sire: PedigreeNode | null;
+  dam: PedigreeNode | null;
 }
 
 export interface TrainingSession {

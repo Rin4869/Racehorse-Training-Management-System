@@ -47,8 +47,23 @@
     "new": "Thêm ngựa"
   },
   "tab": {
+    "pedigree": "Phả hệ",
     "sessions": "Buổi tập",
     "health": "Y tế"
+  },
+  "pedigree": {
+    "horse": "Ngựa hiện tại",
+    "sire": "Ngựa cha",
+    "dam": "Ngựa mẹ",
+    "fitnessScore": "Điểm thể trạng",
+    "unknown": "Chưa xác định",
+    "edit": "Chỉnh sửa phả hệ",
+    "loading": "Đang tải phả hệ…",
+    "retry": "Thử lại",
+    "saved": "Đã lưu thông tin ngựa cha, mẹ.",
+    "clearHint": "Chọn Chưa xác định để xoá liên kết với ngựa cha hoặc mẹ này.",
+    "sameParent": "Ngựa cha và ngựa mẹ phải là hai ngựa khác nhau.",
+    "unavailableParent": "Ngựa cha/mẹ không còn khả dụng ({{id}}) — xoá hoặc thay thế"
   },
   "session": {
     "new": "Buổi tập mới",

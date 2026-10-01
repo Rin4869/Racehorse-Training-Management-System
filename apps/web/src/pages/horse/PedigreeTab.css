@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=JetBrains+Mono:wght@500&family=Work+Sans:wght@400;500;600&display=swap');
+
+/* UC-05 only: normative tokens from RACEHORSE_DESIGN_SYSTEM_RULES.md.
+   Legacy screens retain their existing styles. */
+.pedigree {
+  --surface-page: #f5dabf;
+  --surface-card: #fbefe1;
+  --border-default: #e6d3ba;
+  --border-strong: #d4bb98;
+  --text-primary: #3a1210;
+  --text-secondary: #7a5a4a;
+  --text-on-brand: #fbefe1;
+  --action-primary: #8a1622;
+  --action-primary-hover: #6c151e;
+  --status-danger: #c0392b;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --font-ui: 'Work Sans', sans-serif;
+  --font-display: 'Fraunces', serif;
+  --font-data: 'JetBrains Mono', monospace;
+  --type-body: 400 15px/22px var(--font-ui);
+  --type-label: 500 13px/18px var(--font-ui);
+  --type-caption: 400 12px/16px var(--font-ui);
+  --type-heading: 600 24px/32px var(--font-display);
+  --type-data: 500 14px/20px var(--font-data);
+  color-scheme: light;
+  font: var(--type-body);
+  color: var(--text-primary);
+  background: var(--surface-page);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  overflow-wrap: anywhere;
+}
+
+/* Ready for an application-level theme attribute; no feature-local switch. */
+[data-theme='dark'] .pedigree {
+  --surface-page: #0f3d3a;
+  --surface-card: #153f3c;
+  --border-default: #2a5551;
+  --border-strong: #3c6a65;
+  --text-primary: #f5dabf;
+  --text-secondary: #c9d8d3;
+  --action-primary: #d1394a;
+  --action-primary-hover: #e14b5e;
+  --status-danger: #f87171;
+  color-scheme: dark;
+}
+
+.pedigree.stack {
+  gap: var(--space-5);
+}
+.pedigree .stack {
+  gap: var(--space-4);
+}
+.pedigree .row {
+  gap: var(--space-2);
+}
+.pedigree p {
+  margin: 0;
+}
+.pedigree strong {
+  font-weight: 600;
+}
+.pedigree h2 {
+  font: var(--type-heading);
+  margin: 0;
+}
+.pedigree-heading {
+  justify-content: space-between;
+  background: var(--action-primary);
+  color: var(--text-on-brand);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+.pedigree .card {
+  background: var(--surface-card);
+  border-color: var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  min-width: 0;
+}
+.pedigree .muted,
+.pedigree .field-label {
+  color: var(--text-secondary);
+}
+.pedigree .field-label {
+  font: var(--type-label);
+}
+.pedigree .field,
+.pedigree .form-grid .field {
+  gap: var(--space-1);
+  margin: 0 0 var(--space-3);
+}
+.pedigree .form-grid h2 {
+  margin-bottom: var(--space-4);
+}
+.pedigree .field-hint {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+}
+.pedigree .btn,
+.pedigree .input {
+  font: var(--type-body);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+}
+.pedigree .input {
+  min-width: 0;
+}
+.pedigree .btn:hover,
+.pedigree .input:hover {
+  border-color: var(--border-strong);
+}
+.pedigree .btn:focus-visible,
+.pedigree .input:focus-visible {
+  outline-color: var(--action-primary);
+}
+.pedigree .btn-primary {
+  background: var(--action-primary);
+  color: var(--text-on-brand);
+  border-color: var(--action-primary);
+}
+.pedigree .btn-primary:hover {
+  background: var(--action-primary-hover);
+}
+.pedigree .error {
+  color: var(--status-danger);
+  font: var(--type-label);
+}
+/* Semantic lists retain root -> sire branch -> dam branch reading order. */
+.pedigree-tree,
+.pedigree-generation {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pedigree-branch {
+  min-width: 0;
+}
+.pedigree-node {
+  padding: var(--space-4);
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.pedigree-node-label {
+  font: var(--type-label);
+  color: var(--text-secondary);
+}
+.pedigree-node-name {
+  display: block;
+  margin-top: var(--space-1);
+}
+.pedigree-node-fitness {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+.pedigree-node-fitness dt {
+  font: var(--type-label);
+  color: var(--text-secondary);
+}
+.pedigree-node-fitness dd {
+  font: var(--type-data);
+  margin: 0;
+}
+.pedigree-generation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+.pedigree-level-3 > .pedigree-node {
+  width: 50%;
+  margin-inline: auto;
+}
+.pedigree-generation > .pedigree-branch {
+  position: relative;
+}
+.pedigree-generation > .pedigree-branch::before {
+  content: '';
+  position: absolute;
+  height: var(--space-5);
+  border-inline-start: 1px solid var(--border-strong);
+  bottom: 100%;
+  left: 50%;
+}
+.pedigree-editor .row {
+  margin-top: var(--space-2);
+}
+
+/* Collapse branches before four ancestry columns become cramped. */
+@media (max-width: 640px) {
+  .pedigree-generation {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline-start: var(--space-4);
+    border-inline-start: 1px solid var(--border-strong);
+    margin-top: var(--space-4);
+  }
+  .pedigree-level-3 > .pedigree-node {
+    width: 100%;
+  }
+  .pedigree-node {
+    text-align: start;
+  }
+  .pedigree-node-fitness {
+    justify-content: start;
+  }
+  .pedigree-generation > .pedigree-branch::before {
+    content: none;
+  }
+}
+
+/* Only the new navigation control; existing Sessions/Health styles stay intact. */
+.pedigree-tab-button {
+  --action-primary: #8a1622;
+  --text-on-brand: #fbefe1;
+  --radius-md: 10px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --type-label: 500 13px/18px 'Work Sans', sans-serif;
+  font: var(--type-label);
+  padding: var(--space-2) var(--space-3);
+  color: var(--action-primary);
+  background: var(--text-on-brand);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.pedigree-tab-button.active {
+  background: var(--action-primary);
+  color: var(--text-on-brand);
+  border-bottom-color: var(--action-primary);
+}

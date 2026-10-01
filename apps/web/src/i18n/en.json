@@ -47,8 +47,23 @@
     "new": "New horse"
   },
   "tab": {
+    "pedigree": "Pedigree",
     "sessions": "Sessions",
     "health": "Health"
+  },
+  "pedigree": {
+    "horse": "Current horse",
+    "sire": "Sire",
+    "dam": "Dam",
+    "fitnessScore": "Fitness score",
+    "unknown": "Unknown",
+    "edit": "Edit pedigree",
+    "loading": "Loading pedigree…",
+    "retry": "Try again",
+    "saved": "Parent relationships saved.",
+    "clearHint": "Choose Unknown to clear this parent.",
+    "sameParent": "Sire and dam must be different horses.",
+    "unavailableParent": "Unavailable parent ({{id}}) — clear or replace"
   },
   "session": {
     "new": "New session",

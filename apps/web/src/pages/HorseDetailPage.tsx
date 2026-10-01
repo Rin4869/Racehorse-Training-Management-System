@@ -7,8 +7,9 @@ import { ErrorText } from '../components/ErrorText';
 import { formatDate } from '../lib/format';
 import { SessionsTab } from './horse/SessionsTab';
 import { HealthTab } from './horse/HealthTab';
+import { PedigreeTab } from './horse/PedigreeTab';
 
-type Tab = 'sessions' | 'health';
+type Tab = 'sessions' | 'health' | 'pedigree';
 
 export function HorseDetailPage() {
   const { t } = useTranslation();
@@ -16,10 +17,17 @@ export function HorseDetailPage() {
   const [params, setParams] = useSearchParams();
   const [horse, setHorse] = useState<Horse | null>(null);
   const [err, setErr] = useState<unknown>(null);
-  const tab: Tab = params.get('tab') === 'health' ? 'health' : 'sessions';
-  const setTab = (next: Tab) =>
-    setParams(next === 'health' ? { tab: 'health' } : {}, { replace: true });
-
+  const requestedTab = params.get('tab');
+  const tab: Tab =
+    requestedTab === 'health' || requestedTab === 'pedigree'
+      ? requestedTab
+      : 'sessions';
+  const setTab = (next: Tab) => {
+    const nextParams = new URLSearchParams(params);
+    if (next === 'sessions') nextParams.delete('tab');
+    else nextParams.set('tab', next);
+    setParams(nextParams, { replace: true });
+  };
   useEffect(() => {
     let active = true;
     api
@@ -95,13 +103,22 @@ export function HorseDetailPage() {
         >
           {t('tab.health')}
         </button>
+        <button
+          type="button"
+          className={
+            tab === 'pedigree'
+              ? 'tab active pedigree-tab-button'
+              : 'tab pedigree-tab-button'
+          }
+          onClick={() => setTab('pedigree')}
+        >
+          {t('tab.pedigree')}
+        </button>
       </div>
 
-      {tab === 'sessions' ? (
-        <SessionsTab horseId={showing.id} />
-      ) : (
-        <HealthTab horseId={showing.id} />
-      )}
+      {tab === 'sessions' && <SessionsTab horseId={showing.id} />}
+      {tab === 'health' && <HealthTab horseId={showing.id} />}
+      {tab === 'pedigree' && <PedigreeTab horseId={showing.id} />}
     </div>
   );
 }
