@@ -13,6 +13,11 @@ import { Field } from '../../components/Field';
 import { ErrorText } from '../../components/ErrorText';
 import { formatDate } from '../../lib/format';
 
+// Flow 2: tab Health/Medical dùng để xem hồ sơ sức khỏe và tạo bản ghi khám cho ngựa.
+// Chức năng chính:
+// - VET có quyền tạo hồ sơ mới
+// - VET có quyền chỉnh sửa diagnosis/treatment
+// - hệ thống cho phép upload attachment và xem file đính kèm
 export function HealthTab({ horseId }: { horseId: string }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -156,6 +161,7 @@ function RecordItem({
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Chỉ gửi những field đã thực sự thay đổi để tránh gửi payload thừa và dễ debug hơn.
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setErr(null);
@@ -175,6 +181,7 @@ function RecordItem({
     }
   };
 
+  // Upload attachment cho health record, giữ nguyên cách hoạt động nhưng tách rõ khối xử lý file.
   const upload = async (e: FormEvent) => {
     e.preventDefault();
     const file = fileRef.current?.files?.[0];

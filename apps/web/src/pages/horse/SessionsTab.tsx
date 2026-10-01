@@ -7,6 +7,10 @@ import { Field } from '../../components/Field';
 import { ErrorText } from '../../components/ErrorText';
 import { formatDateTime } from '../../lib/format';
 
+// Tab Sessions tập trung vào luồng tạo/sửa buổi tập và đánh dấu kết quả sau buổi luyện.
+// Logic chính:
+// - TRAINER có quyền tạo và sửa notes/plan thông tin
+// - GROOM chỉ được cập nhật các field kết quả thực tế, không sửa nội dung kế hoạch
 export function SessionsTab({ horseId }: { horseId: string }) {
   const { t } = useTranslation();
   const { user } = useAuth();

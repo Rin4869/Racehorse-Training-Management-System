@@ -9,6 +9,11 @@ import { formatDate } from '../../lib/format';
 import type { Horse, HorseRaceEntry, Paginated, Race, RaceEntry } from '../../lib/types';
 import { HorseRecordNav } from './HorseRecordNav';
 
+// Flow 1: đăng ký ngựa cho cuộc đua và xem lịch sử kết quả thi đấu.
+// Chia thành 3 phần chính:
+// 1) tải dữ liệu ngựa + race entries + danh sách race còn mở
+// 2) form đăng ký ngựa cho giải mới
+// 3) bảng hiển thị lịch sử thi đấu và thống kê nhanh
 export function HorseRaceHistoryPage() {
   const { t } = useTranslation();
   const { id = '' } = useParams();
@@ -39,12 +44,18 @@ export function HorseRaceHistoryPage() {
     return () => { active = false; };
   }, [id]);
 
+  // Chỉ hiện các race còn diễn ra trong tương lai và chưa được ngựa này đăng ký.
   const enteredRaceIds = new Set(entries.map((entry) => entry.race.id));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const availableRaces = races.filter((race) => (
     new Date(race.date) >= today && !enteredRaceIds.has(race.id)
   ));
+
+  // Tính nhanh các KPI hiển thị ở đầu tab: số lần thi, số lần lên podium, vị trí tốt nhất.
+  const wins = entries.filter((entry) => entry.position === 1).length;
+  const podiums = entries.filter((entry) => entry.position != null && entry.position <= 3).length;
+  const bestPlace = entries.reduce<number | null>((best, entry) => entry.position != null && (best == null || entry.position < best) ? entry.position : best, null);
 
   const registerForRace = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -71,10 +82,6 @@ export function HorseRaceHistoryPage() {
   if (loading) return <p className="muted">{t('horseFlow.loading')}</p>;
   if (error) return <div className="horse-workspace"><ErrorText err={error} /></div>;
   if (!horse) return null;
-
-  const wins = entries.filter((entry) => entry.position === 1).length;
-  const podiums = entries.filter((entry) => entry.position != null && entry.position <= 3).length;
-  const bestPlace = entries.reduce<number | null>((best, entry) => entry.position != null && (best == null || entry.position < best) ? entry.position : best, null);
 
   return (
     <div className="horse-workspace">

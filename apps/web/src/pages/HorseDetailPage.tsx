@@ -12,6 +12,10 @@ import { HorseRecordNav } from './HorseFlowPages';
 
 type Tab = 'sessions' | 'health';
 
+// Trang chi tiết ngựa chứa 3 phần chính:
+// 1) header + thông tin tổng quan
+// 2) thanh tab: Sessions / Health
+// 3) nội dung phụ thuộc vào tab đang chọn
 export function HorseDetailPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
