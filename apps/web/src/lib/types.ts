@@ -27,11 +27,67 @@ export interface Horse {
   ownerId: string;
   owner: UserRef;
   status: HorseStatus;
+  sireId?: string | null;
+  damId?: string | null;
+  fitnessScore?: number | null;
+  healthStatus?: 'FIT' | 'MONITORING' | 'QUARANTINED' | 'INJURED';
+  locked?: boolean;
+  lockReason?: string | null;
   photoPath: string | null;
   photoUrl: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+}
+
+export interface PedigreeNode {
+  id: string;
+  name: string;
+  fitnessScore: number | null;
+  sire: PedigreeNode | null;
+  dam: PedigreeNode | null;
+}
+
+export interface HorseRaceEntry {
+  id: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+  race: {
+    id: string;
+    name: string;
+    date: string;
+    venue: string | null;
+  };
+}
+
+export interface Race {
+  id: string;
+  name: string;
+  date: string;
+  venue: string | null;
+  distance: number | null;
+  surface: string | null;
+  prizePool: number | null;
+}
+
+export interface RaceEntry {
+  id: string;
+  raceId: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+}
+
+export interface Vaccination {
+  id: string;
+  horseId: string;
+  horse?: { id: string; name: string };
+  careType?: 'VACCINATION' | 'DEWORMING';
+  vaccineName: string;
+  date: string;
+  nextDueDate: string | null;
+  createdAt: string;
 }
 
 export interface TrainingSession {

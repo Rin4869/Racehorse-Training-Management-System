@@ -39,6 +39,11 @@ enum HealthStatus {
   INJURED
 }
 
+enum PreventiveCareType {
+  VACCINATION
+  DEWORMING
+}
+
 enum TreatmentPlanStatus {
   ACTIVE
   COMPLETED
@@ -347,10 +352,11 @@ model Vaccination {
   id          String    @id @default(uuid())
   horseId     String
   horse       Horse     @relation(fields: [horseId], references: [id])
+  careType    PreventiveCareType @default(VACCINATION)
   vaccineName String
   date        DateTime
   nextDueDate DateTime?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime           @default(now())
 
   @@index([horseId])
   @@index([nextDueDate])

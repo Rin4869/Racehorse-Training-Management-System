@@ -7,11 +7,14 @@ import { ErrorText } from '../components/ErrorText';
 import { formatDate } from '../lib/format';
 import { SessionsTab } from './horse/SessionsTab';
 import { HealthTab } from './horse/HealthTab';
+import { useAuth } from '../auth/useAuth';
+import { HorseRecordNav } from './HorseFlowPages';
 
 type Tab = 'sessions' | 'health';
 
 export function HorseDetailPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { id = '' } = useParams();
   const [params, setParams] = useSearchParams();
   const [horse, setHorse] = useState<Horse | null>(null);
@@ -52,33 +55,61 @@ export function HorseDetailPage() {
   if (!showing) return <p className="muted">…</p>;
 
   return (
-    <div className="stack">
-      <p>
-        <Link to="/horses">← {t('nav.horses')}</Link>
-      </p>
-      <div className="card">
-        <h1>{showing.name}</h1>
-        <dl className="kv">
-          <div>
-            <dt>{t('horse.breed')}</dt>
-            <dd>{showing.breed ?? '—'}</dd>
-          </div>
-          <div>
-            <dt>{t('horse.birthDate')}</dt>
-            <dd>{formatDate(showing.birthDate)}</dd>
-          </div>
-          <div>
-            <dt>{t('horse.owner')}</dt>
-            <dd>{showing.owner.name}</dd>
-          </div>
-          <div>
-            <dt>{t('horse.status')}</dt>
-            <dd>
-              <span className="tag">{showing.status}</span>
-            </dd>
-          </div>
-        </dl>
+    <div className="horse-workspace">
+      <div className="horse-back-row">
+        <Link to="/horses">← {t('horseFlow.backToDirectory')}</Link>
+        {user?.role === 'MANAGER' && (
+          <Link className="btn" to={`/horses/${showing.id}/edit`}>
+            {t('horseFlow.editHorse')}
+          </Link>
+        )}
       </div>
+      <section className="horse-profile-hero">
+        {showing.photoUrl ? (
+          <img className="horse-profile-photo" src={showing.photoUrl} alt={showing.name} />
+        ) : (
+          <div className="horse-profile-photo horse-profile-photo-fallback" aria-hidden="true">
+            {showing.name.slice(0, 1).toUpperCase()}
+          </div>
+        )}
+        <div className="horse-profile-title">
+          <p className="eyebrow">{t('horseFlow.profileEyebrow')}</p>
+          <h1>{showing.name}</h1>
+          <p>{showing.breed ?? t('horseFlow.breedNotSet')} · {showing.owner.name}</p>
+        </div>
+        <span className={`horse-status status-${showing.status.toLowerCase()}`}>
+          <span aria-hidden="true" />
+          {t(`horseFlow.status.${showing.status}`)}
+        </span>
+      </section>
+
+      <section className="horse-stat-grid" aria-label={t('horseFlow.profileSummary')}>
+        <div className="horse-stat">
+          <span>{t('horseFlow.fitnessScore')}</span>
+          <strong>{showing.fitnessScore ?? '—'}<small>{showing.fitnessScore == null ? '' : ' / 100'}</small></strong>
+        </div>
+        <div className="horse-stat">
+          <span>{t('horseFlow.healthCondition')}</span>
+          <strong>{t(`horseFlow.health.${showing.healthStatus ?? 'FIT'}`)}</strong>
+        </div>
+        <div className="horse-stat">
+          <span>{t('horseFlow.trainingLock')}</span>
+          <strong>{showing.locked ? t('horseFlow.locked') : t('horseFlow.unlocked')}</strong>
+        </div>
+        <div className="horse-stat">
+          <span>{t('horseFlow.registered')}</span>
+          <strong>{formatDate(showing.createdAt)}</strong>
+        </div>
+      </section>
+
+      <HorseRecordNav horseId={showing.id} />
+
+      <section className="horse-profile-details">
+        <div><span>{t('horse.breed')}</span><strong>{showing.breed ?? '—'}</strong></div>
+        <div><span>{t('horse.birthDate')}</span><strong>{formatDate(showing.birthDate)}</strong></div>
+        <div><span>{t('horse.owner')}</span><strong>{showing.owner.name}</strong></div>
+        <div><span>{t('horseFlow.email')}</span><strong>{showing.owner.email}</strong></div>
+      </section>
 
       <div className="tabs">
         <button

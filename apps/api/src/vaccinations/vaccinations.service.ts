@@ -10,6 +10,11 @@ import {
 } from './dto/vaccinations.dto';
 
 const UPCOMING_WINDOW_DAYS = 30;
+const UPCOMING_HORSE_SELECT = { id: true, name: true } as const;
+
+type UpcomingVaccination = Prisma.VaccinationGetPayload<{
+  include: { horse: { select: typeof UPCOMING_HORSE_SELECT } };
+}>;
 
 @Injectable()
 export class VaccinationsService {
@@ -25,6 +30,7 @@ export class VaccinationsService {
     return this.prisma.vaccination.create({
       data: {
         horseId,
+        careType: dto.careType ?? 'VACCINATION',
         vaccineName: dto.vaccineName.trim(),
         date: new Date(dto.date),
         nextDueDate: dto.nextDueDate ? new Date(dto.nextDueDate) : null,
@@ -49,8 +55,10 @@ export class VaccinationsService {
   /** Club-wide view (UC-18) — no per-horse ownership; OWNER is blocked at the route. */
   async listUpcoming(
     q: ListUpcomingVaccinationsQueryDto,
-  ): Promise<Paginated<Prisma.VaccinationGetPayload<object>>> {
-    const where: Prisma.VaccinationWhereInput = {};
+  ): Promise<Paginated<UpcomingVaccination>> {
+    const where: Prisma.VaccinationWhereInput = q.careType
+      ? { careType: q.careType }
+      : {};
     if (q.upcoming) {
       const now = new Date();
       const until = new Date(now.getTime() + UPCOMING_WINDOW_DAYS * 86_400_000);
@@ -60,6 +68,7 @@ export class VaccinationsService {
     const [data, total] = await this.prisma.$transaction([
       this.prisma.vaccination.findMany({
         where,
+        include: { horse: { select: UPCOMING_HORSE_SELECT } },
         orderBy: { nextDueDate: 'asc' },
         skip: (q.page - 1) * q.limit,
         take: q.limit,

@@ -83,6 +83,34 @@ describe('Health & Injury extensions (e2e)', () => {
     incidentId = incident.body.id;
   });
 
+  it('UC-18: VET records deworming and filters the upcoming schedule by type', async () => {
+    const create = await api()
+      .post(`/api/v1/horses/${horseId}/vaccinations`)
+      .set(auth('vet'))
+      .send({
+        careType: 'DEWORMING',
+        vaccineName: 'Ivermectin',
+        date: new Date(Date.now() - 86_400_000).toISOString(),
+        nextDueDate: new Date(Date.now() + 8 * 86_400_000).toISOString(),
+      });
+    expect(create.status).toBe(201);
+    expect(create.body.careType).toBe('DEWORMING');
+
+    const list = await api()
+      .get('/api/v1/vaccinations')
+      .query({ upcoming: 'true', careType: 'DEWORMING', limit: 100 })
+      .set(auth('manager'));
+    expect(list.status).toBe(200);
+    expect(
+      list.body.data.some(
+        (record: { horseId: string; careType: string; vaccineName: string }) =>
+          record.horseId === horseId &&
+          record.careType === 'DEWORMING' &&
+          record.vaccineName === 'Ivermectin',
+      ),
+    ).toBe(true);
+  });
+
   afterAll(async () => {
     await prisma.medication.deleteMany({ where: { healthRecordId } });
     await prisma.treatmentPlan.deleteMany({ where: { healthRecordId } });
@@ -185,6 +213,7 @@ describe('Health & Injury extensions (e2e)', () => {
         nextDueDate: new Date(Date.now() + 10 * 86_400_000).toISOString(),
       });
     expect(res.status).toBe(201);
+    expect(res.body.careType).toBe('VACCINATION');
   });
 
   it('UC-18: OWNER is forbidden from the club-wide vaccinations view (403)', async () => {
@@ -200,8 +229,15 @@ describe('Health & Injury extensions (e2e)', () => {
     expect(res.status).toBe(200);
     expect(
       res.body.data.some(
-        (v: { horseId: string; vaccineName: string }) =>
-          v.horseId === horseId && v.vaccineName === 'Influenza',
+        (v: {
+          horseId: string;
+          vaccineName: string;
+          horse: { id: string; name: string };
+        }) =>
+          v.horseId === horseId &&
+          v.vaccineName === 'Influenza' &&
+          v.horse.id === horseId &&
+          v.horse.name.length > 0,
       ),
     ).toBe(true);
   });
