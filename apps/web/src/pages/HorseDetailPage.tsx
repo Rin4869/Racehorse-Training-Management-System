@@ -312,7 +312,13 @@ export function HorseDetailPage() {
 
       {tab === 'pedigree' && <PedigreeTree horseId={horse.id} />}
       {tab === 'plans' && <PlansTab horse={horse} />}
-      {tab === 'sessions' && <SessionsTab horseId={horse.id} />}
+      {tab === 'sessions' && (
+        <SessionsTab
+          horseId={horse.id}
+          isLocked={horse.locked}
+          lockReason={horse.lockReason}
+        />
+      )}
       {tab === 'health' && <HealthTab horseId={horse.id} />}
 
       {/* Modals */}

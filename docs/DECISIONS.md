@@ -5,6 +5,18 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-10-01 — Chuẩn hóa Ngoại lệ Training Lock: Quyền hạn của Bác sĩ Thú y & Ràng buộc HLV Trưởng
+
+**Nguồn:** Yêu cầu người dùng (làm rõ thẩm quyền của Bác sĩ Thú y vs HLV Trưởng đối với ngoại lệ Khóa Huấn Luyện - Horse is locked).
+**Quyết định:**
+- **Veterinarian (Bác sĩ Thú y)**: Sở hữu thẩm quyền **độc quyền** ra quyết định y khoa: Đặt lệnh "Khóa huấn luyện" khẩn cấp (`PATCH /horses/:id/lock` với `locked: true` + lý do chẩn đoán) và gỡ lệnh khóa (`locked: false`). Không ai khác (kể cả Manager hay Trainer) có quyền can thiệp vào cờ y tế này.
+- **Head Trainer (HLV Trưởng)**: Là đối tượng **chịu ràng buộc trực tiếp** bởi lệnh khóa:
+  - Khi ngựa bị khóa: Bị chặn hoàn toàn việc lên lịch các buổi tập thực tế (`POST /horses/:id/sessions`), hệ thống ném ngoại lệ `400 VALIDATION_ERROR: Horse training is locked: [Lý do]`.
+  - Bị chặn không thể đăng ký thi đấu giải đua (`POST /races/:id/entries`).
+  - Được phép soạn khung giáo án lý thuyết dài hạn (`POST /horses/:id/training-plans`), nhưng giao diện hiển thị cảnh báo rõ ràng con ngựa đang bị phong tỏa tập luyện thực địa.
+- **Frontend Sync**:
+  - Giao diện `SessionsTab.tsx` tự động ẩn form xếp lịch tập và hiển thị dải thông báo đỏ nêu rõ lý do bị Bác sĩ thú y khóa huấn luyện.
+
 ## 2026-10-01 — Triển khai Phân hệ Giáo án & Chức năng Create Training Plan cho Head Trainer
 
 **Nguồn:** Yêu cầu người dùng (tiếp tục làm chức năng Create training plan của role trainer, chỉ TRAINER được tạo, MANAGER chỉ xem, thêm business logic thực tế).

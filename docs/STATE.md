@@ -655,6 +655,23 @@ Triển khai hoàn chỉnh tính năng lập giáo án huấn luyện chi tiết
   - `oxlint` ✅ 0 lỗi.
   - E2E Backend `test/training-plan.e2e-spec.ts` ✅ 22/22 test passed.
 
+## 3p. Cơ chế Phân quyền & Xử lý Ngoại lệ Khóa Huấn luyện (Training Lock Exception) giữa Bác sĩ Thú y & HLV Trưởng (2026-10-01)
+
+Giải quyết và chuẩn hóa luồng nghiệp vụ liên quan đến **Exception "Horse is locked" (Khóa huấn luyện)**:
+- **Phân định thẩm quyền (Role Authority)**:
+  - **Veterinarian (Bác sĩ Thú y)**: Có **thẩm quyền độc quyền** ban hành lệnh *"Khóa huấn luyện"* khẩn cấp (`PATCH /api/v1/horses/:id/lock` với `locked: true` kèm lý do chẩn đoán y tế) và gỡ khóa (`locked: false`) khi chiến mã hồi phục. Các vai trò khác (kể cả Manager hay Trainer) bị chặn `403 Forbidden` nếu gọi route này.
+  - **Head Trainer (HLV Trưởng)**: Là đối tượng **bị ảnh hưởng và kiểm soát** bởi lệnh khóa:
+    + Khi ngựa bị khóa (`locked === true`), Trainer bị chặn không thể lên lịch buổi tập mới (`POST /api/v1/horses/:id/sessions`), hệ thống ném ngoại lệ `400 VALIDATION_ERROR`: `"Horse training is locked: [Lý do]"`.
+    + Khi ngựa bị khóa hoặc chấn thương/cách ly, Trainer cũng bị chặn không thể đăng ký ngựa tham gia giải đua (`POST /api/v1/races/:id/entries`).
+    + Trainer được thông báo tức thời qua chuông Notification (`TRAINING_LOCKED`) để chủ động hủy hoặc sắp xếp lại lịch tập của CLB.
+- **Frontend Web App (`apps/web`)**:
+  - `HorseDetailPage.tsx`: Nút "Khóa tập luyện" / "Mở khóa tập" chỉ hiển thị cho `VET`.
+  - `SessionsTab.tsx`: Khi ngựa bị khóa, tự động hiển thị dải thông báo đỏ nổi bật cảnh báo lý do khóa từ Bác sĩ thú y và ẩn form lên lịch tập luyện.
+- **Kiểm chứng**:
+  - Test E2E `test/races.e2e-spec.ts`: Bổ sung kiểm thử chặn đăng ký giải đua cho ngựa bị khóa (14/14 tests pass).
+  - Toàn bộ backend test suite: **153/153 tests pass 100%**.
+  - Frontend `npm run build` ✅ không lỗi.
+
 ## 4. Việc tiếp theo
 
 
