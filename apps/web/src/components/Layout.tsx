@@ -153,6 +153,19 @@ export function Layout() {
             </div>
           )}
 
+
+          {/* Vaccinations & Deworming: MANAGER, TRAINER, VET */}
+          {(role === 'MANAGER' || role === 'TRAINER' || role === 'VET') && (
+            <NavLink
+              to="/vaccinations"
+              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+            >
+              <span className="ico"><HealthIcon /></span>
+              <span>Tiêm phòng & Tẩy giun</span>
+            </NavLink>
+          )}
+
+
           {/* Health & Incidents: MANAGER, VET (medical records), GROOM (barn incident report), TRAINER (fatigue alerts) */}
           {(role === 'MANAGER' || role === 'VET' || role === 'GROOM' || role === 'TRAINER') && (
             <div
