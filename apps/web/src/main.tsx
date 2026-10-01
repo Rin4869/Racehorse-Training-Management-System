@@ -17,6 +17,14 @@ import { HorseDetailPage } from './pages/HorseDetailPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TrainingPlansPage } from './pages/TrainingPlansPage';
+import { HealthSchedulePage } from './pages/HealthSchedulePage';
+import {
+  HorseFormPage,
+  HorseOwnershipPage,
+  HorsePedigreePage,
+  HorseRaceHistoryPage,
+  MyHorsesPage,
+} from './pages/HorseFlowPages';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -30,8 +38,43 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Navigate to="/dashboard" replace /> },
       { path: '/dashboard', element: <DashboardPage /> },
+      {
+        path: '/vaccinations',
+        element: (
+          <RequireAuth roles={['MANAGER', 'TRAINER', 'VET']}>
+            <HealthSchedulePage />
+          </RequireAuth>
+        ),
+      },
       { path: '/horses', element: <HorsesPage /> },
+      {
+        path: '/my-horses',
+        element: (
+          <RequireAuth roles={['OWNER']}>
+            <MyHorsesPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/horses/new',
+        element: (
+          <RequireAuth roles={['MANAGER']}>
+            <HorseFormPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/horses/:id/edit',
+        element: (
+          <RequireAuth roles={['MANAGER']}>
+            <HorseFormPage />
+          </RequireAuth>
+        ),
+      },
       { path: '/horses/:id', element: <HorseDetailPage /> },
+      { path: '/horses/:id/pedigree', element: <HorsePedigreePage /> },
+      { path: '/horses/:id/performance', element: <HorseRaceHistoryPage /> },
+      { path: '/horses/:id/ownership', element: <HorseOwnershipPage /> },
       {
         path: '/plans',
         element: (
