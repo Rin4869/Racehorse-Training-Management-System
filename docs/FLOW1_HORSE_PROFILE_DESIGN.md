@@ -1,4 +1,4 @@
-# 🐎 THIẾT KẾ CHI TIẾT: FLOW 1 — HORSE PROFILE MANAGEMENT
+# THIẾT KẾ CHI TIẾT: FLOW 1 — HORSE PROFILE MANAGEMENT
 > **Topic**: Racehorse Training & Management System (SWP391)  
 > **Phạm vi**: 2 Use Case chính:  
 > 1. **View Horse List & Detail** (Xem danh sách & chi tiết hồ sơ ngựa)  

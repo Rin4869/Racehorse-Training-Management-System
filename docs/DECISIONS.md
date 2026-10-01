@@ -19,7 +19,7 @@ nhóm). Mới nhất lên đầu.
 
 ## 2026-10-01 — Triển khai Phân hệ Giáo án & Chức năng Create Training Plan cho Head Trainer
 
-**Nguồn:** Yêu cầu người dùng (tiếp tục làm chức năng Create training plan của role trainer, chỉ TRAINER được tạo, MANAGER chỉ xem, thêm business logic thực tế).
+**Nguồn:** Yêu cầu người dùng (chức năng Create training plan của role trainer, chỉ TRAINER được tạo, MANAGER chỉ xem).
 **Quyết định:**
 - **Backend API & Quy tắc nghiệp vụ (Business Rules)**:
   - Phân quyền RBAC nghiêm ngặt: Chỉ `Role.TRAINER` có quyền tạo giáo án; các vai trò `MANAGER`, `VET`, `GROOM`, `OWNER` bị chặn 403 Forbidden (được kiểm chứng bằng E2E test).
@@ -42,8 +42,6 @@ nhóm). Mới nhất lên đầu.
 
 **Nguồn:** Yêu cầu người dùng (cấu trúc Dashboard dạng demo, phân quyền nghiêm ngặt theo 5 vai trò nghiệp vụ, loại bỏ 100% emoji và dùng icon tối giản đơn sắc, giữ nguyên trang login).
 **Quyết định:** 
-- **Thiết kế Icon**: Loại bỏ toàn bộ emoji màu mè (📊, 🐴, 📋, 🏇, 🩺, 🔔, 👥, 🔒, ✎, 🗑, 📷). Thay bằng bộ thư viện SVG vector tối giản, đơn sắc (`Icons.tsx`) kích thước chuẩn 14-16px, nét mảnh `stroke="currentColor"`, `strokeWidth={1.8}`.
-- **Trang Login**: Revert lại nguyên trạng ban đầu (`LoginPage.tsx`).
 - **Phân quyền thanh điều hướng (Sidebar Rail)**:
   - `Head Trainer`: Dashboard, Ngựa đua (toàn bộ chiến mã CLB), Giáo án huấn luyện (Lập giáo án chi tiết), Giải đua (Đăng ký giải đua), Cảnh báo thể lực & sự cố.
   - `Veterinarian`: Dashboard, Sơ đồ đàn ngựa, Hồ sơ khám bệnh & Phác đồ điều trị, Lịch tiêm phòng & móng định kỳ.
