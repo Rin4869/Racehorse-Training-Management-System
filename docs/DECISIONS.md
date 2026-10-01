@@ -5,6 +5,27 @@ nhóm). Mới nhất lên đầu.
 
 ---
 
+## 2026-10-01 — Triển khai Phân hệ Giáo án & Chức năng Create Training Plan cho Head Trainer
+
+**Nguồn:** Yêu cầu người dùng (tiếp tục làm chức năng Create training plan của role trainer, chỉ TRAINER được tạo, MANAGER chỉ xem, thêm business logic thực tế).
+**Quyết định:**
+- **Backend API & Quy tắc nghiệp vụ (Business Rules)**:
+  - Phân quyền RBAC nghiêm ngặt: Chỉ `Role.TRAINER` có quyền tạo giáo án; các vai trò `MANAGER`, `VET`, `GROOM`, `OWNER` bị chặn 403 Forbidden (được kiểm chứng bằng E2E test).
+  - Quy tắc chuyên môn đua ngựa:
+    + BR-1: Không cho phép lập giáo án mới cho ngựa đã giải nghệ (`status === 'RETIRED'`).
+    + BR-2: Không cho phép lập giáo án cho ngựa đang cách ly kiểm dịch (`healthStatus === 'QUARANTINED'`).
+    + BR-3: Cho phép lập kế hoạch chiến lược cho ngựa bị khóa tập luyện (`locked === true`), nhưng không thể lên lịch buổi tập thực tế cho đến khi mở khóa.
+  - Bổ sung `GET /api/v1/training-plans` có scoping: Trainer/Manager thấy toàn bộ CLB, Owner chỉ thấy ngựa của mình.
+  - Mở rộng `PLAN_INCLUDE` trả về thêm thông tin chi tiết ngựa (`name`, `breed`, `ownerId`).
+- **Frontend**:
+  - Chuẩn hóa quyền: Chỉ `role === 'TRAINER'` mới render các nút `+ Tạo giáo án mới`. Manager và Owner chỉ có quyền xem (Read-only).
+  - Modal `CreateTrainingPlanModal.tsx`:
+    + Tự động lọc các ngựa giải nghệ/cách ly khỏi dropdown.
+    + Bổ sung 4 mẫu giáo án chuyên môn nhanh (Quick Templates: Cự ly 1400m sân cát, Cự ly 1600m sân cỏ, Nước rút 1200m, Bài tập nhẹ phục hồi).
+    + Cảnh báo phân biệt ngựa bị khóa tập luyện vs ngựa bị chấn thương (`INJURED`).
+  - Trang `/plans`: Giao diện hiển thị phụ đề tương ứng theo vai trò, thống kê KPI, bộ lọc trạng thái.
+  - Trang `/horses/:id`: Tab `PlansTab` hiển thị cảnh báo nghiệp vụ nếu ngựa giải nghệ/cách ly và điểm thể lực hiện tại.
+
 ## 2026-09-30 — Thiết kế Giao diện Dashboard & Shell Rail + Phân quyền RBAC & Icon đơn sắc
 
 **Nguồn:** Yêu cầu người dùng (cấu trúc Dashboard dạng demo, phân quyền nghiêm ngặt theo 5 vai trò nghiệp vụ, loại bỏ 100% emoji và dùng icon tối giản đơn sắc, giữ nguyên trang login).

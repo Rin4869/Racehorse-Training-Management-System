@@ -16,6 +16,7 @@ import { HorsesPage } from './pages/HorsesPage';
 import { HorseDetailPage } from './pages/HorseDetailPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { TrainingPlansPage } from './pages/TrainingPlansPage';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -31,6 +32,14 @@ const router = createBrowserRouter([
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/horses', element: <HorsesPage /> },
       { path: '/horses/:id', element: <HorseDetailPage /> },
+      {
+        path: '/plans',
+        element: (
+          <RequireAuth roles={['TRAINER', 'MANAGER', 'OWNER']}>
+            <TrainingPlansPage />
+          </RequireAuth>
+        ),
+      },
       {
         path: '/admin/users',
         element: (

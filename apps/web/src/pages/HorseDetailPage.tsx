@@ -7,6 +7,7 @@ import { ErrorText } from '../components/ErrorText';
 import { formatDate } from '../lib/format';
 import { SessionsTab } from './horse/SessionsTab';
 import { HealthTab } from './horse/HealthTab';
+import { PlansTab } from './horse/PlansTab';
 import { HorseStatusBadge } from '../components/horse/HorseStatusBadge';
 import { EditHorseModal } from '../components/horse/EditHorseModal';
 import { DeleteHorseModal } from '../components/horse/DeleteHorseModal';
@@ -14,7 +15,7 @@ import { PhotoUploadModal } from '../components/horse/PhotoUploadModal';
 import { PedigreeTree } from '../components/horse/PedigreeTree';
 import { CameraIcon, LockIcon, UnlockIcon, EditIcon, TrashIcon } from '../components/Icons';
 
-type Tab = 'profile' | 'pedigree' | 'sessions' | 'health';
+type Tab = 'profile' | 'pedigree' | 'plans' | 'sessions' | 'health';
 
 function calculateAge(birthDate: string | null): string {
   if (!birthDate) return '—';
@@ -45,7 +46,10 @@ export function HorseDetailPage() {
 
   const rawTab = params.get('tab');
   const tab: Tab =
-    rawTab === 'pedigree' || rawTab === 'sessions' || rawTab === 'health'
+    rawTab === 'pedigree' ||
+    rawTab === 'plans' ||
+    rawTab === 'sessions' ||
+    rawTab === 'health'
       ? rawTab
       : 'profile';
 
@@ -240,6 +244,13 @@ export function HorseDetailPage() {
         </button>
         <button
           type="button"
+          className={tab === 'plans' ? 'tab active' : 'tab'}
+          onClick={() => setTab('plans')}
+        >
+          Giáo án huấn luyện
+        </button>
+        <button
+          type="button"
           className={tab === 'sessions' ? 'tab active' : 'tab'}
           onClick={() => setTab('sessions')}
         >
@@ -300,6 +311,7 @@ export function HorseDetailPage() {
       )}
 
       {tab === 'pedigree' && <PedigreeTree horseId={horse.id} />}
+      {tab === 'plans' && <PlansTab horse={horse} />}
       {tab === 'sessions' && <SessionsTab horseId={horse.id} />}
       {tab === 'health' && <HealthTab horseId={horse.id} />}
 

@@ -73,6 +73,10 @@ export function Layout() {
       if (role === 'OWNER') return 'Ngựa của tôi';
       return t('nav.horses');
     }
+    if (path.startsWith('/plans')) {
+      if (role === 'TRAINER') return 'Giáo án huấn luyện';
+      return t('nav.plans');
+    }
     if (path.startsWith('/admin/users')) return t('nav.users');
     return t('app.title');
   };
@@ -127,15 +131,13 @@ export function Layout() {
 
           {/* Training Plans: MANAGER, TRAINER (curriculum), OWNER (view schedule) */}
           {(role === 'MANAGER' || role === 'TRAINER' || role === 'OWNER') && (
-            <div
-              className="rail-item"
-              style={{ opacity: 0.65, cursor: 'default' }}
-              title="Phân hệ Kế hoạch tập luyện"
+            <NavLink
+              to="/plans"
+              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
             >
               <span className="ico"><PlanIcon /></span>
               <span>{role === 'TRAINER' ? 'Giáo án huấn luyện' : t('nav.plans')}</span>
-              <span className="badge-tag">Sắp có</span>
-            </div>
+            </NavLink>
           )}
 
           {/* Races: MANAGER, TRAINER (register race), OWNER (race history) */}

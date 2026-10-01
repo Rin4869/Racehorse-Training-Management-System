@@ -623,6 +623,38 @@ Nghiên cứu cấu trúc từ file mẫu `demo/racehorse-demo.html` và file th
   - `oxlint` ✅ 0 lỗi.
   - Loại bỏ hoàn toàn emoji, giữ nguyên bản `LoginPage.tsx`.
 
+## 3o. Triển khai phân hệ & Chức năng Lập Giáo án Huấn luyện (Create Training Plan) cho Head Trainer (2026-10-01)
+
+Triển khai hoàn chỉnh tính năng lập giáo án huấn luyện chi tiết cho vai trò Head Trainer (`TRAINER`) và phân hệ quản lý giáo án:
+- **Backend Core API & Nghiệp vụ chuyên sâu (Business Rules)**:
+  - Phân quyền RBAC nghiêm ngặt: Chỉ `TRAINER` mới có quyền tạo giáo án (`@Roles(Role.TRAINER)`). Các vai trò `MANAGER`, `VET`, `GROOM`, `OWNER` bị chặn `403 Forbidden` nếu cố tình gọi API tạo giáo án (đã verify bằng test E2E).
+  - Quy tắc nghiệp vụ chuyên môn (Business Rules):
+    + **BR-1**: Chặn lập giáo án cho chiến mã đã giải nghệ (`status === 'RETIRED'`), trả về `400 VALIDATION_ERROR`.
+    + **BR-2**: Chặn lập giáo án cho chiến mã đang diện cách ly kiểm dịch y tế (`healthStatus === 'QUARANTINED'`), trả về `400 VALIDATION_ERROR`.
+    + **BR-3**: Cho phép soạn thảo giáo án chiến lược cho ngựa đang dính lệnh khóa tập luyện (`locked === true`), nhưng cờ khóa sẽ ngăn việc xếp lịch các buổi tập thực tế (`TrainingSession`).
+  - Mở rộng `PLAN_INCLUDE`: Bổ sung thông tin chi tiết ngựa (`name`, `breed`, `ownerId`) vào payload trả về để tối ưu hiển thị danh sách giáo án.
+  - Bổ sung Endpoint `GET /api/v1/training-plans`: Cho phép liệt kê toàn bộ giáo án của đàn ngựa theo phân quyền (HLV/Quản lý thấy toàn bộ, Chủ ngựa chỉ thấy giáo án của ngựa mình sở hữu).
+  - Viết bổ sung và verify kiểm thử E2E: **152/152 tests PASS 100%** (trong đó có 22/22 test kịch bản `training-plan`).
+- **Frontend Web App (`apps/web`)**:
+  - Chuẩn hóa phân quyền hiển thị (RBAC):
+    + `TRAINER`: Là người duy nhất thấy nút "+ Tạo giáo án mới" trên cả trang `/plans`, trang `/dashboard` và Tab `PlansTab`.
+    + `MANAGER` & `OWNER`: Chỉ có quyền xem giáo án (Read-only), không có nút tạo hay chỉnh sửa giáo án.
+  - Component Modal `CreateTrainingPlanModal.tsx`:
+    + Tự động lọc bỏ các ngựa đã giải nghệ hoặc đang cách ly khỏi danh sách chọn lựa.
+    + Thẻ cảnh báo ngữ cảnh: Phân biệt rõ giữa ngựa bị khóa huấn luyện khẩn cấp và ngựa đang bị chấn thương (`INJURED`) để HLV cân nhắc.
+    + Khối gợi ý giáo án chuyên môn nhanh (Quick Templates): 4 mẫu giáo án chuẩn (Cự ly 1400m sân cát, Cự ly 1600m sân cỏ, Bứt tốc nước rút 1200m, Bài tập nhẹ phục hồi gân cơ).
+  - Trang Quản lý Giáo án `TrainingPlansPage.tsx` (`/plans`):
+    + Phụ đề trang cá nhân hóa theo từng vai trò (HLV: lập giáo án; Quản lý: giám sát tiến độ CLB; Chủ ngựa: xem lịch trình ngựa sở hữu).
+    + Thẻ thống kê KPI: Tổng số giáo án, Đang áp dụng, Đã hoàn thành, Số chiến mã có giáo án.
+    + Bảng danh sách chi tiết các giáo án, người phụ trách, thời gian và trạng thái.
+  - Tích hợp Tab `PlansTab.tsx` trong `HorseDetailPage.tsx`:
+    + Nhận đầy đủ đối tượng `horse` để hiển thị cảnh báo nghiệp vụ nếu ngựa giải nghệ/cách ly và điểm thể lực hiện tại (`fitnessScore/100`).
+  - Kích hoạt menu điều hướng `/plans` trong Sidebar Rail `Layout.tsx` cho các vai trò `TRAINER`, `MANAGER`, `OWNER`.
+- **Kiểm chứng**:
+  - `npm run build` (tsc + vite) ✅ thành công 100% trong 202ms.
+  - `oxlint` ✅ 0 lỗi.
+  - E2E Backend `test/training-plan.e2e-spec.ts` ✅ 22/22 test passed.
+
 ## 4. Việc tiếp theo
 
 

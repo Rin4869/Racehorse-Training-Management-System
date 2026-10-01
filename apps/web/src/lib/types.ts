@@ -51,6 +51,20 @@ export interface PedigreeNode {
 }
 
 
+export interface TrainingPlan {
+  id: string;
+  horseId: string;
+  horse: { id: string; name: string; breed?: string | null; ownerId: string };
+  trainerId: string;
+  trainer: UserRef;
+  goal: string;
+  startDate: string;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  sessions?: TrainingSession[];
+}
+
 export interface TrainingSession {
   id: string;
   horseId: string;

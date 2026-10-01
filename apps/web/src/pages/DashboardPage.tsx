@@ -119,6 +119,13 @@ export function DashboardPage() {
             </Link>
           </div>
         )}
+        {role === 'TRAINER' && (
+          <div className="btn-row">
+            <Link to="/plans?action=create" className="btn btn-primary">
+              <PlusIcon /> Lập giáo án mới
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Role-Specific KPI Cards Grid */}
@@ -278,18 +285,18 @@ export function DashboardPage() {
               {/* Head Trainer */}
               {role === 'TRAINER' && (
                 <>
-                  <Link to="/horses" className="quick-action-item">
+                  <Link to="/plans?action=create" className="quick-action-item">
                     <span className="quick-action-icon"><PlanIcon /></span>
                     <div>
                       <div style={{ fontWeight: 600 }}>Lập giáo án huấn luyện chi tiết</div>
                       <div className="muted small">Cự ly, khối lượng, mặt sân theo từng giai đoạn</div>
                     </div>
                   </Link>
-                  <Link to="/horses" className="quick-action-item">
+                  <Link to="/plans" className="quick-action-item">
                     <span className="quick-action-icon"><HealthIcon /></span>
                     <div>
-                      <div style={{ fontWeight: 600 }}>Đánh giá phong độ & Buổi tập</div>
-                      <div className="muted small">Ghi nhận chỉ số thể lực và nhận xét chuyên môn</div>
+                      <div style={{ fontWeight: 600 }}>Theo dõi tiến độ &amp; Giáo án</div>
+                      <div className="muted small">Quản lý toàn bộ danh sách giáo án của các chiến mã</div>
                     </div>
                   </Link>
                   <Link to="/horses" className="quick-action-item">
