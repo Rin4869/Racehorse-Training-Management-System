@@ -279,7 +279,7 @@ export function DashboardPage() {
           {/* Quick Actions Panel tailored to Role */}
           <div className="panel">
             <div className="panel-head">
-              <h3>Thao tác theo vai trò ({role ? t(`role.${role}`) : 'Người dùng'})</h3>
+              <h3>Các thao tác chính ({role ? t(`role.${role}`) : 'Người dùng'})</h3>
             </div>
             <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {/* Head Trainer */}
