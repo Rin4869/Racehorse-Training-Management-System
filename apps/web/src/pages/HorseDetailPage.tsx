@@ -1,22 +1,76 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { Horse } from '../lib/types';
+import { useAuth } from '../auth/useAuth';
 import { ErrorText } from '../components/ErrorText';
 import { formatDate } from '../lib/format';
 import { SessionsTab } from './horse/SessionsTab';
 import { HealthTab } from './horse/HealthTab';
+import { PlansTab } from './horse/PlansTab';
+import { HorseStatusBadge } from '../components/horse/HorseStatusBadge';
+import { EditHorseModal } from '../components/horse/EditHorseModal';
+import { DeleteHorseModal } from '../components/horse/DeleteHorseModal';
+import { PhotoUploadModal } from '../components/horse/PhotoUploadModal';
+import { PedigreeTree } from '../components/horse/PedigreeTree';
+import { CameraIcon, LockIcon, UnlockIcon, EditIcon, TrashIcon } from '../components/Icons';
 import { PedigreeTab } from './horse/PedigreeTab';
 
+type Tab = 'profile' | 'pedigree' | 'plans' | 'sessions' | 'health';
+
+function calculateAge(birthDate: string | null): string {
+  if (!birthDate) return '—';
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return '—';
+  const ageYears = Math.floor(
+    (Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
+  );
+  return ageYears >= 0 ? `${ageYears} tuổi` : '—';
+}
 type Tab = 'sessions' | 'health' | 'pedigree';
 
 export function HorseDetailPage() {
-  const { t } = useTranslation();
   const { id = '' } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isManager = user?.role === 'MANAGER';
+  const isVet = user?.role === 'VET';
+
   const [params, setParams] = useSearchParams();
   const [horse, setHorse] = useState<Horse | null>(null);
   const [err, setErr] = useState<unknown>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Modals
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+
+  const rawTab = params.get('tab');
+  const tab: Tab =
+    rawTab === 'pedigree' ||
+    rawTab === 'plans' ||
+    rawTab === 'sessions' ||
+    rawTab === 'health'
+      ? rawTab
+      : 'profile';
+
+  const setTab = (next: Tab) =>
+    setParams(next === 'profile' ? {} : { tab: next }, { replace: true });
+
+  const loadHorse = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await api.get<Horse>(`/horses/${id}`);
+      setHorse(res.data);
+      setErr(null);
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
   const requestedTab = params.get('tab');
   const tab: Tab =
     requestedTab === 'health' || requestedTab === 'pedigree'
@@ -29,79 +83,198 @@ export function HorseDetailPage() {
     setParams(nextParams, { replace: true });
   };
   useEffect(() => {
-    let active = true;
-    api
-      .get<Horse>(`/horses/${id}`)
-      .then((r) => {
-        if (!active) return;
-        setHorse(r.data);
-        setErr(null);
-      })
-      .catch((e) => {
-        if (active) setErr(e);
+    void loadHorse();
+  }, [loadHorse]);
+
+  const handleToggleLock = async () => {
+    if (!horse) return;
+    const willLock = !horse.locked;
+    const reason = willLock
+      ? window.prompt('Nhập lý do khóa tập luyện (tuỳ chọn):') ?? ''
+      : '';
+    try {
+      await api.patch(`/horses/${horse.id}/lock`, {
+        locked: willLock,
+        ...(willLock && reason.trim() ? { reason: reason.trim() } : {}),
       });
-    return () => {
-      active = false;
-    };
-  }, [id]);
+      await loadHorse();
+    } catch (e) {
+      alert('Không thể cập nhật trạng thái khóa tập luyện: ' + String(e));
+    }
+  };
 
-  const showing = horse && horse.id === id ? horse : null;
+  if (loading && !horse) {
+    return <p className="muted">Đang tải thông tin hồ sơ ngựa…</p>;
+  }
 
-  if (err && !showing) {
+  if (err && !horse) {
     return (
       <div className="stack">
         <p>
-          <Link to="/horses">← {t('nav.horses')}</Link>
+          <Link to="/horses">← Danh sách ngựa</Link>
         </p>
         <ErrorText err={err} />
       </div>
     );
   }
-  if (!showing) return <p className="muted">…</p>;
+
+  if (!horse) return null;
 
   return (
     <div className="stack">
-      <p>
-        <Link to="/horses">← {t('nav.horses')}</Link>
-      </p>
-      <div className="card">
-        <h1>{showing.name}</h1>
-        <dl className="kv">
-          <div>
-            <dt>{t('horse.breed')}</dt>
-            <dd>{showing.breed ?? '—'}</dd>
-          </div>
-          <div>
-            <dt>{t('horse.birthDate')}</dt>
-            <dd>{formatDate(showing.birthDate)}</dd>
-          </div>
-          <div>
-            <dt>{t('horse.owner')}</dt>
-            <dd>{showing.owner.name}</dd>
-          </div>
-          <div>
-            <dt>{t('horse.status')}</dt>
-            <dd>
-              <span className="tag">{showing.status}</span>
-            </dd>
-          </div>
-        </dl>
+      <div>
+        <Link to="/horses" style={{ fontWeight: 600, fontSize: '13px', color: 'var(--brand-blue)' }}>
+          ← Quay lại danh sách ngựa
+        </Link>
       </div>
 
+      {/* Hero Header Card */}
+      <div className="card">
+        <div className="detail-hero" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {/* Avatar with Upload button for Manager */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+            <div className="avatar avatar-lg">
+              {horse.photoUrl ? (
+                <img src={horse.photoUrl} alt={horse.name} />
+              ) : (
+                horse.name.slice(0, 1).toUpperCase()
+              )}
+            </div>
+            {isManager && (
+              <button
+                type="button"
+                className="btn btn-sm btn-ghost"
+                style={{ fontSize: '11px', padding: '3px 8px' }}
+                onClick={() => setPhotoOpen(true)}
+              >
+                <CameraIcon /> Đổi ảnh
+              </button>
+            )}
+          </div>
+
+          {/* Horse Main Info */}
+          <div style={{ flex: '1 1 300px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1 style={{ margin: 0 }}>{horse.name}</h1>
+              <HorseStatusBadge
+                status={horse.status}
+                healthStatus={horse.healthStatus}
+                locked={horse.locked}
+              />
+            </div>
+
+            <p className="muted" style={{ margin: '6px 0 12px', fontSize: '13.5px' }}>
+              {horse.breed ?? 'Chưa rõ giống'} · {calculateAge(horse.birthDate)} · Chủ sở hữu:{' '}
+              <strong style={{ color: 'var(--text-primary)' }}>{horse.owner.name}</strong>
+            </p>
+
+            <div className="row">
+              {horse.fitnessScore != null ? (
+                <span className="badge badge-neutral" style={{ padding: '4px 10px', fontSize: '12px' }}>
+                  Điểm thể trạng: <strong>{horse.fitnessScore} / 100</strong>
+                </span>
+              ) : (
+                <span className="badge badge-neutral" style={{ padding: '4px 10px', fontSize: '12px' }}>
+                  Thể trạng: Chưa đánh giá
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Top Actions */}
+          <div className="row" style={{ marginLeft: 'auto', gap: '8px' }}>
+            {isVet && (
+              <button
+                type="button"
+                className={`btn btn-sm ${horse.locked ? 'btn-ghost' : 'btn-danger'}`}
+                onClick={handleToggleLock}
+              >
+                {horse.locked ? (
+                  <>
+                    <UnlockIcon /> Mở khóa tập
+                  </>
+                ) : (
+                  <>
+                    <LockIcon /> Khóa tập luyện
+                  </>
+                )}
+              </button>
+            )}
+            {isManager && (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => setEditOpen(true)}
+                >
+                  <EditIcon /> Sửa hồ sơ
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-ghost"
+                  style={{ color: 'var(--status-danger)' }}
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <TrashIcon /> Xóa
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Lock Warning Banner */}
+      {horse.locked && (
+        <div className="lock-banner">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <LockIcon width="20" height="20" />
+          </div>
+          <div>
+            <strong>Ngựa đang bị khóa tập luyện</strong>
+            {horse.lockReason ? `: ${horse.lockReason}` : ''}
+            <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>
+              Huấn luyện viên không thể tạo buổi tập mới cho đến khi bác sĩ thú y mở khóa.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Navigation */}
       <div className="tabs">
+        <button
+          type="button"
+          className={tab === 'profile' ? 'tab active' : 'tab'}
+          onClick={() => setTab('profile')}
+        >
+          Hồ sơ chi tiết
+        </button>
+        <button
+          type="button"
+          className={tab === 'pedigree' ? 'tab active' : 'tab'}
+          onClick={() => setTab('pedigree')}
+        >
+          Cây phả hệ (3 đời)
+        </button>
+        <button
+          type="button"
+          className={tab === 'plans' ? 'tab active' : 'tab'}
+          onClick={() => setTab('plans')}
+        >
+          Giáo án huấn luyện
+        </button>
         <button
           type="button"
           className={tab === 'sessions' ? 'tab active' : 'tab'}
           onClick={() => setTab('sessions')}
         >
-          {t('tab.sessions')}
+          Buổi tập luyện
         </button>
         <button
           type="button"
           className={tab === 'health' ? 'tab active' : 'tab'}
           onClick={() => setTab('health')}
         >
-          {t('tab.health')}
+          Hồ sơ y tế
         </button>
         <button
           type="button"
@@ -116,6 +289,83 @@ export function HorseDetailPage() {
         </button>
       </div>
 
+      {/* Tab Contents */}
+      {tab === 'profile' && (
+        <div className="card">
+          <h2>Thông tin lý lịch</h2>
+          <dl className="kv">
+            <div>
+              <dt>Tên ngựa</dt>
+              <dd>{horse.name}</dd>
+            </div>
+            <div>
+              <dt>Giống loài</dt>
+              <dd>{horse.breed ?? '—'}</dd>
+            </div>
+            <div>
+              <dt>Ngày sinh</dt>
+              <dd>{formatDate(horse.birthDate)} ({calculateAge(horse.birthDate)})</dd>
+            </div>
+            <div>
+              <dt>Chủ sở hữu</dt>
+              <dd>{horse.owner.name} ({horse.owner.email})</dd>
+            </div>
+            <div>
+              <dt>Trạng thái thi đấu</dt>
+              <dd>
+                <HorseStatusBadge status={horse.status} />
+              </dd>
+            </div>
+            <div>
+              <dt>Tình trạng y tế</dt>
+              <dd>
+                <HorseStatusBadge healthStatus={horse.healthStatus} locked={horse.locked} />
+              </dd>
+            </div>
+            <div>
+              <dt>Điểm thể trạng</dt>
+              <dd>{horse.fitnessScore != null ? `${horse.fitnessScore} / 100` : 'Chưa đánh giá'}</dd>
+            </div>
+            <div>
+              <dt>Mã hồ sơ hệ thống</dt>
+              <dd style={{ fontFamily: 'monospace', fontSize: '12px' }}>{horse.id}</dd>
+            </div>
+          </dl>
+        </div>
+      )}
+
+      {tab === 'pedigree' && <PedigreeTree horseId={horse.id} />}
+      {tab === 'plans' && <PlansTab horse={horse} />}
+      {tab === 'sessions' && (
+        <SessionsTab
+          horseId={horse.id}
+          isLocked={horse.locked}
+          lockReason={horse.lockReason}
+        />
+      )}
+      {tab === 'health' && <HealthTab horseId={horse.id} />}
+
+      {/* Modals */}
+      <EditHorseModal
+        horse={horse}
+        isOpen={editOpen}
+        onClose={() => setEditOpen(false)}
+        onUpdated={loadHorse}
+      />
+
+      <DeleteHorseModal
+        horse={horse}
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => navigate('/horses')}
+      />
+
+      <PhotoUploadModal
+        horse={horse}
+        isOpen={photoOpen}
+        onClose={() => setPhotoOpen(false)}
+        onUploaded={loadHorse}
+      />
       {tab === 'sessions' && <SessionsTab horseId={showing.id} />}
       {tab === 'health' && <HealthTab horseId={showing.id} />}
       {tab === 'pedigree' && <PedigreeTab horseId={showing.id} />}

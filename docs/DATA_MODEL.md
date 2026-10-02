@@ -206,12 +206,15 @@ erDiagram
     Vaccination {
         uuid id PK
         uuid horseId FK
+        PreventiveCareType careType "VACCINATION|DEWORMING — extension để phân biệt lịch phòng ngừa"
         string vaccineName
         datetime date
         datetime nextDueDate "nullable"
         datetime createdAt
     }
 ```
+
+> Lưu ý về extension: `PreventiveCareType` (`VACCINATION` / `DEWORMING`) là phần mở rộng cần thiết cho luồng lịch chăm sóc phòng ngừa. Nó không thay đổi mô hình cốt lõi của `Horse`, `TrainingSession`, `HealthRecord`, `Race`, `IncidentReport` mà chỉ làm rõ loại lịch tiêm/vắc-xin hay tẩy giun trong cùng bảng `Vaccination`.
 
 Ghi chú:
 - `TrainingSession`, `TrainingPlan`, `HealthRecord`, `Race`, `RaceEntry`,
