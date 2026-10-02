@@ -804,6 +804,29 @@ h3 {
 textarea.input {
   resize: vertical;
 }
+.password-input {
+  position: relative;
+}
+.password-input .input {
+  padding-right: 36px;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.password-toggle:hover {
+  color: var(--text-primary);
+}
 
 .form-grid {
   display: flex;
