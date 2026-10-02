@@ -13,6 +13,7 @@ interface CreateHorseModalProps {
 export function CreateHorseModal({ isOpen, onClose, onCreated }: CreateHorseModalProps) {
   const [owners, setOwners] = useState<User[]>([]);
   const [name, setName] = useState('');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
   const [breed, setBreed] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [ownerId, setOwnerId] = useState('');
@@ -97,6 +98,17 @@ export function CreateHorseModal({ isOpen, onClose, onCreated }: CreateHorseModa
                     {o.name} ({o.email})
                   </option>
                 ))}
+              </select>
+            </Field>
+
+            <Field label="Giới tính">
+              <select
+                className="input"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as 'MALE' | 'FEMALE')}
+              >
+                <option value="MALE">Đực</option>
+                <option value="FEMALE">Cái</option>
               </select>
             </Field>
 
