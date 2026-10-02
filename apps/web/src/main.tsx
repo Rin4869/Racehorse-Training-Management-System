@@ -41,7 +41,7 @@ const router = createBrowserRouter([
       {
         path: '/vaccinations',
         element: (
-          <RequireAuth roles={['MANAGER', 'TRAINER', 'VET']}>
+          <RequireAuth roles={['MANAGER', 'TRAINER', 'VET', 'GROOM']}>
             <HealthSchedulePage />
           </RequireAuth>
         ),
@@ -75,14 +75,7 @@ const router = createBrowserRouter([
       { path: '/horses/:id/pedigree', element: <HorsePedigreePage /> },
       { path: '/horses/:id/performance', element: <HorseRaceHistoryPage /> },
       { path: '/horses/:id/ownership', element: <HorseOwnershipPage /> },
-      {
-        path: '/plans',
-        element: (
-          <RequireAuth roles={['TRAINER', 'MANAGER', 'OWNER']}>
-            <TrainingPlansPage />
-          </RequireAuth>
-        ),
-      },
+      { path: '/plans', element: <TrainingPlansPage /> },
       {
         path: '/admin/users',
         element: (
