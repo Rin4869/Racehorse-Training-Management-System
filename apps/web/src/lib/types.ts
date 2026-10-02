@@ -19,6 +19,8 @@ export interface UserRef {
   email: string;
 }
 
+export type HealthStatus = 'FIT' | 'MONITORING' | 'QUARANTINED' | 'INJURED';
+
 export interface Horse {
   id: string;
   name: string;
@@ -27,11 +29,82 @@ export interface Horse {
   ownerId: string;
   owner: UserRef;
   status: HorseStatus;
+  healthStatus: HealthStatus;
+  fitnessScore: number | null;
+  sireId: string | null;
+  damId: string | null;
+  locked: boolean;
+  lockReason: string | null;
   photoPath: string | null;
   photoUrl: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+}
+
+export interface PedigreeNode {
+  id: string;
+  name: string;
+  fitnessScore: number | null;
+  sire: PedigreeNode | null;
+  dam: PedigreeNode | null;
+}
+
+export interface HorseRaceEntry {
+  id: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+  race: {
+    id: string;
+    name: string;
+    date: string;
+    venue: string | null;
+  };
+}
+
+export interface Race {
+  id: string;
+  name: string;
+  date: string;
+  venue: string | null;
+  distance: number | null;
+  surface: string | null;
+  prizePool: number | null;
+}
+
+export interface RaceEntry {
+  id: string;
+  raceId: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+}
+
+export interface Vaccination {
+  id: string;
+  horseId: string;
+  horse?: { id: string; name: string };
+  careType?: 'VACCINATION' | 'DEWORMING';
+  vaccineName: string;
+  date: string;
+  nextDueDate: string | null;
+  createdAt: string;
+}
+
+
+export interface TrainingPlan {
+  id: string;
+  horseId: string;
+  horse: { id: string; name: string; breed?: string | null; ownerId: string };
+  trainerId: string;
+  trainer: UserRef;
+  goal: string;
+  startDate: string;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  sessions?: TrainingSession[];
 }
 
 export interface TrainingSession {
@@ -61,6 +134,15 @@ export interface HealthRecord {
   treatment: string | null;
   attachmentPath: string | null;
   attachmentUrl: string | null;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  message: string;
+  read: boolean;
   createdAt: string;
 }
 

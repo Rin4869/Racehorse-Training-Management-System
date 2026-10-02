@@ -6,8 +6,15 @@ import { useAuth } from '../../auth/useAuth';
 import { Field } from '../../components/Field';
 import { ErrorText } from '../../components/ErrorText';
 import { formatDateTime } from '../../lib/format';
+import { LockIcon } from '../../components/Icons';
 
-export function SessionsTab({ horseId }: { horseId: string }) {
+interface Props {
+  horseId: string;
+  isLocked?: boolean;
+  lockReason?: string | null;
+}
+
+export function SessionsTab({ horseId, isLocked, lockReason }: Props) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const role = user?.role;
@@ -39,7 +46,29 @@ export function SessionsTab({ horseId }: { horseId: string }) {
 
   return (
     <div className="stack">
-      {canCreate && <CreateSessionForm horseId={horseId} onCreated={load} />}
+      {isLocked && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '12px 16px',
+            background: 'var(--status-danger-bg)',
+            border: '1px solid #f5c2c7',
+            borderRadius: 6,
+            color: 'var(--status-danger)',
+            fontSize: '13px',
+          }}
+        >
+          <LockIcon width="18" height="18" />
+          <div>
+            <strong>Lệnh Khóa Huấn Luyện (Training Lock):</strong> Bác sĩ Thú y đã ban hành lệnh khóa huấn luyện
+            {lockReason ? ` (${lockReason})` : ''}. Huấn luyện viên trưởng không thể xếp lịch buổi tập mới cho chiến mã này cho đến khi Bác sĩ Thú y mở khóa.
+          </div>
+        </div>
+      )}
+
+      {canCreate && !isLocked && <CreateSessionForm horseId={horseId} onCreated={load} />}
 
       {loading ? (
         <p className="muted">…</p>

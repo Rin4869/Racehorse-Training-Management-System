@@ -1,6 +1,8 @@
 import { Transform, Type } from 'class-transformer';
+import { PreventiveCareType } from '@prisma/client';
 import {
   IsBoolean,
+  IsEnum,
   IsISO8601,
   IsInt,
   IsNotEmpty,
@@ -12,6 +14,10 @@ import {
 } from 'class-validator';
 
 export class CreateVaccinationDto {
+  @IsOptional()
+  @IsEnum(PreventiveCareType)
+  careType?: PreventiveCareType;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
@@ -49,4 +55,8 @@ export class ListUpcomingVaccinationsQueryDto extends ListVaccinationsQueryDto {
   )
   @IsBoolean()
   upcoming?: boolean;
+
+  @IsOptional()
+  @IsEnum(PreventiveCareType)
+  careType?: PreventiveCareType;
 }

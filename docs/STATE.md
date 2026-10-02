@@ -4,14 +4,10 @@
 > mới tới [PLAN.md](PLAN.md) và [DECISIONS.md](DECISIONS.md).
 > Cập nhật file này mỗi khi kết thúc một mảng việc.
 
-Cập nhật lần cuối: **2026-09-25** — kết thúc Phase 10 (Health & Injury
-extensions), hoàn tất Sprint 3 theo `CLAUDE_CODE_BACKEND_FULL.md` (xem
-[DECISIONS.md](DECISIONS.md)). **MVP (Phase 0-5) vẫn DONE**; 3 luồng mở rộng
-(Phase 6-8) xong phần API; Phase 9 (Sprint 2 remainder) + Phase 10 (Sprint 3
-remainder) **xong** — toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) đã
-được đối chiếu/hoàn thành phía API. Còn lại chủ yếu là **frontend** — xem §4.
+Cập nhật lần cuối: **2026-09-30** — hoàn thành thiết kế và triển khai **Flow 1 Frontend (Horse Profile Management)** theo chuẩn `racehorse-design-system.html` (Tone Navy `#1c2b3a` / Cream `#f5f4f1` / Blue accent `#1a4b8a`, font Inter, status badges, metric cards, modal CRUD, phả hệ 3 đời, upload ảnh). Toàn bộ 149 test E2E backend + frontend build/lint đều PASS 100%.
 
 ---
+
 
 ## 1. Tóm tắt 30 giây
 
@@ -571,7 +567,113 @@ thủ công trên bản live** (Render+Vercel) — đăng ký → nhận OTP th�
 Brevo → xác nhận → MANAGER duyệt; Google login tài khoản mới → màn OTP →
 duyệt → đăng nhập lại được; nút Từ chối hoạt động đúng.
 
+## 3m. Flow 1 Frontend đã làm gì (Horse Profile Management — 2026-09-30)
+
+Đặc tả đầy đủ: **[FLOW1_HORSE_PROFILE_DESIGN.md](FLOW1_HORSE_PROFILE_DESIGN.md)**.
+Nguồn: chuẩn thiết kế từ `racehorse-design-system.html` (Tone Navy `#1c2b3a` / Cream `#f5f4f1` / Blue accent `#1a4b8a`, font Inter).
+
+### apps/web — triển khai Flow 1
+- **Design Tokens**: Tích hợp biến CSS vào `src/index.css` (tokens Navy, Cream, Brand Blue, huy hiệu `badge-*`, `metric-card`, `chip`, `table`, `modal-overlay`).
+- **Use Case 1 (View horse list & detail)**:
+  - `HorsesPage.tsx`: Thêm 4 thẻ chỉ số nhanh `HorseMetricCards` (Tổng số ngựa, Đang thi đấu, Nghỉ dưỡng/Giải nghệ, Cần chú ý/Khóa), tìm kiếm tức thời theo tên ngựa, thanh lọc chip trạng thái (`ALL`, `ACTIVE`, `RESTING`, `RETIRED`).
+  - `HorseDetailPage.tsx`: Hero banner có avatar tròn lớn (ảnh hoặc ký tự đầu), huy hiệu trạng thái `HorseStatusBadge` (kết hợp trạng thái nghề nghiệp, sức khỏe, điểm thể trạng, cờ khóa tập luyện). Banner cảnh báo khi ngựa bị khóa tập luyện kèm lý do. 4 Tab: **Hồ sơ chi tiết** (key-value grid), **Cây phả hệ (3 đời)** (`PedigreeTree.tsx`), **Buổi tập**, **Hồ sơ y tế**.
+- **Use Case 2 (Add / Edit / Delete horse profile)**:
+  - `CreateHorseModal.tsx`: Modal tạo ngựa mới (chọn chủ sở hữu từ danh sách user có role OWNER, validate ngày sinh không vượt quá ngày hiện tại).
+  - `EditHorseModal.tsx`: Sửa hồ sơ ngựa, đổi chủ sở hữu, cập nhật điểm thể trạng, gán ngựa cha (sireId) và ngựa mẹ (damId) với validate chống chọn trùng hoặc tự làm cha/mẹ.
+  - `DeleteHorseModal.tsx`: Hộp thoại xác nhận xóa mềm an toàn (soft-delete bảo toàn lịch sử buổi tập và hồ sơ khám).
+  - `PhotoUploadModal.tsx`: Tải lên ảnh đại diện cho ngựa (multipart, tối đa 5MB, preview trước khi lưu).
+- **Kiểm chứng**:
+  - `npm run build` (tsc + vite) ✅ không lỗi.
+  - `npm run lint` (oxlint) ✅ 0 lỗi.
+  - Backend e2e tests `npm run test:e2e` **149/149 passed** ✅.
+
+## 3n. Thiết kế Giao diện Dashboard & Shell Rail theo chuẩn demo + Phân quyền RBAC nghiêm ngặt (2026-09-30)
+
+Nghiên cứu cấu trúc từ file mẫu `demo/racehorse-demo.html` và file thiết kế `racehorse-design-system.html`, chuyển đổi giao diện từ thanh topbar đơn sang layout **Dashboard 2 cột chuyên nghiệp**, đồng thời tinh chỉnh phân quyền thao tác và hiển thị (RBAC) nghiêm ngặt cho 5 vai trò chính:
+- **Chuẩn hóa Icon & Thẩm mỹ**:
+  - Loại bỏ 100% emoji màu mè khỏi toàn bộ giao diện (`Layout`, `DashboardPage`, `HorsesPage`, `HorseDetailPage`).
+  - Xây dựng thư viện component icon SVG tối giản, đơn sắc (`apps/web/src/components/Icons.tsx`) chuẩn thiết kế enterprise.
+  - Phục hồi nguyên trạng (`git checkout`) giao diện trang đăng nhập `LoginPage.tsx` theo yêu cầu.
+- **Cột bên trái (Sidebar Rail - `.rail`)**:
+  - Cố định (sticky, `height: 100vh`, `width: 240px`), nền Navy (`var(--brand-navy)` / `#1c2b3a`), chữ vàng kim/kem.
+  - **Menu lọc chính xác theo quyền của từng vai trò (RBAC)**:
+    - `TRAINER`: Tổng quan, Ngựa đua (toàn bộ chiến mã CLB), Giáo án huấn luyện (Lập giáo án chi tiết), Giải đua (Đăng ký giải đua), Y tế & Sự cố (Cảnh báo vượt ngưỡng thể lực).
+    - `VET`: Tổng quan, Sơ đồ đàn ngựa, Hồ sơ khám bệnh & Phác đồ điều trị, Lịch tiêm phòng & móng định kỳ.
+    - `GROOM`: Tổng quan, Chuồng & Khẩu phần dinh dưỡng, Báo cáo sự cố đột xuất tại chuồng.
+    - `OWNER`: Tổng quan, Ngựa của tôi (chỉ các cá thể sở hữu), Lịch tập & Nhật ký nhận xét HLV, Lịch sử giải đua.
+    - `MANAGER`: Toàn quyền tất cả các phân hệ, bao gồm Quản trị hệ thống & Phân quyền thành viên (`/admin/users`).
+- **Cột bên phải (Main Area - `.main`)**:
+  - **Thanh tiêu đề (`.topbar`)**: Breadcrumb động, nhận diện vai trò người dùng, chuyển đổi ngôn ngữ (VI/EN) và nút đăng xuất.
+  - **Trang Dashboard (`DashboardPage.tsx`) cá nhân hóa theo từng vai trò**:
+    - **KPIs theo vai trò**:
+      - `VET`: 4 trạng thái sức khỏe đàn ngựa (`FIT`, `MONITORING`, `INJURED`, `QUARANTINED`).
+      - `TRAINER`: Tổng số chiến mã CLB, Số lượng sẵn sàng tập luyện, Ngựa cảnh báo thể lực/quá tải, Tỷ lệ tuân thủ giáo án.
+      - `GROOM`: Số cá thể chuồng phụ trách, Tình trạng khẩu phần ăn, Báo cáo sự cố cần xử lý.
+      - `OWNER`: Số ngựa sở hữu, Điểm thể trạng trung bình, Buổi tập gần nhất, Lượt thi đấu sắp tới.
+      - `MANAGER`: Tổng số ngựa, Số lượng ngựa bị khoá tập, Tài khoản chờ duyệt RBAC.
+    - **Thao tác nhanh (Quick Actions) khớp chuẩn nghiệp vụ**:
+      - `TRAINER`: Lập giáo án chi tiết, Đánh giá phong độ buổi tập, Chọn ngựa tham gia giải đua.
+      - `VET`: Ghi nhận hồ sơ khám bệnh, Đặt lệnh Khóa huấn luyện khẩn cấp, Theo dõi lịch tiêm phòng.
+      - `GROOM`: Xác nhận hoàn thành việc chăm sóc, Gửi báo cáo sự cố chuồng (bỏ ăn/sốt/móng xước), Đề xuất vật tư.
+      - `OWNER`: Tra cứu phả hệ (Pedigree) & lý lịch, Theo dõi sức khỏe realtime, Đọc nhật ký nhận xét từ HLV Trưởng.
+      - `MANAGER`: Thêm mới hồ sơ ngựa, Duyệt tài khoản RBAC, Xem báo cáo vận hành & Audit Log.
+    - **Cảnh báo an toàn**: Hiển thị chi tiết danh sách ngựa đang bị áp lệnh khóa huấn luyện kèm lý do thực tế từ cơ sở dữ liệu.
+- **Kiểm chứng**:
+  - `npm run build` ✅ thành công 100% trong 193ms.
+  - `oxlint` ✅ 0 lỗi.
+  - Loại bỏ hoàn toàn emoji, giữ nguyên bản `LoginPage.tsx`.
+
+## 3o. Triển khai phân hệ & Chức năng Lập Giáo án Huấn luyện (Create Training Plan) cho Head Trainer (2026-10-01)
+
+Triển khai hoàn chỉnh tính năng lập giáo án huấn luyện chi tiết cho vai trò Head Trainer (`TRAINER`) và phân hệ quản lý giáo án:
+- **Backend Core API & Nghiệp vụ chuyên sâu (Business Rules)**:
+  - Phân quyền RBAC nghiêm ngặt: Chỉ `TRAINER` mới có quyền tạo giáo án (`@Roles(Role.TRAINER)`). Các vai trò `MANAGER`, `VET`, `GROOM`, `OWNER` bị chặn `403 Forbidden` nếu cố tình gọi API tạo giáo án (đã verify bằng test E2E).
+  - Quy tắc nghiệp vụ chuyên môn (Business Rules):
+    + **BR-1**: Chặn lập giáo án cho chiến mã đã giải nghệ (`status === 'RETIRED'`), trả về `400 VALIDATION_ERROR`.
+    + **BR-2**: Chặn lập giáo án cho chiến mã đang diện cách ly kiểm dịch y tế (`healthStatus === 'QUARANTINED'`), trả về `400 VALIDATION_ERROR`.
+    + **BR-3**: Cho phép soạn thảo giáo án chiến lược cho ngựa đang dính lệnh khóa tập luyện (`locked === true`), nhưng cờ khóa sẽ ngăn việc xếp lịch các buổi tập thực tế (`TrainingSession`).
+  - Mở rộng `PLAN_INCLUDE`: Bổ sung thông tin chi tiết ngựa (`name`, `breed`, `ownerId`) vào payload trả về để tối ưu hiển thị danh sách giáo án.
+  - Bổ sung Endpoint `GET /api/v1/training-plans`: Cho phép liệt kê toàn bộ giáo án của đàn ngựa theo phân quyền (HLV/Quản lý thấy toàn bộ, Chủ ngựa chỉ thấy giáo án của ngựa mình sở hữu).
+  - Viết bổ sung và verify kiểm thử E2E: **152/152 tests PASS 100%** (trong đó có 22/22 test kịch bản `training-plan`).
+- **Frontend Web App (`apps/web`)**:
+  - Chuẩn hóa phân quyền hiển thị (RBAC):
+    + `TRAINER`: Là người duy nhất thấy nút "+ Tạo giáo án mới" trên cả trang `/plans`, trang `/dashboard` và Tab `PlansTab`.
+    + `MANAGER` & `OWNER`: Chỉ có quyền xem giáo án (Read-only), không có nút tạo hay chỉnh sửa giáo án.
+  - Component Modal `CreateTrainingPlanModal.tsx`:
+    + Tự động lọc bỏ các ngựa đã giải nghệ hoặc đang cách ly khỏi danh sách chọn lựa.
+    + Thẻ cảnh báo ngữ cảnh: Phân biệt rõ giữa ngựa bị khóa huấn luyện khẩn cấp và ngựa đang bị chấn thương (`INJURED`) để HLV cân nhắc.
+    + Khối gợi ý giáo án chuyên môn nhanh (Quick Templates): 4 mẫu giáo án chuẩn (Cự ly 1400m sân cát, Cự ly 1600m sân cỏ, Bứt tốc nước rút 1200m, Bài tập nhẹ phục hồi gân cơ).
+  - Trang Quản lý Giáo án `TrainingPlansPage.tsx` (`/plans`):
+    + Phụ đề trang cá nhân hóa theo từng vai trò (HLV: lập giáo án; Quản lý: giám sát tiến độ CLB; Chủ ngựa: xem lịch trình ngựa sở hữu).
+    + Thẻ thống kê KPI: Tổng số giáo án, Đang áp dụng, Đã hoàn thành, Số chiến mã có giáo án.
+    + Bảng danh sách chi tiết các giáo án, người phụ trách, thời gian và trạng thái.
+  - Tích hợp Tab `PlansTab.tsx` trong `HorseDetailPage.tsx`:
+    + Nhận đầy đủ đối tượng `horse` để hiển thị cảnh báo nghiệp vụ nếu ngựa giải nghệ/cách ly và điểm thể lực hiện tại (`fitnessScore/100`).
+  - Kích hoạt menu điều hướng `/plans` trong Sidebar Rail `Layout.tsx` cho các vai trò `TRAINER`, `MANAGER`, `OWNER`.
+- **Kiểm chứng**:
+  - `npm run build` (tsc + vite) ✅ thành công 100% trong 202ms.
+  - `oxlint` ✅ 0 lỗi.
+  - E2E Backend `test/training-plan.e2e-spec.ts` ✅ 22/22 test passed.
+
+## 3p. Cơ chế Phân quyền & Xử lý Ngoại lệ Khóa Huấn luyện (Training Lock Exception) giữa Bác sĩ Thú y & HLV Trưởng (2026-10-01)
+
+Giải quyết và chuẩn hóa luồng nghiệp vụ liên quan đến **Exception "Horse is locked" (Khóa huấn luyện)**:
+- **Phân định thẩm quyền (Role Authority)**:
+  - **Veterinarian (Bác sĩ Thú y)**: Có **thẩm quyền độc quyền** ban hành lệnh *"Khóa huấn luyện"* khẩn cấp (`PATCH /api/v1/horses/:id/lock` với `locked: true` kèm lý do chẩn đoán y tế) và gỡ khóa (`locked: false`) khi chiến mã hồi phục. Các vai trò khác (kể cả Manager hay Trainer) bị chặn `403 Forbidden` nếu gọi route này.
+  - **Head Trainer (HLV Trưởng)**: Là đối tượng **bị ảnh hưởng và kiểm soát** bởi lệnh khóa:
+    + Khi ngựa bị khóa (`locked === true`), Trainer bị chặn không thể lên lịch buổi tập mới (`POST /api/v1/horses/:id/sessions`), hệ thống ném ngoại lệ `400 VALIDATION_ERROR`: `"Horse training is locked: [Lý do]"`.
+    + Khi ngựa bị khóa hoặc chấn thương/cách ly, Trainer cũng bị chặn không thể đăng ký ngựa tham gia giải đua (`POST /api/v1/races/:id/entries`).
+    + Trainer được thông báo tức thời qua chuông Notification (`TRAINING_LOCKED`) để chủ động hủy hoặc sắp xếp lại lịch tập của CLB.
+- **Frontend Web App (`apps/web`)**:
+  - `HorseDetailPage.tsx`: Nút "Khóa tập luyện" / "Mở khóa tập" chỉ hiển thị cho `VET`.
+  - `SessionsTab.tsx`: Khi ngựa bị khóa, tự động hiển thị dải thông báo đỏ nổi bật cảnh báo lý do khóa từ Bác sĩ thú y và ẩn form lên lịch tập luyện.
+- **Kiểm chứng**:
+  - Test E2E `test/races.e2e-spec.ts`: Bổ sung kiểm thử chặn đăng ký giải đua cho ngựa bị khóa (14/14 tests pass).
+  - Toàn bộ backend test suite: **153/153 tests pass 100%**.
+  - Frontend `npm run build` ✅ không lỗi.
+
 ## 4. Việc tiếp theo
+
 
 MVP (Phase 0-5) đủ 4 main flow gốc. 3 luồng mở rộng sau-MVP (Phase 6-8)
 xong phần API. **Phase 9 + Phase 10 vá xong toàn bộ Sprint 2/3 remainder
