@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import type { Horse } from '../lib/types';
 import { useAuth } from '../auth/useAuth';
@@ -12,7 +13,6 @@ import { HorseStatusBadge } from '../components/horse/HorseStatusBadge';
 import { EditHorseModal } from '../components/horse/EditHorseModal';
 import { DeleteHorseModal } from '../components/horse/DeleteHorseModal';
 import { PhotoUploadModal } from '../components/horse/PhotoUploadModal';
-import { PedigreeTree } from '../components/horse/PedigreeTree';
 import { CameraIcon, LockIcon, UnlockIcon, EditIcon, TrashIcon } from '../components/Icons';
 import { PedigreeTab } from './horse/PedigreeTab';
 
@@ -27,9 +27,9 @@ function calculateAge(birthDate: string | null): string {
   );
   return ageYears >= 0 ? `${ageYears} tuổi` : '—';
 }
-type Tab = 'sessions' | 'health' | 'pedigree';
 
 export function HorseDetailPage() {
+  const { t } = useTranslation();
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -45,6 +45,7 @@ export function HorseDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [pedigreeVersion, setPedigreeVersion] = useState(0);
 
   const rawTab = params.get('tab');
   const tab: Tab =
@@ -55,8 +56,12 @@ export function HorseDetailPage() {
       ? rawTab
       : 'profile';
 
-  const setTab = (next: Tab) =>
-    setParams(next === 'profile' ? {} : { tab: next }, { replace: true });
+  const setTab = (next: Tab) => {
+    const nextParams = new URLSearchParams(params);
+    if (next === 'profile') nextParams.delete('tab');
+    else nextParams.set('tab', next);
+    setParams(nextParams, { replace: true });
+  };
 
   const loadHorse = useCallback(async () => {
     try {
@@ -71,17 +76,6 @@ export function HorseDetailPage() {
     }
   }, [id]);
 
-  const requestedTab = params.get('tab');
-  const tab: Tab =
-    requestedTab === 'health' || requestedTab === 'pedigree'
-      ? requestedTab
-      : 'sessions';
-  const setTab = (next: Tab) => {
-    const nextParams = new URLSearchParams(params);
-    if (next === 'sessions') nextParams.delete('tab');
-    else nextParams.set('tab', next);
-    setParams(nextParams, { replace: true });
-  };
   useEffect(() => {
     void loadHorse();
   }, [loadHorse]);
@@ -253,7 +247,7 @@ export function HorseDetailPage() {
           className={tab === 'pedigree' ? 'tab active' : 'tab'}
           onClick={() => setTab('pedigree')}
         >
-          Cây phả hệ (3 đời)
+          {t('tab.pedigree')}
         </button>
         <button
           type="button"
@@ -275,17 +269,6 @@ export function HorseDetailPage() {
           onClick={() => setTab('health')}
         >
           Hồ sơ y tế
-        </button>
-        <button
-          type="button"
-          className={
-            tab === 'pedigree'
-              ? 'tab active pedigree-tab-button'
-              : 'tab pedigree-tab-button'
-          }
-          onClick={() => setTab('pedigree')}
-        >
-          {t('tab.pedigree')}
         </button>
       </div>
 
@@ -334,7 +317,13 @@ export function HorseDetailPage() {
         </div>
       )}
 
-      {tab === 'pedigree' && <PedigreeTree horseId={horse.id} />}
+      {tab === 'pedigree' && (
+        <PedigreeTab
+          key={horse.id + ':' + pedigreeVersion}
+          horseId={horse.id}
+          onUpdated={loadHorse}
+        />
+      )}
       {tab === 'plans' && <PlansTab horse={horse} />}
       {tab === 'sessions' && (
         <SessionsTab
@@ -350,7 +339,10 @@ export function HorseDetailPage() {
         horse={horse}
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
-        onUpdated={loadHorse}
+        onUpdated={async () => {
+          await loadHorse();
+          setPedigreeVersion((version) => version + 1);
+        }}
       />
 
       <DeleteHorseModal
@@ -366,9 +358,6 @@ export function HorseDetailPage() {
         onClose={() => setPhotoOpen(false)}
         onUploaded={loadHorse}
       />
-      {tab === 'sessions' && <SessionsTab horseId={showing.id} />}
-      {tab === 'health' && <HealthTab horseId={showing.id} />}
-      {tab === 'pedigree' && <PedigreeTab horseId={showing.id} />}
     </div>
   );
 }

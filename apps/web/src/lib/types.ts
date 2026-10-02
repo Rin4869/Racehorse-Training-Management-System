@@ -37,9 +37,6 @@ export interface Horse {
   lockReason: string | null;
   photoPath: string | null;
   photoUrl: string | null;
-  sireId: string | null;
-  damId: string | null;
-  fitnessScore: number | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -108,14 +105,6 @@ export interface TrainingPlan {
   createdAt: string;
   updatedAt: string;
   sessions?: TrainingSession[];
-}
-
-export interface PedigreeNode {
-  id: string;
-  name: string;
-  fitnessScore: number | null;
-  sire: PedigreeNode | null;
-  dam: PedigreeNode | null;
 }
 
 export interface TrainingSession {

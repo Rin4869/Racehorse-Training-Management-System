@@ -4,8 +4,8 @@
 > mới tới [PLAN.md](PLAN.md) và [DECISIONS.md](DECISIONS.md).
 > Cập nhật file này mỗi khi kết thúc một mảng việc.
 
-Cập nhật lần cuối: **2026-09-30** — hoàn thành thiết kế và triển khai **Flow 1 Frontend (Horse Profile Management)** theo chuẩn `racehorse-design-system.html` (Tone Navy `#1c2b3a` / Cream `#f5f4f1` / Blue accent `#1a4b8a`, font Inter, status badges, metric cards, modal CRUD, phả hệ 3 đời, upload ảnh). Toàn bộ 149 test E2E backend + frontend build/lint đều PASS 100%.
-Cập nhật lần cuối: **2026-10-01** — UC-05 frontend; xem mục UC-05 bên dưới.
+> Historical testing-branch claim (2026-09-30; not validation of this merge): Cập nhật lần cuối: **2026-09-30** — hoàn thành thiết kế và triển khai **Flow 1 Frontend (Horse Profile Management)** theo chuẩn `racehorse-design-system.html` (Tone Navy `#1c2b3a` / Cream `#f5f4f1` / Blue accent `#1a4b8a`, font Inter, status badges, metric cards, modal CRUD, phả hệ 3 đời, upload ảnh). Toàn bộ 149 test E2E backend + frontend build/lint đều PASS 100%.
+Latest review: **2026-10-02** ? committed testing/Hai-work merge; see review below.
 
 Tổng kết backend (lịch sử): **2026-09-25** — kết thúc Phase 10 (Health & Injury
 extensions), hoàn tất Sprint 3 theo `CLAUDE_CODE_BACKEND_FULL.md` (xem
@@ -13,6 +13,133 @@ extensions), hoàn tất Sprint 3 theo `CLAUDE_CODE_BACKEND_FULL.md` (xem
 (Phase 6-8) xong phần API; Phase 9 (Sprint 2 remainder) + Phase 10 (Sprint 3
 remainder) **xong** — toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) đã
 được đối chiếu/hoàn thành phía API. Còn lại chủ yếu là **frontend** — xem §4.
+
+---
+
+## UC-05 ancestor navigation - 2026-10-02
+
+Known sire/dam/grandparent names now use React Router Link to
+/horses/<id>?tab=pedigree. Root and Unknown nodes remain
+plain text. Existing shared link styling is reused; no CSS or business-logic
+changes. Mocked browser checks passed ancestor navigation, browser Back, direct
+Pedigree URLs, manager edit/save and synchronization, pagination, null branches,
+non-manager roles, five tabs/one panel and EN/VI. Build and lint passed (existing
+bundle-size warning and 13 lint warnings); no conflict markers or duplicate
+types/fields; git diff --check passed. No backend/DB commands, commit or push.
+
+## UC-05 visual integration and regression review - 2026-10-02
+
+Continued on Hai-work at merge commit 94fe7a3, preserving all five unstaged
+post-merge corrections below. Per the explicit task direction, UC-05 now follows
+the CURRENT merged application (navy/Inter), superseding the earlier isolated
+Burgundy treatment for this task; this is not a global design-system rewrite.
+
+- Removed feature-local fonts, palette declarations, colored heading and special
+  tab styling. Reused shared card, button, input and underline-tab treatments.
+- Kept the three-generation tree, stronger root, medium parents, lighter
+  grandparents and subdued unknowns. CSS container queries stack narrow panels;
+  the compact editor uses two columns where space permits. Every custom selector
+  remains scoped beneath .pedigree. No global CSS or translation changes.
+- Styling inherits application tokens for future application-level themes;
+  there is no local switch or independent dark palette/global theme system.
+- No business logic or backend changes in this visual pass. Existing pagination,
+  raw parent initialization, validation, null clearing/termination, abort/retry,
+  role checks, save refresh and profile/editor synchronization remain intact.
+
+Verification rerun on this working tree:
+- Web npm run build: passed (137 modules, JS 509.08 kB); existing >500 kB warning.
+- Web npm run lint: exit 0, same 13 existing warnings; no autofix.
+- API npx --no-install prisma validate, npx --no-install prisma generate, and
+  npm run build: all passed. Generated client 6.19.3; existing package.json Prisma
+  configuration deprecation warning. No database migration, seed or E2E run.
+- git grep conflict-marker check: no matches; git diff --check: passed.
+- TypeScript AST review: unique interface/type declarations and Horse fields;
+  Horse fields from both merge parents retained, including healthStatus/locks.
+- JSON AST review: no duplicate EN/VI keys, both parents' keys retained, matching
+  EN/VI structures. Horse Detail retains five tabs, one UC-05 panel, profile
+  actions, query preservation and synchronized parent edits. PedigreeTree remains
+  unused; HorsePedigreePage retains the separate read-only route/navigation.
+- Temporary headless Edge harness against production preview, all API requests
+  mocked: pagination, both editor synchronization directions, null clearing and
+  termination, query preservation across all tabs, single sessions/health GET,
+  four non-manager read-only roles, EN/VI, native font/tab/shared surface, no local
+  toggle, standalone route and no CSS leakage passed; no uncaught exceptions.
+  A 320px-wide panel stacked with no tree overflow. Visually inspected profile,
+  plans, sessions, pedigree read/edit and standalone screenshots using UC05-Child,
+  UC05-Sire and UC05-Dam fixtures. These are mocked UI checks, not live persistence
+  or database authorization verification. No real API/database requests.
+
+Remaining limits: existing lint/bundle warnings, profile modal's 100-candidate
+limit, Vietnamese-only portions of merged screens, sparse styling on standalone
+HorsePedigreePage, and the prior review's backend documentation discrepancies
+remain outside this task. Application-wide mobile shell and dark theming were
+not redesigned; only the pedigree panel's responsive layout was checked.
+Live database/migration state is unverified. No staging, commit, push, pull,
+reset or new merge. Stop for human review.
+
+## Merge review ? 2026-10-02
+
+Actual state: merge already committed as `94fe7a3`, parents `a0dace8`
+(Hai-work) and `4d26ae0` (testing). Initial working tree clean; no MERGE_HEAD
+or staged changes. Reviewed HEAD against both parents without altering history.
+No tracked conflict markers found. Both parents' STATE content was retained;
+older validation/design claims below remain historical, not current evidence.
+
+Before correction: web build failed with 16 TypeScript errors; lint failed with
+three duplicate declarations. Horse repeated sireId/damId/fitnessScore and the
+PedigreeNode interface; Horse Detail combined both tab implementations, referenced
+undefined t/showing, and duplicated pedigree/session/health renders.
+
+Minimum corrections completed (unstaged):
+- Deduplicate types, preserving healthStatus, lock fields and all testing types.
+- Keep testing's profile/plans/sessions/health actions and profile default, one
+  translated pedigree tab using UC-05, and unrelated query parameters. Existing
+  session URLs with ?tab=sessions still work; no-tab URL uses testing's profile.
+- Synchronize Horse Detail/profile modal after UC-05 saves; refresh the pedigree
+  component after profile-modal writes to prevent stale competing editor values.
+- Scope UC-05 node CSS beneath .pedigree so it cannot style testing's standalone
+  HorsePedigreePage. Its /horses/:id/pedigree route and HorseRecordNav remain.
+  This standalone page is read-only; ?tab=pedigree is the editable manager view.
+  PedigreeTree is retained as an unused legacy component, no longer rendered in
+  Horse Detail. No route-path collision; two separate presentations remain.
+- EN/VI JSON keys are unique and contain all keys from both parents; no changes.
+
+Backend review: merged apps/api matches testing exactly. PreventiveCareType SQL
+adds the enum and non-null careType with VACCINATION default, matching schema,
+DTO and service. Training-plan list scopes OWNER through horse.ownerId and skips
+deleted horses; race-entry restrictions use existing horse fields. Prisma
+validate, Prisma generate (6.19.3), and npm run build passed. No migrations,
+seed, backend E2E, database inspection/write, pull, reset, commit or push.
+Live migration application is unverified. Existing STATE race-entry prose says
+TRAINER/injured-horse blocking, but the controller permits MANAGER and service
+checks locked/RETIRED/QUARANTINED, not INJURED alone; not changed in this review.
+Testing's wider navy/Inter styling and Vietnamese-only screens remain existing
+scope; workspace Markdown design rules still govern UC-05. Profile modal horse
+candidates still stop at 100 (testing behavior); UC-05 pagination is unchanged.
+
+Post-correction verification:
+- Web `npm run build`: passed, 137 modules; existing combined bundle exceeds
+  Vite's 500 kB warning threshold (509.08 kB). No dependency/bundling changes.
+- Web `npm run lint`: exit 0, 13 warnings in merged testing-side code (state
+  effects and memoization). No autofix or unrelated warning cleanup.
+- `git diff --check` and `git diff --cached --check`: passed; cached diff is
+  empty because the merge had already been committed.
+- Temporary headless Edge harness against the built Vite preview, with all API
+  requests intercepted/mocked: five tabs/one pedigree panel, parent pagination,
+  UC-05 save -> profile editor values, profile save -> tree refresh, null branch
+  termination, query preservation, single session/health GET, four read-only
+  roles, EN/VI labels, ancestor dark tokens/no local toggle, standalone route
+  and navigation without CSS leakage; no uncaught browser exceptions.
+  Command: `node "$env:TEMP/uc05-merge-review/merge-smoke.mjs" "$env:TEMP/uc05-merge-review"`
+  with `node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4175 --strictPort`
+  in apps/web and an isolated Edge CDP profile on 9335. No real API/DB calls.
+  An initial fixture choosing a page-2 parent exposed testing's existing modal
+  candidate limit: the raw ID survives but its selected option is absent. The
+  two-editor synchronization check then passed with a page-1 candidate; that
+  modal limit remains a separate finding, not fixed or concealed here.
+
+No source changes in apps/api, schema/migrations, package files, translations,
+or routes. Corrections remain unstaged; no in-progress merge to complete.
 
 ---
 

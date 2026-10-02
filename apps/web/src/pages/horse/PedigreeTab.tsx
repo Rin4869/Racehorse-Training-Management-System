@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 import type { Horse, Paginated, PedigreeNode } from '../../lib/types';
@@ -7,11 +8,16 @@ import { useAuth } from '../../auth/useAuth';
 import { Field } from '../../components/Field';
 import './PedigreeTab.css';
 
-export function PedigreeTab({ horseId }: { horseId: string }) {
-  return <PedigreeContent key={horseId} horseId={horseId} />;
+interface PedigreeTabProps {
+  horseId: string;
+  onUpdated?: () => void;
 }
 
-function PedigreeContent({ horseId }: { horseId: string }) {
+export function PedigreeTab({ horseId, onUpdated }: PedigreeTabProps) {
+  return <PedigreeContent key={horseId} horseId={horseId} onUpdated={onUpdated} />;
+}
+
+function PedigreeContent({ horseId, onUpdated }: PedigreeTabProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
@@ -44,7 +50,7 @@ function PedigreeContent({ horseId }: { horseId: string }) {
   }, [horseId, revision]);
 
   return (
-    <section className="pedigree stack" aria-label={t('tab.pedigree')}>
+    <section className="pedigree card stack" aria-label={t('tab.pedigree')}>
       <div className="row pedigree-heading">
         <h2>{t('tab.pedigree')}</h2>
         {isManager && !loading && !err && tree && !editing && (
@@ -71,6 +77,7 @@ function PedigreeContent({ horseId }: { horseId: string }) {
             setLoading(true);
             setErr(null);
             setRevision((v) => v + 1);
+            onUpdated?.();
           }}
         />
       )}
@@ -114,10 +121,14 @@ function Ancestor({
   const { t } = useTranslation();
   return (
     <li className={`pedigree-branch pedigree-level-${depth}`}>
-      <div className="pedigree-node">
+      <div className={node ? 'pedigree-node' : 'pedigree-node pedigree-node-unknown'}>
         <div className="pedigree-node-label">{label}</div>
         <strong className="pedigree-node-name">
-          {node?.name ?? t('pedigree.unknown')}
+          {node && depth < 3 ? (
+            <Link to={`/horses/${node.id}?tab=pedigree`}>{node.name}</Link>
+          ) : (
+            node?.name ?? t('pedigree.unknown')
+          )}
         </strong>
         {node && (
           <dl className="pedigree-node-fitness">
@@ -239,7 +250,7 @@ function EditPedigree({
   );
 
   return (
-    <form className="card form-grid pedigree-editor" onSubmit={save}>
+    <form className="form-grid pedigree-editor" onSubmit={save}>
       <h2>{t('pedigree.edit')}</h2>
       {loading ? (
         <p className="muted" role="status">
