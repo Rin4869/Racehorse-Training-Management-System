@@ -27,6 +27,7 @@ export function Layout() {
   const role: Role | null = user?.role ?? null;
 
   const handleLogout = async () => {
+    if (!window.confirm(t('nav.logoutConfirm'))) return;
     await logout();
     navigate('/login');
   };

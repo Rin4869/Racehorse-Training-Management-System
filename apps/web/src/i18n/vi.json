@@ -10,7 +10,8 @@
     "incidents": "Sự cố y tế",
     "notifications": "Thông báo",
     "users": "Người dùng",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "logoutConfirm": "Bạn chắc chắn muốn đăng xuất?"
   },
   "dashboard": {
     "title": "Tổng quan Hệ thống",
