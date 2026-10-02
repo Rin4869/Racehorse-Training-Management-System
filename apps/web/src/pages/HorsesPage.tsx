@@ -37,7 +37,7 @@ export function HorsesPage() {
   // Modal States
   const [createOpen, setCreateOpen] = useState(false);
   const [editingHorse, setEditingHorse] = useState<Horse | null>(null);
-  const [deletingHorse, setDeletingHorse] = useState<Horse | null>(null);
+  const [deletingHorse, setDeletingHorse] = useState<Horse | null>(null); 
 
   const load = useCallback(async () => {
     try {
