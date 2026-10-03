@@ -43,11 +43,13 @@ export function CreateHorseModal({ isOpen, onClose, onCreated }: CreateHorseModa
       await api.post('/horses', {
         name: name.trim(),
         ownerId,
+        gender,
         ...(breed.trim() ? { breed: breed.trim() } : {}),
         ...(birthDate ? { birthDate: new Date(birthDate).toISOString() } : {}),
         status,
       });
       setName('');
+      setGender('MALE');
       setBreed('');
       setBirthDate('');
       setOwnerId('');

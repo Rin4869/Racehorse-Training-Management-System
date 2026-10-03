@@ -162,7 +162,11 @@ POST   /health-records/:id/injury-locations  (VET)  {bodyRegion, side?, notes?}
 GET    /health-records/:id/injury-locations  (mọi role, ownership)
 
 POST   /horses/:id/vaccinations              (VET)  {vaccineName, date, nextDueDate?}
+POST   /horses/:id/vaccinations              (VET)  {vaccineName, date, nextDueDate?, careType?}
 GET    /horses/:id/vaccinations?page=&limit= (mọi role, ownership)
+GET    /vaccinations?upcoming=&careType=&page=&limit=  (MANAGER/TRAINER/VET/GROOM — OWNER 403)
+`careType` là `VACCINATION` hoặc `DEWORMING` (mặc định `VACCINATION` để tương thích dữ liệu cũ).
+`upcoming=true` lọc `nextDueDate` trong 30 ngày tới. Không có DELETE cho `InjuryLocation`/`TreatmentPlan`/
 GET    /vaccinations?upcoming=&page=&limit=  (MANAGER/TRAINER/VET/GROOM — OWNER 403)
 
 POST   /incidents/:id/photo                  (GROOM)  multipart field "file" (jpg/png/webp ≤5MB)

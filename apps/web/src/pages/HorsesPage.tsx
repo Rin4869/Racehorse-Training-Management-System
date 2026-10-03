@@ -22,9 +22,10 @@ function calculateAge(birthDate: string | null): string {
   return ageYears >= 0 ? `${ageYears} tuổi` : '—';
 }
 
-export function HorsesPage() {
+export function HorsesPage({ personal = false }: { personal?: boolean }) {
   const { user } = useAuth();
   const isManager = user?.role === 'MANAGER';
+  const isOwner = user?.role === 'OWNER';
 
   const [horses, setHorses] = useState<Horse[]>([]);
   const [loadErr, setLoadErr] = useState<unknown>(null);
@@ -47,6 +48,7 @@ export function HorsesPage() {
           limit: 100,
           ...(search.trim() ? { q: search.trim() } : {}),
           ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+          ...(personal && isOwner && user?.id ? { ownerId: user.id } : {}),
         },
       });
       setHorses(res.data.data);
@@ -56,7 +58,7 @@ export function HorsesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter]);
+  }, [search, statusFilter, personal, isOwner, user?.id]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

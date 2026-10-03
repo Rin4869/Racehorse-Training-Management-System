@@ -804,6 +804,29 @@ h3 {
 textarea.input {
   resize: vertical;
 }
+.password-input {
+  position: relative;
+}
+.password-input .input {
+  padding-right: 36px;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.password-toggle:hover {
+  color: var(--text-primary);
+}
 
 .form-grid {
   display: flex;
@@ -1062,4 +1085,196 @@ textarea.input {
   font-style: italic;
   font-size: 12px;
   background: var(--surface-subtle);
+}
+
+
+/* ---- Health Schedule ---- */
+.health-schedule-page {
+  --schedule-ink: var(--text-primary);
+  --schedule-muted: var(--text-secondary);
+  --schedule-line: var(--border-default);
+  --schedule-paper: var(--surface-card);
+  --schedule-ground: var(--surface-subtle);
+  --schedule-navy: var(--brand-navy);
+  --schedule-blue: var(--brand-navy);
+  --schedule-success: var(--status-success);
+  --schedule-success-bg: var(--status-success-bg);
+  --schedule-warning: var(--status-warning);
+  --schedule-warning-bg: var(--status-warning-bg);
+  --schedule-danger: var(--status-danger);
+  --schedule-danger-bg: var(--status-danger-bg);
+}
+
+.health-schedule-page .horse-page-heading .eyebrow {
+  color: var(--schedule-blue);
+}
+
+.health-schedule-page .horse-page-heading .muted {
+  color: var(--schedule-muted);
+}
+
+.health-schedule-page .horse-empty-state {
+  border-color: var(--schedule-line);
+  background: var(--schedule-paper);
+  color: var(--schedule-muted);
+}
+
+.health-schedule-form,
+.health-schedule-section {
+  margin-top: 20px;
+  border: 1px solid var(--schedule-line);
+  background: var(--schedule-paper);
+}
+
+.health-schedule-form {
+  padding: 18px 20px;
+  border-left: 3px solid var(--schedule-navy);
+}
+
+.health-schedule-form-heading h2 {
+  margin: 0 0 14px;
+  color: var(--schedule-ink);
+  font-size: 15px;
+}
+
+.health-schedule-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.health-schedule-page .field label {
+  color: var(--schedule-muted);
+}
+
+.health-schedule-page .input {
+  border-color: var(--schedule-line);
+  background: var(--schedule-paper);
+  color: var(--schedule-ink);
+}
+
+.health-schedule-page .btn-primary {
+  margin-top: 14px;
+  border-color: var(--schedule-navy);
+  background: var(--schedule-navy);
+  color: #ffffff;
+}
+
+.health-schedule-page .btn-primary:hover:not(:disabled) {
+  background: var(--brand-navy-hover);
+}
+
+.health-schedule-section {
+  padding: 0 18px 18px;
+}
+
+.health-schedule-toolbar {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--schedule-line);
+}
+
+.health-schedule-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--schedule-line);
+  border-radius: 6px;
+  background: var(--schedule-ground);
+}
+
+.health-schedule-tabs button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--schedule-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.health-schedule-tabs button.active {
+  background: var(--schedule-paper);
+  color: var(--schedule-navy);
+  box-shadow: 0 0 0 1px var(--schedule-line);
+  font-weight: 600;
+}
+
+.health-schedule-count {
+  color: var(--schedule-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.health-schedule-table-wrap {
+  overflow-x: auto;
+}
+
+.health-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--schedule-ink);
+  font-size: 13px;
+  text-align: left;
+}
+
+.health-schedule-table th,
+.health-schedule-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--schedule-line);
+  white-space: nowrap;
+}
+
+.health-schedule-table th {
+  color: var(--schedule-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.health-schedule-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.health-schedule-table tbody tr:hover {
+  background: var(--schedule-ground);
+}
+
+.health-schedule-table a {
+  color: var(--schedule-blue);
+  font-weight: 600;
+}
+
+.health-schedule-badge {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.health-schedule-badge.success {
+  background: var(--schedule-success-bg);
+  color: var(--schedule-success);
+}
+
+.health-schedule-badge.warning {
+  background: var(--schedule-warning-bg);
+  color: var(--schedule-warning);
+}
+
+.health-schedule-badge.danger {
+  background: var(--schedule-danger-bg);
+  color: var(--schedule-danger);
+}
+
+.health-schedule-badge.neutral {
+  background: var(--schedule-ground);
+  color: var(--schedule-muted);
 }

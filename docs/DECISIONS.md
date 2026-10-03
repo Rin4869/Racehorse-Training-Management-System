@@ -52,6 +52,29 @@ nhóm). Mới nhất lên đầu.
   - Từng vai trò có hệ thống thẻ KPI riêng (ví dụ: Vet theo dõi 4 trạng thái FIT/MONITORING/INJURED/QUARANTINED; Trainer theo dõi thể lực và giáo án; Groom theo dõi việc chăm sóc; Owner theo dõi ngựa sở hữu; Manager theo dõi danh mục tổng).
   - Khối Thao tác nhanh (Quick Actions) hiển thị chính xác các tác vụ được phép làm theo nghiệp vụ của vai trò đó.
 
+## 2026-10-02 — Chốt `testing` làm nền FE chuẩn (Flow 1 — Horse Profile)
+
+**Nguồn:** phát hiện trong lúc kiểm tra các nhánh team — nhiều thành viên
+tạo nhánh FE độc lập từ cùng 1 điểm (`cbf1f7e`) mà không dựa trên việc của
+nhau: `Flow01_HorseProfile` (hồ sơ ngựa), `Hai-work` (thêm tab phả hệ),
+`feat/flow-race-training-health` (viết lại gần như toàn bộ `HorsesPage`/
+`HorseDetailPage`/`Layout` theo cấu trúc khác). Cả 3 cùng sửa chung những
+file lõi theo cách không tương thích nhau — merge thẳng cả 3 vào `main`
+sẽ conflict nặng.
+**Quyết định:** Người dùng chọn `testing` (nhánh nối dài từ
+`Flow01_HorseProfile`, hoá ra khi kiểm tra lại đã tự tích hợp thêm phần
+lớn công việc của `feat/flow-race-training-health` — `HorseFormPage`,
+`HorseOwnershipPage`, `HorsePedigreePage`, `HorseRaceHistoryPage`,
+`HorseRecordNav`, `HealthSchedulePage` đều đã có mặt) làm **nền FE
+chuẩn**, merge PR #14 vào `main`. Kèm migration mới
+`preventive_care_type` (+enum `PreventiveCareType`, +`Vaccination.careType`).
+**Chưa xử lý:** nhánh `Hai-work` (tab phả hệ kiểu riêng của thành viên đó)
+**chưa merge** — theo quyết định người dùng, để nhóm tự xem lại có gì
+đáng giữ/gộp thêm vào nền `testing` này hay không, Claude Code không tự ý
+đụng vào.
+**Đã verify trên `main` sau merge:** `npm run build` ✅ (api+web) ·
+`npm run test:e2e` **154/154** ✅.
+
 ## 2026-09-30 — Nhớ email lần đăng nhập trước (giữ nguyên phiên 7 ngày)
 
 **Nguồn:** yêu cầu người dùng — ban đầu định rút phiên đăng nhập xuống 2

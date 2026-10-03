@@ -20,10 +20,12 @@ export interface UserRef {
 }
 
 export type HealthStatus = 'FIT' | 'MONITORING' | 'QUARANTINED' | 'INJURED';
+export type HorseGender = 'MALE' | 'FEMALE';
 
 export interface Horse {
   id: string;
   name: string;
+  gender: HorseGender | null;
   breed: string | null;
   birthDate: string | null;
   ownerId: string;
@@ -48,6 +50,48 @@ export interface PedigreeNode {
   fitnessScore: number | null;
   sire: PedigreeNode | null;
   dam: PedigreeNode | null;
+}
+
+export interface HorseRaceEntry {
+  id: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+  race: {
+    id: string;
+    name: string;
+    date: string;
+    venue: string | null;
+  };
+}
+
+export interface Race {
+  id: string;
+  name: string;
+  date: string;
+  venue: string | null;
+  distance: number | null;
+  surface: string | null;
+  prizePool: number | null;
+}
+
+export interface RaceEntry {
+  id: string;
+  raceId: string;
+  horseId: string;
+  position: number | null;
+  time: string | null;
+}
+
+export interface Vaccination {
+  id: string;
+  horseId: string;
+  horse?: { id: string; name: string };
+  careType?: 'VACCINATION' | 'DEWORMING';
+  vaccineName: string;
+  date: string;
+  nextDueDate: string | null;
+  createdAt: string;
 }
 
 

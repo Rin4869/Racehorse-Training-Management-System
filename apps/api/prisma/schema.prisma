@@ -30,6 +30,11 @@ enum HorseStatus {
   RETIRED
 }
 
+enum HorseGender {
+  MALE
+  FEMALE
+}
+
 // Phase 10 — deliberately separate from HorseStatus (career lifecycle):
 // this tracks current medical condition, HorseStatus tracks career stage.
 enum HealthStatus {
@@ -37,6 +42,11 @@ enum HealthStatus {
   MONITORING
   QUARANTINED
   INJURED
+}
+
+enum PreventiveCareType {
+  VACCINATION
+  DEWORMING
 }
 
 enum TreatmentPlanStatus {
@@ -137,6 +147,7 @@ model OtpCode {
 model Horse {
   id           String      @id @default(uuid())
   name         String
+  gender       HorseGender?
   breed        String?
   birthDate    DateTime?
   ownerId      String
@@ -347,10 +358,11 @@ model Vaccination {
   id          String    @id @default(uuid())
   horseId     String
   horse       Horse     @relation(fields: [horseId], references: [id])
+  careType    PreventiveCareType @default(VACCINATION)
   vaccineName String
   date        DateTime
   nextDueDate DateTime?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime           @default(now())
 
   @@index([horseId])
   @@index([nextDueDate])

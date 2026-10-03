@@ -159,3 +159,22 @@ export function ArrowRightIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function EyeIcon(props: IconProps) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon(props: IconProps) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-3.27 2.59A10.4 10.4 0 0 1 12 18c-7 0-11-7-11-7a18.5 18.5 0 0 1 4.22-5.19" />
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+      <line x1="2" y1="2" x2="22" y2="22" />
+    </svg>
+  );
+}
