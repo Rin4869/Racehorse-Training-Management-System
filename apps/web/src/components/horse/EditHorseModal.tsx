@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { api } from '../../lib/api';
-import type { Paginated, User, Horse, HorseStatus } from '../../lib/types';
+import type { Paginated, User, Horse, HorseGender, HorseStatus } from '../../lib/types';
 import { Field } from '../Field';
 import { ErrorText } from '../ErrorText';
 
@@ -15,6 +15,7 @@ export function EditHorseModal({ horse, isOpen, onClose, onUpdated }: EditHorseM
   const [owners, setOwners] = useState<User[]>([]);
   const [allHorses, setAllHorses] = useState<Horse[]>([]);
   const [name, setName] = useState('');
+  const [gender, setGender] = useState<HorseGender | ''>('');
   const [breed, setBreed] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [ownerId, setOwnerId] = useState('');
@@ -29,6 +30,7 @@ export function EditHorseModal({ horse, isOpen, onClose, onUpdated }: EditHorseM
     if (!isOpen || !horse) return;
     setErr(null);
     setName(horse.name);
+    setGender(horse.gender ?? '');
     setBreed(horse.breed ?? '');
     setBirthDate(horse.birthDate ? horse.birthDate.slice(0, 10) : '');
     setOwnerId(horse.ownerId);
@@ -69,6 +71,7 @@ export function EditHorseModal({ horse, isOpen, onClose, onUpdated }: EditHorseM
       const payload: Record<string, unknown> = {
         name: name.trim(),
         ownerId,
+        gender: gender ? gender : null,
         breed: breed.trim() ? breed.trim() : null,
         birthDate: birthDate ? new Date(birthDate).toISOString() : null,
         status,
@@ -120,6 +123,18 @@ export function EditHorseModal({ horse, isOpen, onClose, onUpdated }: EditHorseM
                     {o.name} ({o.email})
                   </option>
                 ))}
+              </select>
+            </Field>
+
+            <Field label="Giới tính">
+              <select
+                className="input"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as HorseGender | '')}
+              >
+                <option value="">— Chưa rõ —</option>
+                <option value="MALE">Đực</option>
+                <option value="FEMALE">Cái</option>
               </select>
             </Field>
 
