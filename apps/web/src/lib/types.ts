@@ -20,10 +20,12 @@ export interface UserRef {
 }
 
 export type HealthStatus = 'FIT' | 'MONITORING' | 'QUARANTINED' | 'INJURED';
+export type HorseGender = 'MALE' | 'FEMALE';
 
 export interface Horse {
   id: string;
   name: string;
+  gender: HorseGender | null;
   breed: string | null;
   birthDate: string | null;
   ownerId: string;

@@ -10,7 +10,8 @@
     "incidents": "Health Incidents",
     "notifications": "Notifications",
     "users": "Users",
-    "logout": "Log out"
+    "logout": "Log out",
+    "logoutConfirm": "Are you sure you want to log out?"
   },
   "dashboard": {
     "title": "System Overview Dashboard",

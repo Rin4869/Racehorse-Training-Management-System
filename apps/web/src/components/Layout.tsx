@@ -27,6 +27,7 @@ export function Layout() {
   const role: Role | null = user?.role ?? null;
 
   const handleLogout = async () => {
+    if (!window.confirm(t('nav.logoutConfirm'))) return;
     await logout();
     navigate('/login');
   };
@@ -129,16 +130,14 @@ export function Layout() {
             </span>
           </NavLink>
 
-          {/* Training Plans: MANAGER, TRAINER (curriculum), OWNER (view schedule) */}
-          {(role === 'MANAGER' || role === 'TRAINER' || role === 'OWNER') && (
-            <NavLink
-              to="/plans"
-              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
-            >
-              <span className="ico"><PlanIcon /></span>
-              <span>{role === 'TRAINER' ? 'Giáo án huấn luyện' : t('nav.plans')}</span>
-            </NavLink>
-          )}
+          {/* Training Plans: backend GET /training-plans has no @Roles — any authenticated role can view */}
+          <NavLink
+            to="/plans"
+            className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+          >
+            <span className="ico"><PlanIcon /></span>
+            <span>{role === 'TRAINER' ? 'Giáo án huấn luyện' : t('nav.plans')}</span>
+          </NavLink>
 
           {/* Races: MANAGER, TRAINER (register race), OWNER (race history) */}
           {(role === 'MANAGER' || role === 'TRAINER' || role === 'OWNER') && (
@@ -154,8 +153,8 @@ export function Layout() {
           )}
 
 
-          {/* Vaccinations & Deworming: MANAGER, TRAINER, VET */}
-          {(role === 'MANAGER' || role === 'TRAINER' || role === 'VET') && (
+          {/* Vaccinations & Deworming: backend chặn mỗi OWNER (xem vaccinations.controller.ts) */}
+          {(role === 'MANAGER' || role === 'TRAINER' || role === 'VET' || role === 'GROOM') && (
             <NavLink
               to="/vaccinations"
               className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
