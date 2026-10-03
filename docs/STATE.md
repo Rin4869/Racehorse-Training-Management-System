@@ -16,6 +16,101 @@ remainder) **xong** — toàn bộ `CLAUDE_CODE_BACKEND_FULL.md` (Sprint 0-3) đ
 
 ---
 
+## UC-10 read-only schedule hierarchy - 2026-10-03
+
+Grouped already-loaded sessions by Vietnam calendar date; time uses the same
+Asia/Ho_Chi_Minh display zone. Scoped CSS emphasizes time, uppercase type and
+adjacent status badge, plan title, secondary trainer and notes, with a subtle
+navy summary border. Success notice is compact; its existing clearing behavior
+is unchanged. No extra requests, business-rule or serialization changes.
+Creation modal and protected UC-11 state/handler/result/update JSX were verified
+byte-identical to the pre-refinement snapshot. Browser mocks passed UTC-midnight
+date grouping, EN/VI, 320px summary containment, modal create/refresh and result
+save. Desktop screenshot inspected. Build passed (138 modules, 516.02 kB bundle
+warning); lint passed with 13 existing warnings; diff check passed. No backend,
+DB, staging, commit or push operations.
+
+## UC-10 scheduling presentation refinement - 2026-10-03
+
+Scheduling now opens from a Trainer-only action in the shared modal style, with
+Cancel/X and compact footer actions. Successful creation closes the modal and
+refreshes sessions. Read-only summaries separate date/type/status badge and show
+plan goal (or no-plan/unavailable fallback), trainer and secondary notes. Shared
+same-horse plan pagination feeds both summaries and modal; no per-session reads.
+No scheduling contract, validation, time serialization, role or lock rule changes.
+UC-11 state/save handler and entire update button/form JSX verified byte-identical
+to the pre-refinement file; protected translations also unchanged. Backend untouched.
+Mock browser checks passed collapse/open/Cancel/X, with/without-plan saves,
+validation, conflict/lock detail, status/plan summaries, OWNER controls, EN/VI,
+390px modal and 320px summary containment, and existing result-save behavior.
+Build passed (137 modules, 515.60 kB JS); lint passed with existing warnings.
+No conflict markers; git diff --check passed. No DB writes, staging, commit or push.
+
+## UC-10 daily session scheduling - 2026-10-03
+
+Audit started from clean Hai-work HEAD 631f04e. Classification C: frontend
+partial, backend complete for the current contract. SessionsTab already creates
+sessions and separately edits results; no calendar/daily schedule route exists.
+Missing UI: optional same-horse plan selection, scheduling-specific validation
+and backend error detail. Its first-100 session limit can hide a newly created
+session. Implementation will extend this form/list, not create a competing UI.
+
+Contract: POST /horses/:id/sessions (TRAINER) accepts scheduledAt, type (1..80),
+notes (optional, <=2000), planId (optional UUID, same horse). trainerId is the
+caller; status defaults PLANNED. GET horse sessions and GET /sessions/:id allow
+all authenticated roles with OWNER horse scoping. PATCH permits TRAINER fields
+or GROOM status/result only; terminal sessions cannot change; DONE needs results.
+Plan POST/PATCH are TRAINER-only; plan reads are authenticated/OWNER-scoped.
+Plan dates must be ordered; plan creation blocks RETIRED/QUARANTINED, not locked.
+Session creation checks lock, then plan, then schedule conflicts; past/future
+ISO dates allowed, no plan-date-bound constraint. No duration/distance/surface/
+groom-assignment fields exist; only type and notes describe the scheduled work.
+Training lock is Horse.locked/lockReason, not a separate model.
+
+Evidence: training controller/service/DTOs/schema; specs phase-3-training,
+phase-7-training-plan-lock, phase-9-training-safety; API/DATA_MODEL/DECISIONS.
+Discrepancies retained: phase-9 prose says under 60 minutes, service uses inclusive
++/-60; DATA_MODEL claims timestamptz but schema has plain Prisma DateTime (no
+native timezone annotation). Historical API Phase 3 says plans are missing;
+Phase 7 supersedes that statement. No backend behavior/schema changes planned.
+Existing input conversion is browser-local -> UTC ISO; display is explicitly
+Asia/Ho_Chi_Minh. Keep the helper and label these conventions. No duplicate
+training routes, creation forms, DTO fields or TrainingSession declarations found.
+
+Implementation complete: extended the existing SessionsTab form with optional
+same-horse plan selection (all pages), retry on plan load failure, local required/
+length validation, backend scheduling error details, and a save confirmation.
+No-plan scheduling remains available if optional plan loading fails. Session
+refresh now reads all pages so later sessions are visible. Initial reads abort
+on unmount; horse-keyed content resets form/list state across horses. Reused
+shared controls and time helper; EN/VI labels explain device input and Vietnam
+display time. No CSS, routes, UC-05, UC-09/11 editor, schema or API source changes.
+
+Verification (2026-10-03): web npm run build passed (137 modules, JS 512.66 kB,
+existing >500 kB warning); npm run lint passed with the same 13 warnings. API
+npx --no-install prisma validate, npx --no-install prisma generate (6.19.3), and
+npm run build passed; existing package.json Prisma config deprecation warning.
+JSON AST checks found no duplicate keys; session EN/VI keys match. TypeScript AST
+checks found no duplicate type/interface declarations or training DTO fields.
+No conflict markers; no duplicate scheduling routes/forms; git diff --check passed.
+
+Temporary headless Edge against built Vite preview with all API calls mocked:
+Trainer form, required fields/trim validation, >100 plans and sessions, save with
+page-two plan and without plan, created session visibility, known/stale locks,
+backend date/conflict detail, plan-loading retry, OWNER denial and other role
+controls, UC-09 plan create/list, UC-11 Groom results, EN/VI passed. Browser-local
+09:30 serialized to 02:30Z in Bangkok and 14:30Z in New York (December fixture).
+Final harness run had no uncaught exceptions. These tests validate frontend
+behavior; backend role/ownership rules were source-reviewed, not live-tested.
+
+Limitations: no calendar/recurrence, duration/distance/surface fields or explicit
+groom/trainer assignment controls; current trainer is assigned by the server.
+All-page loading favors correctness for current club scale and can be costly for
+large histories. Existing UC-09 Vietnamese-only text and its list limits remain.
+No change to inclusive conflict boundary, input/display timezone conventions,
+backend state machine or authorization. No migration, seed, E2E, live DB mutation,
+staging, commit or push. Ready for human review.
+
 ## UC-05 ancestor navigation - 2026-10-02
 
 Known sire/dam/grandparent names now use React Router Link to
