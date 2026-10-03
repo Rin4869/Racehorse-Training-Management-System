@@ -131,6 +131,7 @@ export class HorsesService {
       data: {
         name: dto.name.trim(),
         ownerId: dto.ownerId,
+        gender: dto.gender ?? null,
         breed: dto.breed?.trim() ?? null,
         birthDate: this.parseBirthDate(dto.birthDate) ?? null,
         ...(dto.status ? { status: dto.status } : {}),
@@ -195,6 +196,7 @@ export class HorsesService {
 
     const data: Prisma.HorseUpdateInput = {};
     if (dto.name !== undefined) data.name = dto.name.trim();
+    if (dto.gender !== undefined) data.gender = dto.gender;
     if (dto.breed !== undefined) data.breed = dto.breed?.trim() ?? null;
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.ownerId !== undefined)
